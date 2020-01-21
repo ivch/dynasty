@@ -31,6 +31,7 @@ type userRegisterRequest struct {
 	FirstName  string `json:"first_name,omitempty" validate:"required"`
 	LastName   string `json:"last_name,omitempty" validate:"required"`
 	BuildingID int    `json:"building_id,omitempty" validate:"required"`
+	Code       string `json:"code" validate:"required"`
 }
 
 type userByEmailAndPasswordRequest struct {

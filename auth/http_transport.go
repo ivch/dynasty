@@ -20,7 +20,7 @@ func NewHTTPHandler(svc Service, log *zerolog.Logger) http.Handler {
 
 	r := chi.NewRouter()
 	r.Group(func(r chi.Router) {
-		r.Use(accessLogMiddleware(log))
+		//r.Use(accessLogMiddleware(log))
 
 		r.Method("POST", "/auth/v1/login", httptransport.NewServer(
 			makeLoginEndpoint(svc),
@@ -36,25 +36,6 @@ func NewHTTPHandler(svc Service, log *zerolog.Logger) http.Handler {
 	})
 
 	return r
-}
-
-var accessLogMiddleware = func(log *zerolog.Logger) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			start := time.Now()
-			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
-			next.ServeHTTP(ww, r)
-			duration := time.Since(start)
-			log.Info().
-				Str("tag", "http_log").
-				Str("remote_addr", r.RemoteAddr).
-				Str("request_method", r.Method).
-				Str("request_uri", r.RequestURI).
-				Int("response_code", ww.Status()).
-				Dur("duration", duration).
-				Msg("request")
-		})
-	}
 }
 
 func decodeRefreshTokenRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
@@ -117,4 +98,23 @@ func encodeHTTPError(_ context.Context, err error, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusInternalServerError)
 	json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+}
+
+var accessLogMiddleware = func(log *zerolog.Logger) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			start := time.Now()
+			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
+			next.ServeHTTP(ww, r)
+			duration := time.Since(start)
+			log.Info().
+				Str("tag", "http_log").
+				Str("remote_addr", r.RemoteAddr).
+				Str("request_method", r.Method).
+				Str("request_uri", r.RequestURI).
+				Int("response_code", ww.Status()).
+				Dur("duration", duration).
+				Msg("request")
+		})
+	}
 }

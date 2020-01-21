@@ -8,10 +8,11 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
-	service "github.com/dynastiateam/backend/auth"
+	authService "github.com/dynastiateam/backend/auth"
 	userClient "github.com/dynastiateam/backend/auth/client/user"
 
 	"github.com/go-chi/chi"
@@ -39,7 +40,7 @@ func main() {
 			log.Fatal("error loading .env file:" + err.Error())
 		}
 	}
-	cfg, err := service.InitConfig()
+	cfg, err := authService.InitConfig()
 	if err != nil {
 		log.Fatal("failed to init config: " + err.Error())
 	}
@@ -53,8 +54,8 @@ func main() {
 	}
 
 	userSrv := userClient.New(cfg.UserServiceHost)
-	srv := service.NewService(log, db, userSrv, cfg.JWTSecret)
-	handler := service.NewHTTPHandler(srv, log)
+	srv := authService.NewService(log, db, userSrv, cfg.JWTSecret)
+	handler := authService.NewHTTPHandler(srv, log)
 
 	if h, ok := handler.(*chi.Mux); ok {
 		h.Get("/user/about", func(w http.ResponseWriter, r *http.Request) {
@@ -66,6 +67,7 @@ func main() {
 			}) //nolint: errcheck
 		})
 		h.Get("/health", func(w http.ResponseWriter, r *http.Request) {})
+		h.Get("/auth/v1/gwfa", authCheck(log, srv))
 	}
 
 	server := &http.Server{
@@ -103,4 +105,22 @@ func newLogger(verbose bool) (logger *zerolog.Logger) {
 		logger = &prodLogger
 	}
 	return logger
+}
+
+func authCheck(log *zerolog.Logger, srv authService.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		token := r.Header.Get("Authorization")
+		if token == "" {
+			log.Warn().Msg("gateway forward auth: there is no Authorization header in request")
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		if err := srv.Gwfa(strings.TrimPrefix(token, "Bearer ")); err != nil {
+			log.Warn().Msgf("gateway forward auth: %v", err)
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}
 }

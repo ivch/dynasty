@@ -1,0 +1,15 @@
+providers:
+  file:
+    filename: "/etc/traefik/services.yml"
+
+log:
+  level: "ERROR"
+
+accessLog: {}
+
+api:
+  insecure: true
+
+entryPoints:
+  http:
+    address: ":80"

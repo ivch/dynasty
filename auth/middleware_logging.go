@@ -35,3 +35,12 @@ func (mw loggingMiddleware) Refresh(ctx context.Context, req *refreshTokenReques
 
 	return res, err
 }
+
+func (mw loggingMiddleware) Gwfa(token string) error {
+	err := mw.next.Gwfa(token)
+	if err != nil {
+		mw.log.Error().Msg(err.Error())
+	}
+
+	return err
+}

@@ -1,31 +1,43 @@
 version: '2.1'
 
 services:
-  authservice:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        - REPO=auth
-    environment:
-      - LOG_VERBOSE=true
-      - HTTP_PORT=9002
-      - DB_USER=postgres
-      - DB_PASS=postgres
-      - DB_HOST=dyndb
-      - DB_PORT=5432
-      - DB_SCHEMA=postgres
-      - DB_SSL=disable
-      - JWT_SECRET=!covabunga!
-      - USER_SERVICE_HOST=http://userservice:9001
-    expose:
-      - 9002
-    ports:
-      - 9002:9002
-    depends_on:
-      dyndb:
-        condition: service_healthy
+  #  traefik:
+  #    image: traefik:v2.1
+  #    container_name: "traefik"
+  #    ports:
+  #      - 80:80
+  #      - 9999:8080
+  #    volumes:
+  #      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+  #      - "./traefik.yml:/etc/traefik/traefik.yml"
+  #      - "./services.yml:/etc/traefik/services.yml"
+  #
+  #  authservice:
+  #    container_name: auth-service
+  #    build:
+  #      context: .
+  #      dockerfile: Dockerfile
+  #      args:
+  #        - REPO=auth
+  #    environment:
+  #      - LOG_VERBOSE=true
+  #      - HTTP_PORT=9002
+  #      - DB_USER=postgres
+  #      - DB_PASS=postgres
+  #      - DB_HOST=dyndb
+  #      - DB_PORT=5432
+  #      - DB_SCHEMA=postgres
+  #      - DB_SSL=disable
+  #      - JWT_SECRET=!covabunga!
+  #      - USER_SERVICE_HOST=http://userservice:9001
+  #    expose:
+  #      - 9002
+  #    depends_on:
+  #      dyndb:
+  #        condition: service_healthy
+
   userservice:
+    container_name: user-service
     build:
       context: .
       dockerfile: Dockerfile
@@ -43,10 +55,11 @@ services:
     expose:
       - 9001
     ports:
-      - 9001:9001
+    - 9001:9001
     depends_on:
       dyndb:
         condition: service_healthy
+
   dyndb:
     image: postgres:10.2
     command: postgres -c log_statement=all

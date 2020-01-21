@@ -17,6 +17,7 @@ import (
 type Service interface {
 	Login(ctx context.Context, request *loginRequest) (*loginResponse, error)
 	Refresh(ctx context.Context, r *refreshTokenRequest) (*loginResponse, error)
+	Gwfa(token string) error
 }
 
 type UserService interface {
@@ -73,6 +74,38 @@ func NewService(log *zerolog.Logger, db *gorm.DB, uSrv UserService, jwtSecret st
 	svc := newLoggingMiddleware(log, s)
 
 	return svc
+}
+
+var (
+	errParsingToken       = errors.New("failed to parse token")
+	errParsingTokenClaims = errors.New("failed to parse token claims")
+	errTokenIsInvalid     = errors.New("token is invalid")
+	errTokenExpired       = errors.New("token expired")
+)
+
+func (s *service) Gwfa(token string) error {
+	var myClaims Token
+	t, err := jwt.ParseWithClaims(token, &myClaims, func(token *jwt.Token) (i interface{}, e error) {
+		return []byte(s.jwtSecret), nil
+	})
+	if err != nil {
+		return fmt.Errorf("%s: %w", errParsingToken, err)
+	}
+
+	claims, ok := t.Claims.(*Token)
+	if !ok {
+		return errParsingTokenClaims
+	}
+
+	if !t.Valid {
+		return errTokenIsInvalid
+	}
+
+	if time.Now().Before(time.Unix(claims.ExpiresAt, 0)) {
+		return err
+	}
+
+	return nil
 }
 
 func (s *service) Refresh(ctx context.Context, r *refreshTokenRequest) (*loginResponse, error) {
