@@ -17,11 +17,11 @@ import (
 type Service interface {
 	Login(ctx context.Context, request *loginRequest) (*loginResponse, error)
 	Refresh(ctx context.Context, r *refreshTokenRequest) (*loginResponse, error)
-	Gwfa(token string) error
+	Gwfa(token string) (*int, error)
 }
 
 type UserService interface {
-	UserByEmailAndPassword(ctx context.Context, email, password string) (*userClient.User, error)
+	UserByPhoneAndPassword(ctx context.Context, phone, password string) (*userClient.User, error)
 	UserByID(ctx context.Context, id int) (*userClient.User, error)
 }
 
@@ -42,7 +42,7 @@ type session struct {
 }
 
 type loginRequest struct {
-	Email    string `json:"email" validate:"required,email"`
+	Phone    string `json:"phone" validate:"required"`
 	Password string `json:"password" validate:"required"`
 	//IP       net.IP `json:"ip" validate:"required"`
 	//Ua       string `json:"ua" validate:"required"`
@@ -83,29 +83,29 @@ var (
 	errTokenExpired       = errors.New("token expired")
 )
 
-func (s *service) Gwfa(token string) error {
+func (s *service) Gwfa(token string) (*int, error) {
 	var myClaims Token
 	t, err := jwt.ParseWithClaims(token, &myClaims, func(token *jwt.Token) (i interface{}, e error) {
 		return []byte(s.jwtSecret), nil
 	})
 	if err != nil {
-		return fmt.Errorf("%s: %w", errParsingToken, err)
+		return nil, fmt.Errorf("%s: %w", errParsingToken, err)
 	}
 
 	claims, ok := t.Claims.(*Token)
 	if !ok {
-		return errParsingTokenClaims
+		return nil, errParsingTokenClaims
 	}
 
 	if !t.Valid {
-		return errTokenIsInvalid
+		return nil, errTokenIsInvalid
 	}
 
-	if time.Now().Before(time.Unix(claims.ExpiresAt, 0)) {
-		return err
+	if time.Now().After(time.Unix(claims.ExpiresAt, 0)) {
+		return nil, errTokenExpired
 	}
 
-	return nil
+	return &claims.ID, nil
 }
 
 func (s *service) Refresh(ctx context.Context, r *refreshTokenRequest) (*loginResponse, error) {
@@ -144,7 +144,7 @@ func (s *service) Refresh(ctx context.Context, r *refreshTokenRequest) (*loginRe
 }
 
 func (s *service) Login(ctx context.Context, r *loginRequest) (*loginResponse, error) {
-	u, err := s.uSrv.UserByEmailAndPassword(ctx, r.Email, r.Password)
+	u, err := s.uSrv.UserByPhoneAndPassword(ctx, r.Phone, r.Password)
 	if err != nil {
 		return nil, err
 	}

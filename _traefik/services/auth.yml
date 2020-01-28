@@ -1,0 +1,15 @@
+http:
+  services:
+    auth-service:
+      loadBalancer:
+        servers:
+          - url: "http://auth-service:9002"
+
+  routers:
+    auth-public:
+      rule: "PathPrefix(`/auth`)"
+      service: "auth-service"
+      entryPoints:
+        - "http"
+      middlewares:
+        - "cors"

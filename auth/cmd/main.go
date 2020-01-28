@@ -58,7 +58,7 @@ func main() {
 	handler := authService.NewHTTPHandler(srv, log)
 
 	if h, ok := handler.(*chi.Mux); ok {
-		h.Get("/user/about", func(w http.ResponseWriter, r *http.Request) {
+		h.Get("/auth/about", func(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(map[string]string{
 				"version": Version,
 				"branch":  Branch,
@@ -115,12 +115,13 @@ func authCheck(log *zerolog.Logger, srv authService.Service) http.HandlerFunc {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-
-		if err := srv.Gwfa(strings.TrimPrefix(token, "Bearer ")); err != nil {
+		id, err := srv.Gwfa(strings.TrimPrefix(token, "Bearer "))
+		if err != nil {
 			log.Warn().Msgf("gateway forward auth: %v", err)
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
+		w.Header().Set("X-Auth-User", fmt.Sprint(*id))
 		w.WriteHeader(http.StatusOK)
 	}
 }

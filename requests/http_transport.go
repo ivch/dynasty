@@ -1,4 +1,4 @@
-package users
+package requests
 
 import (
 	"context"
@@ -30,27 +30,9 @@ func NewHTTPHandler(svc Service, log *zerolog.Logger) http.Handler {
 	r.Group(func(r chi.Router) {
 		r.Use(accessLogMiddleware(log))
 
-		r.Method("POST", "/users/v1/register", httptransport.NewServer(
-			makeRegisterEndpoint(svc),
-			decodeRegisterRequest(log),
-			encodeHTTPResponse,
-			options...))
-
-		r.Method("GET", "/users/v1/internal/user-phone-and-pass", httptransport.NewServer(
-			makeUserByPhoneAndPasswordEndpoint(svc),
-			decodeUserByPhoneAndPasswordRequest(log),
-			encodeHTTPResponse,
-			options...))
-
-		r.Method("GET", "/users/v1/internal/user/{id}", httptransport.NewServer(
-			makeUserByIDRequest(svc),
-			decodeUserByIDRequest(true),
-			encodeHTTPResponse,
-			options...))
-
-		r.Method("GET", "/users/v1/user", httptransport.NewServer(
-			makeUserByIDRequest(svc),
-			decodeUserByIDRequest(false),
+		r.Method("POST", "/requests/v1/request", httptransport.NewServer(
+			makeCreateEndpoint(svc),
+			decodeCreateRequest(log),
 			encodeHTTPResponse,
 			options...))
 	})
@@ -58,60 +40,32 @@ func NewHTTPHandler(svc Service, log *zerolog.Logger) http.Handler {
 	return r
 }
 
-func decodeUserByIDRequest(internal bool) httptransport.DecodeRequestFunc {
+func decodeCreateRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
 	return func(ctx context.Context, r *http.Request) (interface{}, error) {
-		idStr := chi.URLParam(r, "id")
-		if !internal {
-			idStr = ctx.Value(userIDCtxKey).(string)
-		}
-
-		if idStr == "" || idStr == "0" {
-			return "", errors.New("empty id")
-		}
-
-		id, err := strconv.Atoi(idStr)
-		if err != nil {
-			return "", err
-		}
-
-		return id, nil
-	}
-}
-
-func decodeUserByPhoneAndPasswordRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
-	return func(_ context.Context, r *http.Request) (request interface{}, err error) {
-		req := userByPhoneAndPasswordRequest{
-			Phone:    r.URL.Query().Get("phone"),
-			Password: r.URL.Query().Get("pwd"),
-		}
-		if err := validator.New().Struct(&req); err != nil {
-			log.Error().Msg(err.Error())
-			return nil, err
-		}
-
-		return &req, nil
-	}
-}
-
-func decodeRegisterRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
-	return func(_ context.Context, r *http.Request) (interface{}, error) {
-		var req userRegisterRequest
+		var req createRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			log.Error().Err(err).Msg("failed to decode request")
-			return nil, errors.New("failed to decode request")
-		}
-
-		if err := validator.New().Struct(&req); err != nil {
 			return nil, err
 		}
 
-		if req.Phone[0] == '+' {
-			req.Phone = req.Phone[1:]
+		userIDStr, ok := ctx.Value(userIDCtxKey).(string)
+		if !ok {
+			return nil, errors.New("user id is required")
+		}
+
+		userID, err := strconv.ParseUint(userIDStr, 10, 64)
+		if err != nil {
+			return nil, errors.New("wrong user id")
+		}
+
+		req.UserID = uint(userID)
+		if err := validator.New().Struct(&req); err != nil {
+			log.Error().Err(err).Msg("error validating request")
+			return nil, err
 		}
 
 		return &req, nil
 	}
-
 }
 
 func encodeHTTPResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {

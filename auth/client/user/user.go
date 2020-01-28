@@ -60,12 +60,12 @@ func (c *Client) UserByID(ctx context.Context, id int) (*User, error) {
 	return &u, nil
 }
 
-func (c *Client) UserByEmailAndPassword(ctx context.Context, email, password string) (*User, error) {
-	if email == "" {
-		return nil, errors.New("empty email")
+func (c *Client) UserByPhoneAndPassword(ctx context.Context, phone, password string) (*User, error) {
+	if phone == "" {
+		return nil, errors.New("empty phone")
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/users/v1/user?email=%s&pwd=%s", c.url, email, password), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/users/v1/internal/user-phone-and-pass?phone=%s&pwd=%s", c.url, phone, password), nil)
 	if err != nil {
 		return nil, fmt.Errorf("create request: %w", err)
 	}

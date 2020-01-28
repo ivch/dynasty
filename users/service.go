@@ -13,65 +13,80 @@ const defaultUserRole = 4
 
 var (
 	errUserNotFound       = errors.New("user not found")
-	errUserEmailExists    = errors.New("user with this email already exists")
+	errUserPhoneExists    = errors.New("user with this phone number already exists")
 	errInvalidCredentials = errors.New("invalid login credentials")
+	errInvalidRegCode     = errors.New("registration code is invalid or used")
 )
 
 type Service interface {
 	Register(ctx context.Context, req *userRegisterRequest) (*userRegisterResponse, error)
-	UserByEmailAndPassword(ctx context.Context, r *userByEmailAndPasswordRequest) (*User, error)
+	UserByPhoneAndPassword(ctx context.Context, r *userByPhoneAndPasswordRequest) (*User, error)
 	UserByID(ctx context.Context, id int) (*userByIDResponse, error)
 }
 
 type userRegisterRequest struct {
-	Apartment  int    `json:"apartment,omitempty" validate:"required"`
-	Email      string `json:"email,omitempty" validate:"required,email"`
 	Password   string `json:"password,omitempty" validate:"required"`
 	Phone      string `json:"phone,omitempty" validate:"required"`
 	FirstName  string `json:"first_name,omitempty" validate:"required"`
 	LastName   string `json:"last_name,omitempty" validate:"required"`
 	BuildingID int    `json:"building_id,omitempty" validate:"required"`
+	Apartment  uint   `json:"apartment,omitempty" validate:"required"`
+	Email      string `json:"email,omitempty" validate:"email"`
 	Code       string `json:"code" validate:"required"`
 }
 
-type userByEmailAndPasswordRequest struct {
-	Email    string `validate:"required,email"`
+type userByPhoneAndPasswordRequest struct {
+	Phone    string `validate:"required"`
 	Password string `validate:"required"`
 }
 
 type userByIDResponse struct {
-	ID        int    `json:"id"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Phone     string `json:"phone"`
-	Email     string `json:"email"`
+	ID        uint     `json:"id"`
+	Apartment uint     `json:"apartment"`
+	FirstName string   `json:"first_name"`
+	LastName  string   `json:"last_name"`
+	Phone     string   `json:"phone"`
+	Email     string   `json:"email"`
+	Building  Building `json:"building"`
 }
 
 type userRegisterResponse struct {
-	ID    int    `json:"id"`
-	Email string `json:"email"`
+	ID    uint   `json:"id"`
+	Phone string `json:"email"`
 }
 
 type User struct {
-	ID          int    `json:"id"`
-	Apartment   int    `json:"apartment,omitempty"`
-	Email       string `json:"email,omitempty"`
-	Password    string `json:"password,omitempty"`
-	Phone       string `json:"phone,omitempty"`
-	FirstName   string `json:"first_name,omitempty"`
-	LastName    string `json:"last_name,omitempty"`
-	Role        int    `json:"role,omitempty"`
-	ResidenceID int    `json:"residence_id,omitempty"`
-	BuildingID  int    `json:"building_id,omitempty"`
+	ID         uint `gorm:"primary_key"`
+	Building   Building
+	Apartment  uint   `json:"apartment,omitempty"`
+	Email      string `json:"email,omitempty"`
+	Password   string `json:"password,omitempty"`
+	Phone      string `json:"phone,omitempty"`
+	FirstName  string `json:"first_name,omitempty"`
+	LastName   string `json:"last_name,omitempty"`
+	Role       int    `json:"role,omitempty"`
+	BuildingID int    `gorm:"building_id"`
 }
+
+func (User) TableName() string { return "users" }
+
+type Building struct {
+	ID      uint   `gorm:"primary_key" json:"id"`
+	Name    string `json:"name"`
+	Address string `json:"address"`
+}
+
+func (Building) TableName() string { return "buildings" }
 
 type service struct {
-	db *gorm.DB
+	db            *gorm.DB
+	verifyRegCode bool
 }
 
-func NewService(log *zerolog.Logger, db *gorm.DB) Service {
+func New(log *zerolog.Logger, db *gorm.DB, verifyRegCode bool) Service {
 	s := &service{
-		db: db,
+		db:            db,
+		verifyRegCode: verifyRegCode,
 	}
 	svc := newLoggingMiddleware(log, s)
 
@@ -80,21 +95,23 @@ func NewService(log *zerolog.Logger, db *gorm.DB) Service {
 
 func (s *service) UserByID(_ context.Context, id int) (*userByIDResponse, error) {
 	var u User
-	if err := s.db.Where("id = ?", id).First(&u).Error; err != nil {
+	if err := s.db.Debug().Preload("Building").Where("id = ?", id).First(&u).Error; err != nil {
 		return nil, err
 	}
 
 	return &userByIDResponse{
 		ID:        u.ID,
+		Apartment: u.Apartment,
 		FirstName: u.FirstName,
 		LastName:  u.LastName,
 		Phone:     u.Phone,
 		Email:     u.Email,
+		Building:  u.Building,
 	}, nil
 }
 
-func (s *service) UserByEmailAndPassword(ctx context.Context, r *userByEmailAndPasswordRequest) (*User, error) {
-	u, err := s.userByEmail(ctx, r.Email)
+func (s *service) UserByPhoneAndPassword(ctx context.Context, r *userByPhoneAndPasswordRequest) (*User, error) {
+	u, err := s.userByPhone(ctx, r.Phone)
 	if err != nil {
 		return nil, err
 	}
@@ -107,9 +124,9 @@ func (s *service) UserByEmailAndPassword(ctx context.Context, r *userByEmailAndP
 	return u, nil
 }
 
-func (s *service) userByEmail(_ context.Context, email string) (*User, error) {
+func (s *service) userByPhone(_ context.Context, phone string) (*User, error) {
 	var u User
-	if err := s.db.Where("email = ?", email).First(&u).Error; err != nil {
+	if err := s.db.Where("phone = ?", phone).First(&u).Error; err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return nil, errUserNotFound
 		}
@@ -119,13 +136,24 @@ func (s *service) userByEmail(_ context.Context, email string) (*User, error) {
 }
 
 func (s *service) Register(ctx context.Context, r *userRegisterRequest) (*userRegisterResponse, error) {
-	u, err := s.userByEmail(ctx, r.Email)
+	u, err := s.userByPhone(ctx, r.Phone)
 	if err != nil && err != errUserNotFound {
 		return nil, err
 	}
 
 	if u != nil {
-		return nil, errUserEmailExists
+		return nil, errUserPhoneExists
+	}
+
+	if s.verifyRegCode {
+		var code struct{ Exists bool }
+		if err := s.db.Raw("select exists(select id from reg_codes where code = ? and not used)", r.Code).Scan(&code).Error; err != nil {
+			return nil, err
+		}
+
+		if !code.Exists {
+			return nil, errInvalidRegCode
+		}
 	}
 
 	pwd, err := s.hashAndSalt(r.Password)
@@ -134,23 +162,32 @@ func (s *service) Register(ctx context.Context, r *userRegisterRequest) (*userRe
 	}
 
 	usr := User{
-		Apartment:  r.Apartment,
-		BuildingID: r.BuildingID,
-		Email:      r.Email,
-		Phone:      r.Phone,
-		FirstName:  r.FirstName,
-		LastName:   r.LastName,
-		Password:   pwd,
-		Role:       defaultUserRole,
+		Apartment: r.Apartment,
+		//BuildingID: r.BuildingID,
+		Email:     r.Email,
+		Phone:     r.Phone,
+		FirstName: r.FirstName,
+		LastName:  r.LastName,
+		Password:  pwd,
+		Role:      defaultUserRole,
 	}
 
 	if err := s.db.Create(&usr).Error; err != nil {
 		return nil, err
 	}
 
+	if s.verifyRegCode {
+		if err := s.db.Exec("update reg_codes set used = true where code = ?", r.Code).Error; err != nil {
+			if err := s.db.Delete(&usr).Error; err != nil {
+				return nil, err
+			}
+			return nil, err
+		}
+	}
+
 	return &userRegisterResponse{
 		ID:    usr.ID,
-		Email: usr.Email,
+		Phone: usr.Phone,
 	}, nil
 }
 

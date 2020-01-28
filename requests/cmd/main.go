@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	service "github.com/dynastiateam/backend/users"
+	requestService "github.com/dynastiateam/backend/requests"
 
 	"github.com/go-chi/chi"
 	"github.com/jinzhu/gorm"
@@ -38,24 +38,25 @@ func main() {
 			log.Fatal("error loading .env file:" + err.Error())
 		}
 	}
-	cfg, err := service.InitConfig()
+	cfg, err := requestService.InitConfig()
 	if err != nil {
 		log.Fatal("failed to init config: " + err.Error())
 	}
 
-	logger := newLogger(cfg.LogVerbose)
+	log := newLogger(cfg.LogVerbose)
 
 	db, err := gorm.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		cfg.DB.Host, cfg.DB.Port, cfg.DB.User, cfg.DB.Password, cfg.DB.Database, cfg.DB.SSL))
 	if err != nil {
-		logger.Fatal().Err(err).Msg("failed to connect to db")
+		log.Fatal().Err(err)
 	}
 
-	srv := service.New(logger, db, cfg.VerifyRegCode)
-	handler := service.NewHTTPHandler(srv, logger)
+	//userSrv := userClient.New(cfg.UserServiceHost)
+	srv := requestService.New(log, db)
+	handler := requestService.NewHTTPHandler(srv, log)
 
 	if h, ok := handler.(*chi.Mux); ok {
-		h.Get("/user/about", func(w http.ResponseWriter, r *http.Request) {
+		h.Get("/requests/about", func(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(map[string]string{
 				"version": Version,
 				"branch":  Branch,
@@ -76,15 +77,15 @@ func main() {
 	go func() {
 		<-signals
 		if err := server.Shutdown(context.Background()); err != nil {
-			logger.Fatal().Err(err).Msg("error on server shutdown")
+			log.Fatal().Err(err).Msg("error on server shutdown")
 		}
 
 		close(signals)
 	}()
 
-	logger.Info().Msg(fmt.Sprintf("HTTP listener started on :%s @ %s", cfg.HTTPPort, time.Now().Format(time.RFC3339)))
+	log.Info().Msg(fmt.Sprintf("HTTP listener started on :%s @ %s", cfg.HTTPPort, time.Now().Format(time.RFC3339)))
 	if err := server.ListenAndServe(); err != nil {
-		logger.Fatal().Err(err).Msg("failed to start http listener")
+		log.Fatal().Err(err)
 	}
 }
 

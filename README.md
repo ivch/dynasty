@@ -4,21 +4,14 @@
 ## Run
 `docker-compose up`
 
-## Endpoints
-`/users` -> http://localhost:9001
-
-`/auth` -> http://localhost:9002
-
 ## API 
 
-Request:
+Login user
 ```
 POST /auth/v1/login
 
-{"email":"test@test.com", "password":"qwerty"}
-```
-Response:
-```
+{"phone":"380671234567", "password":"qwerty"}
+
 #success
 HTTP/1.1 200 OK
 
@@ -32,14 +25,12 @@ HTTP/1.1 500 Internal Server Error
 {"error":"error text"}
 ```
 
-Request:
+Refresh access token
 ```
 POST /auth/v1/refresh
 
 {"token":"395a6fac-3aee-4891-8ed9-ec5546b8777c"}
-```
-Response:
-```
+
 #success
 HTTP/1.1 200 OK
 
@@ -53,15 +44,12 @@ HTTP/1.1 500 Internal Server Error
 {"error":"error text"}
 ```
 
-
-Request:
+Create User
 ```
 POST /users/v1/register
 
-{"email":"test@test.com","first_name":"John","last_name":"Doe","apartment":1,"phone":"380671234567","password":"qwerty", "building_id": 2}
-```
-Response:
-```
+{"email":"test@test.com","first_name":"John","last_name":"Doe","apartment":1,"phone":"380671234567","password":"qwerty", "building_id": 2, "code": "as12da"}
+
 #success
 HTTP/1.1 200 OK
 
@@ -75,13 +63,10 @@ HTTP/1.1 500 Internal Server Error
 {"error":"error text"}
 ```
 
-Request:
+Get User info (for given access token)
 ```
-GET /users/v1/user/{id}
+GET /users/v1/user
 
-```
-Response:
-```
 #success
 HTTP/1.1 200 OK
 
@@ -91,6 +76,23 @@ HTTP/1.1 200 OK
     "last_name": "Doe",
     "phone": "380671234567",
     "email": "test@test.com"
+}
+
+# Any internal error
+HTTP/1.1 500 Internal Server Error
+{"error":"error text"}
+```
+
+Create request
+```
+POST /requests/v1/request
+{"type":"taxi", "time":1580218937, "description":"blabla comment"}
+
+#success
+HTTP/1.1 200 OK
+
+{
+    "id": "1",
 }
 
 # Any internal error

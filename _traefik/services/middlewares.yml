@@ -1,0 +1,23 @@
+http:
+  middlewares:
+    auth:
+      forwardAuth:
+        address: "http://auth-service:9002/auth/v1/gwfa"
+        authResponseHeaders:
+          - "X-Auth-User"
+    cors:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - POST
+          - OPTIONS
+          - PUT
+        accessControlAllowHeaders:
+          - "Content-Type"
+          - "Authorization"
+        accessControlAllowOrigin: "*"
+        accessControlMaxAge: 100
+        addVaryHeader: true
+    devnull:
+      replacePath:
+        path: "/devnull"

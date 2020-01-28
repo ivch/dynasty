@@ -1,4 +1,4 @@
-package users
+package requests
 
 import (
 	"os"
@@ -8,10 +8,12 @@ import (
 )
 
 type Config struct {
-	HTTPPort      string `validate:"required"`
-	LogVerbose    bool
-	VerifyRegCode bool
-	DB            DBConfig
+	HTTPPort   string `validate:"required"`
+	LogVerbose bool
+	DB         DBConfig
+
+	//UserServiceHost string `validate:"required"`
+	//JWTSecret       string `validate:"required"`
 }
 
 type DBConfig struct {
@@ -29,9 +31,10 @@ func InitConfig() (*Config, error) {
 	v.AutomaticEnv()
 
 	c := Config{
-		HTTPPort:      v.GetString("HTTP_PORT"),
-		LogVerbose:    v.GetBool("LOG_VERBOSE"),
-		VerifyRegCode: v.GetBool("VERIFY_REG_CODE"),
+		HTTPPort:   v.GetString("HTTP_PORT"),
+		LogVerbose: v.GetBool("LOG_VERBOSE"),
+		//UserServiceHost: v.GetString("USER_SERVICE_HOST"),
+		//JWTSecret:       v.GetString("JWT_SECRET"),
 		DB: DBConfig{
 			Host:     os.Getenv("DB_HOST"),
 			Port:     os.Getenv("DB_PORT"),

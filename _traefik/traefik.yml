@@ -1,6 +1,7 @@
 providers:
   file:
-    filename: "/etc/traefik/services.yml"
+    directory: "/etc/traefik/services"
+#    filename: "/etc/traefik/services.yml"
 
 log:
   level: "ERROR"

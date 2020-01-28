@@ -27,8 +27,8 @@ func (mw loggingMiddleware) Register(ctx context.Context, req *userRegisterReque
 	return res, err
 }
 
-func (mw loggingMiddleware) UserByEmailAndPassword(ctx context.Context, r *userByEmailAndPasswordRequest) (*User, error) {
-	res, err := mw.next.UserByEmailAndPassword(ctx, r)
+func (mw loggingMiddleware) UserByPhoneAndPassword(ctx context.Context, r *userByPhoneAndPasswordRequest) (*User, error) {
+	res, err := mw.next.UserByPhoneAndPassword(ctx, r)
 	if err != nil {
 		mw.log.Error().Msg(err.Error())
 	}

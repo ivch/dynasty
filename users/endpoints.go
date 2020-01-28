@@ -12,9 +12,9 @@ func makeRegisterEndpoint(svc Service) endpoint.Endpoint {
 	}
 }
 
-func makeUserByEmailAndPasswordEndpoint(svc Service) endpoint.Endpoint {
+func makeUserByPhoneAndPasswordEndpoint(svc Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		return svc.UserByEmailAndPassword(ctx, request.(*userByEmailAndPasswordRequest))
+		return svc.UserByPhoneAndPassword(ctx, request.(*userByPhoneAndPasswordRequest))
 	}
 }
 
