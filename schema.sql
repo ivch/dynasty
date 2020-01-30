@@ -25,7 +25,8 @@ insert into buildings (name, address)
 values ('Дом 1', 'Липковского 37-Г'),
        ('Дом 2', 'Липковского 37-Б');
 
-create table if not exists users
+-- auto-generated definition
+create table users
 (
     id            serial not null
         constraint user_pk
@@ -43,16 +44,15 @@ create table if not exists users
     residence_id  integer,
     building_id   integer
         constraint user_buildings_id_fk
-            references buildings (id)
-            on delete cascade,
+            references buildings (id),
     refresh_token varchar
 );
 
 alter table users
     owner to postgres;
 
-create index if not exists user_email_index
-    on users (email);
+create index user_phone_index
+    on users (phone);
 
 create table sessions
 (

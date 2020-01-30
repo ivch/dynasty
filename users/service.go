@@ -163,17 +163,17 @@ func (s *service) Register(ctx context.Context, r *userRegisterRequest) (*userRe
 	}
 
 	usr := User{
-		Apartment: r.Apartment,
-		// BuildingID: r.BuildingID,
-		Email:     r.Email,
-		Phone:     r.Phone,
-		FirstName: r.FirstName,
-		LastName:  r.LastName,
-		Password:  pwd,
-		Role:      defaultUserRole,
+		Apartment:  r.Apartment,
+		BuildingID: r.BuildingID,
+		Email:      r.Email,
+		Phone:      r.Phone,
+		FirstName:  r.FirstName,
+		LastName:   r.LastName,
+		Password:   pwd,
+		Role:       defaultUserRole,
 	}
 
-	if err := s.db.Create(&usr).Error; err != nil {
+	if err := s.db.Debug().Create(&usr).Error; err != nil {
 		return nil, err
 	}
 
