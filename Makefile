@@ -19,6 +19,13 @@ lint:
 	GO111MODULE=off go get github.com/golangci/golangci-lint/cmd/golangci-lint
 	golangci-lint run
 
+.PHONY: deps
+deps:
+	rm -rf vendor
+	go mod download
+	go mod vendor
+	go mod tidy
+
 ifeq ($(service),)
 .PHONY: build
 build:
