@@ -12,6 +12,7 @@ http:
           - POST
           - OPTIONS
           - PUT
+          - DELETE
         accessControlAllowHeaders:
           - "Content-Type"
           - "Authorization"

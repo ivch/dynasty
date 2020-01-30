@@ -23,10 +23,10 @@ ifeq ($(service),)
 .PHONY: build
 build:
 	for i in ${SERVICES}; do \
-		docker build --build-arg SERVICE=$$i -t $$i  . ; \
+		docker build --build-arg SERVICE=$$i -t ivch/$$i:latest  . ; \
 	done
 else
 .PHONY: build
 build:
-	docker build --build-arg SERVICE=$(service) -t $(service)  .
+	docker build --build-arg SERVICE=$(service) -t ivch/$(service):latest  .
 endif

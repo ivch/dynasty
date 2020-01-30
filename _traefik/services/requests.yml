@@ -1,0 +1,17 @@
+http:
+  services:
+    requests-service:
+      loadBalancer:
+        servers:
+          - url: "http://requests-service:9003"
+
+  routers:
+    requests-public:
+      rule: "PathPrefix(`/requests`)"
+      service: "requests-service"
+      entryPoints:
+        - "http"
+      middlewares:
+        - "auth"
+        - "cors"
+      priority: 10

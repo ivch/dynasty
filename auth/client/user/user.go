@@ -16,7 +16,7 @@ type Client struct {
 }
 
 type User struct {
-	ID        int    `json:"id"`
+	ID        uint   `json:"id"`
 	Role      int    `json:"role,omitempty"`
 	FirstName string `json:"first_name,omitempty"`
 	LastName  string `json:"last_name,omitempty"`
@@ -37,12 +37,12 @@ func New(host string) *Client {
 	}
 }
 
-func (c *Client) UserByID(ctx context.Context, id int) (*User, error) {
+func (c *Client) UserByID(ctx context.Context, id uint) (*User, error) {
 	if id == 0 {
 		return nil, errors.New("empty id")
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/users/v1/user/%d", c.url, id), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/users/v1/internal/user/%d", c.url, id), nil)
 	if err != nil {
 		return nil, fmt.Errorf("create request: %w", err)
 	}

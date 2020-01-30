@@ -47,12 +47,13 @@ type userByIDResponse struct {
 	LastName  string   `json:"last_name"`
 	Phone     string   `json:"phone"`
 	Email     string   `json:"email"`
+	Role      uint     `json:"role"`
 	Building  Building `json:"building"`
 }
 
 type userRegisterResponse struct {
 	ID    uint   `json:"id"`
-	Phone string `json:"email"`
+	Phone string `json:"phone"`
 }
 
 type User struct {
@@ -117,7 +118,7 @@ func (s *service) UserByPhoneAndPassword(ctx context.Context, r *userByPhoneAndP
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(r.Password)); err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
-		//Password does not match!
+		// Password does not match!
 		return nil, errInvalidCredentials
 	}
 
@@ -163,7 +164,7 @@ func (s *service) Register(ctx context.Context, r *userRegisterRequest) (*userRe
 
 	usr := User{
 		Apartment: r.Apartment,
-		//BuildingID: r.BuildingID,
+		// BuildingID: r.BuildingID,
 		Email:     r.Email,
 		Phone:     r.Phone,
 		FirstName: r.FirstName,

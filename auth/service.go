@@ -17,12 +17,12 @@ import (
 type Service interface {
 	Login(ctx context.Context, request *loginRequest) (*loginResponse, error)
 	Refresh(ctx context.Context, r *refreshTokenRequest) (*loginResponse, error)
-	Gwfa(token string) (*int, error)
+	Gwfa(token string) (*uint, error)
 }
 
 type UserService interface {
 	UserByPhoneAndPassword(ctx context.Context, phone, password string) (*userClient.User, error)
-	UserByID(ctx context.Context, id int) (*userClient.User, error)
+	UserByID(ctx context.Context, id uint) (*userClient.User, error)
 }
 
 type service struct {
@@ -34,7 +34,7 @@ type service struct {
 
 type session struct {
 	ID           string
-	UserID       int
+	UserID       uint
 	RefreshToken uuid.UUID
 	ExpiresIn    int64
 	CreatedAt    time.Time
@@ -44,8 +44,8 @@ type session struct {
 type loginRequest struct {
 	Phone    string `json:"phone" validate:"required"`
 	Password string `json:"password" validate:"required"`
-	//IP       net.IP `json:"ip" validate:"required"`
-	//Ua       string `json:"ua" validate:"required"`
+	// IP       net.IP `json:"ip" validate:"required"`
+	// Ua       string `json:"ua" validate:"required"`
 }
 
 type loginResponse struct {
@@ -58,7 +58,7 @@ type refreshTokenRequest struct {
 }
 
 type Token struct {
-	ID   int
+	ID   uint
 	Name string
 	Role int
 	jwt.StandardClaims
@@ -83,7 +83,7 @@ var (
 	errTokenExpired       = errors.New("token expired")
 )
 
-func (s *service) Gwfa(token string) (*int, error) {
+func (s *service) Gwfa(token string) (*uint, error) {
 	var myClaims Token
 	t, err := jwt.ParseWithClaims(token, &myClaims, func(token *jwt.Token) (i interface{}, e error) {
 		return []byte(s.jwtSecret), nil
@@ -149,7 +149,7 @@ func (s *service) Login(ctx context.Context, r *loginRequest) (*loginResponse, e
 		return nil, err
 	}
 
-	//todo do not create session if user already has one
+	// todo do not create session if user already has one
 	rt, err := s.createSession(u.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create session: %w", err)
@@ -184,7 +184,7 @@ func (s *service) generateAccessToken(u *userClient.User) (string, error) {
 	return token.SignedString([]byte(s.jwtSecret))
 }
 
-func (s *service) createSession(userID int) (string, error) {
+func (s *service) createSession(userID uint) (string, error) {
 	rt := uuid.NewV4()
 	sess := session{
 		UserID:       userID,

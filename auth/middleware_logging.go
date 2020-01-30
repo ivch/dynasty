@@ -36,7 +36,7 @@ func (mw loggingMiddleware) Refresh(ctx context.Context, req *refreshTokenReques
 	return res, err
 }
 
-func (mw loggingMiddleware) Gwfa(token string) (*int, error) {
+func (mw loggingMiddleware) Gwfa(token string) (*uint, error) {
 	id, err := mw.next.Gwfa(token)
 	if err != nil {
 		mw.log.Error().Msg(err.Error())
