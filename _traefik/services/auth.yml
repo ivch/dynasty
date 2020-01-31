@@ -13,3 +13,4 @@ http:
         - "http"
       middlewares:
         - "cors"
+      priority: 10

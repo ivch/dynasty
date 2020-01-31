@@ -76,6 +76,10 @@ func (c *Client) UserByPhoneAndPassword(ctx context.Context, phone, password str
 	}
 	defer res.Body.Close()
 
+	if res.StatusCode != http.StatusOK {
+		return nil, errors.New("user with give credentials not found")
+	}
+
 	var u User
 	if err := json.NewDecoder(res.Body).Decode(&u); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)

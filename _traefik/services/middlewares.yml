@@ -9,14 +9,14 @@ http:
       headers:
         accessControlAllowMethods:
           - GET
-          - POST
           - OPTIONS
           - PUT
+          - POST
           - DELETE
+        accessControlAllowOrigin: "*"
         accessControlAllowHeaders:
           - "Content-Type"
           - "Authorization"
-        accessControlAllowOrigin: "*"
         accessControlMaxAge: 100
         addVaryHeader: true
     devnull:

@@ -6,7 +6,7 @@ http:
           - url: "http://requests-service:9003"
 
   routers:
-    requests-public:
+    requests-private:
       rule: "PathPrefix(`/requests`)"
       service: "requests-service"
       entryPoints:

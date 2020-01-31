@@ -20,7 +20,7 @@ func NewHTTPHandler(svc Service, log *zerolog.Logger) http.Handler {
 
 	r := chi.NewRouter()
 	r.Group(func(r chi.Router) {
-		//r.Use(accessLogMiddleware(log))
+		r.Use(accessLogMiddleware(log))
 
 		r.Method("POST", "/auth/v1/login", httptransport.NewServer(
 			makeLoginEndpoint(svc),
@@ -63,20 +63,20 @@ func decodeLoginRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
 			return nil, err
 		}
 
-		//ip, _, err := net.SplitHostPort(r.RemoteAddr)
-		//if err != nil {
+		// ip, _, err := net.SplitHostPort(r.RemoteAddr)
+		// if err != nil {
 		//	log.Error().Err(err).Msg("failed to parse host")
 		//	return nil, fmt.Errorf("userip: %q is not IP:port", r.RemoteAddr)
-		//}
+		// }
 		//
-		//userIP := net.ParseIP(ip)
-		//if userIP == nil {
+		// userIP := net.ParseIP(ip)
+		// if userIP == nil {
 		//	log.Error().Err(err).Msg("failed to parse ip")
 		//	return nil, fmt.Errorf("userip: %q is not IP:port", r.RemoteAddr)
-		//}
+		// }
 		//
-		//req.IP = userIP
-		//req.Ua = r.Header.Get("User-Agent")
+		// req.IP = userIP
+		// req.Ua = r.Header.Get("User-Agent")
 
 		if err := validator.New().Struct(&req); err != nil {
 			log.Error().Err(err).Msg("error validating request")

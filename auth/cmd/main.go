@@ -33,7 +33,7 @@ var (
 	BuildTime = time.Now().Format(time.RFC822)
 )
 
-//nolint: funlen
+// nolint: funlen
 func main() {
 	if _, err := os.Stat(".env"); !os.IsNotExist(err) {
 		if err := godotenv.Load(".env"); err != nil {
@@ -64,7 +64,7 @@ func main() {
 				"branch":  Branch,
 				"commit":  Commit,
 				"time":    BuildTime,
-			}) //nolint: errcheck
+			}) // nolint: errcheck
 		})
 		h.Get("/health", func(w http.ResponseWriter, r *http.Request) {})
 		h.Get("/auth/v1/gwfa", authCheck(log, srv))
