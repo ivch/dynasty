@@ -1,6 +1,7 @@
 providers:
   file:
     directory: "/etc/traefik/services"
+    watch: true
 
 log:
   level: "ERROR"
@@ -13,3 +14,5 @@ api:
 entryPoints:
   http:
     address: ":80"
+  https:
+    address: ":443"

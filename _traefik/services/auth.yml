@@ -10,7 +10,9 @@ http:
       rule: "PathPrefix(`/auth`)"
       service: "auth-service"
       entryPoints:
-        - "http"
+        - "https"
+      tls:
+        certresolver: sample
       middlewares:
         - "cors"
       priority: 10

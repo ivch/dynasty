@@ -1,0 +1,25 @@
+http:
+  services:
+    sample:
+      loadBalancer:
+        servers:
+          - url: "http://sample-service:9005"
+
+  routers:
+    sample-public:
+      rule: "Path(`/hello`)"
+      service: "sample"
+      entryPoints:
+        - "https"
+#      tls:
+#        certresolver: tst
+#      priority: 10
+
+
+certificatesResolvers:
+  tst:
+    acme:
+      email: "i.chobotar@gmail.com"
+      storage: acme.json
+      httpChallenge:
+        entryPoint: http
