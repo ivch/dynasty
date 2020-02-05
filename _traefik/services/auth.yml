@@ -23,4 +23,4 @@ http:
         certResolver: le
       middlewares:
         - "cors"
-      priority: 10
+      priority: 10000
