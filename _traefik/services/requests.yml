@@ -6,11 +6,21 @@ http:
           - url: "http://requests-service:9003"
 
   routers:
-    requests-private:
+    requests-http-to-https:
       rule: "PathPrefix(`/requests`)"
       service: "requests-service"
       entryPoints:
         - "http"
+      middlewares:
+        - "https_redirect"
+
+    requests-private:
+      rule: "Host(`ivch.dev`) && PathPrefix(`/requests`)"
+      service: "requests-service"
+      entryPoints:
+        - "https"
+      tls:
+        certResolver: le
       middlewares:
         - "auth"
         - "cors"
