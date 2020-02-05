@@ -6,11 +6,21 @@ http:
           - url: "http://auth-service:9002"
 
   routers:
-    auth-public:
+    auth-http-to-https:
       rule: "PathPrefix(`/auth`)"
       service: "auth-service"
       entryPoints:
         - "http"
+      middlewares:
+        - "https_redirect"
+
+    auth-public:
+      rule: "PathPrefix(`/auth`)"
+      service: "auth-service"
+      entryPoints:
+        - "https"
+      tls:
+        certResolver: le
       middlewares:
         - "cors"
       priority: 10
