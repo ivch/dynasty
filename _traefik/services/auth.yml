@@ -11,8 +11,6 @@ http:
       service: "auth-service"
       entryPoints:
         - "http"
-      tls:
-        certresolver: sample
       middlewares:
         - "cors"
       priority: 10

@@ -6,11 +6,17 @@ http:
           - url: "http://sample-service:9005"
 
   routers:
+    sample-http:
+      entryPoints:
+        - "http"
+      middlewares:
+        - "https_redirect"
+      rule: "HostRegexp(`{any:.+}`)"
+      service: "sample"
+
     sample-public:
       rule: "Host(`ivch.dev`) && Path(`/hello`)"
       service: "sample"
-      middlewares:
-        - "tohttps"
       entryPoints:
         - "https"
       tls:

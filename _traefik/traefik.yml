@@ -4,7 +4,7 @@ providers:
     watch: true
 
 log:
-  level: "ERROR"
+  level: "DEBUG"
 
 accessLog: {}
 

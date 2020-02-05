@@ -5,6 +5,7 @@ http:
         address: "http://auth-service:9002/auth/v1/gwfa"
         authResponseHeaders:
           - "X-Auth-User"
+
     cors:
       headers:
         accessControlAllowMethods:
@@ -19,9 +20,12 @@ http:
           - "Authorization"
         accessControlMaxAge: 100
         addVaryHeader: true
+
     devnull:
       replacePath:
         path: "/devnull"
-    tohttps:
+
+    https_redirect:
       redirectScheme:
         scheme: https
+        permanent: true
