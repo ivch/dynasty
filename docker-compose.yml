@@ -88,6 +88,16 @@ services:
       dyndb:
         condition: service_healthy
 
+  sampleservice:
+    container_name: sample-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - SERVICE=sample
+    expose:
+      - 9005
+
   dyndb:
     image: postgres:10.2
     command: postgres -c log_statement=all
