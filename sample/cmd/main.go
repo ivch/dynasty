@@ -13,6 +13,7 @@ func main() {
 		io.WriteString(w, "Hello, world!\n")
 	}
 
+	fmt.Println("started sample service")
 	http.HandleFunc("/hello", helloHandler)
 	log.Fatal(http.ListenAndServe(":9005", nil))
 }

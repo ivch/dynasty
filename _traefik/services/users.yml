@@ -10,7 +10,7 @@ http:
       rule: "PathPrefix(`/users/v1/internal`)"
       service: "user-service"
       entryPoints:
-        - "http"
+        - "https"
       priority: 100
       middlewares:
         - "devnull"

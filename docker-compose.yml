@@ -12,6 +12,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "./_traefik/traefik.yml:/etc/traefik/traefik.yml"
       - "./_traefik/services:/etc/traefik/services"
+      - "./letsencrypt:/letsencrypt/"
 
   authservice:
     container_name: auth-service

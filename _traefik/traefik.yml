@@ -16,3 +16,12 @@ entryPoints:
     address: ":80"
   https:
     address: ":443"
+
+certificatesResolvers:
+  le:
+    acme:
+      email: i.chobotar@gmail.com
+      storage: /letsencrypt/acme.json
+      httpChallenge:
+        entryPoint: http
+#      caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"root@docker-s-1vcpu-1gb-fr
