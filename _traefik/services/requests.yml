@@ -10,7 +10,7 @@ http:
       rule: "PathPrefix(`/requests`)"
       service: "requests-service"
       entryPoints:
-        - "https"
+        - "http"
       middlewares:
         - "auth"
         - "cors"

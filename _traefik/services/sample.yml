@@ -5,11 +5,13 @@ http:
         servers:
           - url: "http://sample-service:9005"
 
-routers:
-  sample-public:
-    rule: "Host(`ivch.dev`) && Path(`/hello`)"
-    service: "sample"
-    entryPoints:
-      - "https"
-    tls:
-      certResolver: le
+  routers:
+    sample-public:
+      rule: "Host(`ivch.dev`) && Path(`/hello`)"
+      service: "sample"
+      middlewares:
+        - "tohttps"
+      entryPoints:
+        - "https"
+      tls:
+        certResolver: le

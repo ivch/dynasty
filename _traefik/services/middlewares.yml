@@ -22,3 +22,6 @@ http:
     devnull:
       replacePath:
         path: "/devnull"
+    tohttps:
+      redirectScheme:
+        scheme: https
