@@ -7,7 +7,7 @@ http:
 
   routers:
     auth-http-to-https:
-      rule: "PathPrefix(`/auth`)"
+      rule: "Host(`ivch.dev`) && PathPrefix(`/auth`)"
       service: "auth-service"
       entryPoints:
         - "http"
@@ -15,7 +15,7 @@ http:
         - "https_redirect"
 
     auth-public:
-      rule: "PathPrefix(`/auth`)"
+      rule: "Host(`ivch.dev`) && PathPrefix(`/auth`)"
       service: "auth-service"
       entryPoints:
         - "https"
