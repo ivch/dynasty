@@ -11,7 +11,7 @@ http:
         - "http"
       middlewares:
         - "https_redirect"
-      rule: "HostRegexp(`{any:.+}`)"
+      rule: "Path(`/hello`)"
       service: "sample"
 
     sample-public:
