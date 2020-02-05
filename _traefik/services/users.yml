@@ -6,14 +6,6 @@ http:
           - url: "http://user-service:9001"
 
   routers:
-    user-http-to-https:
-      rule: "PathPrefix(`/users`)"
-      service: "user-service"
-      entryPoints:
-        - "http"
-      middlewares:
-        - "https_redirect"
-
     user-internal:
       rule: "PathPrefix(`/users/v1/internal`)"
       service: "user-service"
@@ -45,3 +37,12 @@ http:
         - "auth"
         - "cors"
       priority: 10
+
+    user-http-to-https:
+      rule: "PathPrefix(`/users`)"
+      service: "user-service"
+      entryPoints:
+        - "http"
+      middlewares:
+        - "https_redirect"
+      priority: 1
