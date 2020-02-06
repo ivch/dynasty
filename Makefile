@@ -25,4 +25,16 @@ deps:
 
 .PHONY: build
 build:
-	docker build  -t ivch/dynasty:latest  .
+	docker build -t ivch/dynasty:latest  .
+
+.PHONY: cover
+cover:
+	GO111MODULE=off go get github.com/axw/gocov/gocov
+	GO111MODULE=off go get -u gopkg.in/matm/v1/gocov-html
+	${GOPATH}/bin/gocov test ./... | ${GOPATH}/bin/gocov-html > coverage.html
+	open coverage.html
+
+.PHONY: gen
+gen:
+	GO111MODULE=off go get github.com/matryer/moq
+	${GOPATH}/bin/moq -out modules/auth/auth_mock.go modules/auth UserService
