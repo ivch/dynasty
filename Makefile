@@ -7,6 +7,10 @@ ifneq ($(version),)
 	IMAGE_TAG := $(version)
 endif
 
+.PHONY: rundb
+rundb:
+	docker-compose -f docker-database.yml up -d
+
 .PHONY: test
 test:
 	go test -v -mod=vendor -cover -count=1 ./...
