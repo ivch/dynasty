@@ -1,103 +1,103 @@
 version: '2.1'
 
 services:
-  traefik:
-    image: traefik:v2.1
-    container_name: "traefik"
-    ports:
-      - 80:80
-      - 443:443
-      - 9999:8080
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "./_traefik/traefik.yml:/etc/traefik/traefik.yml"
-      - "./_traefik/services:/etc/traefik/services"
-      - "./letsencrypt:/letsencrypt/"
+  #  traefik:
+  #    image: traefik:v2.1
+  #    container_name: "traefik"
+  #    ports:
+  #      - 80:80
+  #      - 443:443
+  #      - 9999:8080
+  #    volumes:
+  #      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+  #      - "./_traefik/traefik.yml:/etc/traefik/traefik.yml"
+  #      - "./_traefik/services:/etc/traefik/services"
+  #      - "./letsencrypt:/letsencrypt/"
+  #
+  #  authservice:
+  #    container_name: auth-service
+  #    image: ivch/auth:latest
+  #    #    build:
+  #    #      context: .
+  #    #      dockerfile: Dockerfile
+  #    #      args:
+  #    #        - REPO=auth
+  #    environment:
+  #      - LOG_VERBOSE=true
+  #      - HTTP_PORT=9002
+  #      - DB_USER=postgres
+  #      - DB_PASS=postgres
+  #      - DB_HOST=dyndb
+  #      - DB_PORT=5432
+  #      - DB_SCHEMA=postgres
+  #      - DB_SSL=disable
+  #      - JWT_SECRET=!covabunga!
+  #      - USER_SERVICE_HOST=http://userservice:9001
+  #    expose:
+  #      - 9002
+  #    depends_on:
+  #      dyndb:
+  #        condition: service_healthy
 
-  authservice:
-    container_name: auth-service
-    image: ivch/auth:latest
-    #    build:
-    #      context: .
-    #      dockerfile: Dockerfile
-    #      args:
-    #        - REPO=auth
-    environment:
-      - LOG_VERBOSE=true
-      - HTTP_PORT=9002
-      - DB_USER=postgres
-      - DB_PASS=postgres
-      - DB_HOST=dyndb
-      - DB_PORT=5432
-      - DB_SCHEMA=postgres
-      - DB_SSL=disable
-      - JWT_SECRET=!covabunga!
-      - USER_SERVICE_HOST=http://userservice:9001
-    expose:
-      - 9002
-    depends_on:
-      dyndb:
-        condition: service_healthy
+#  userservice:
+  #    container_name: user-service
+  #    image: ivch/users:latest
+  #    #    build:
+  #    #      context: .
+  #    #      dockerfile: Dockerfile
+  #    #      args:
+  #    #        - REPO=users
+  #    environment:
+  #      - LOG_VERBOSE=true
+  #      - HTTP_PORT=9001
+  #      - DB_USER=postgres
+  #      - DB_PASS=postgres
+  #      - DB_HOST=dyndb
+  #      - DB_PORT=5432
+  #      - DB_SCHEMA=postgres
+  #      - DB_SSL=disable
+  #    expose:
+  #      - 9001
+  #    ports:
+  #      - 9001:9001
+  #    depends_on:
+  #      dyndb:
+  #        condition: service_healthy
 
-  userservice:
-    container_name: user-service
-    image: ivch/users:latest
-    #    build:
-    #      context: .
-    #      dockerfile: Dockerfile
-    #      args:
-    #        - REPO=users
-    environment:
-      - LOG_VERBOSE=true
-      - HTTP_PORT=9001
-      - DB_USER=postgres
-      - DB_PASS=postgres
-      - DB_HOST=dyndb
-      - DB_PORT=5432
-      - DB_SCHEMA=postgres
-      - DB_SSL=disable
-    expose:
-      - 9001
-    ports:
-      - 9001:9001
-    depends_on:
-      dyndb:
-        condition: service_healthy
+  #  requestservice:
+  #    container_name: requests-service
+  #    image: ivch/requests:latest
+  #    #    build:
+  #    #      context: .
+  #    #      dockerfile: Dockerfile
+  #    #      args:
+  #    #        - REPO=users
+  #    environment:
+  #      - LOG_VERBOSE=true
+  #      - HTTP_PORT=9003
+  #      - DB_USER=postgres
+  #      - DB_PASS=postgres
+  #      - DB_HOST=dyndb
+  #      - DB_PORT=5432
+  #      - DB_SCHEMA=postgres
+  #      - DB_SSL=disable
+  #    expose:
+  #      - 9003
+  #    ports:
+  #      - 9003:9003
+  #    depends_on:
+  #      dyndb:
+  #        condition: service_healthy
 
-  requestservice:
-    container_name: requests-service
-    image: ivch/requests:latest
-    #    build:
-    #      context: .
-    #      dockerfile: Dockerfile
-    #      args:
-    #        - REPO=users
-    environment:
-      - LOG_VERBOSE=true
-      - HTTP_PORT=9003
-      - DB_USER=postgres
-      - DB_PASS=postgres
-      - DB_HOST=dyndb
-      - DB_PORT=5432
-      - DB_SCHEMA=postgres
-      - DB_SSL=disable
-    expose:
-      - 9003
-    ports:
-      - 9003:9003
-    depends_on:
-      dyndb:
-        condition: service_healthy
-
-#  sampleservice:
-#    container_name: sample-service
-#    build:
-#      context: .
-#      dockerfile: Dockerfile
-#      args:
-#        - SERVICE=sample
-#    expose:
-#      - 9005
+  #  sampleservice:
+  #    container_name: sample-service
+  #    build:
+  #      context: .
+  #      dockerfile: Dockerfile
+  #      args:
+  #        - SERVICE=sample
+  #    expose:
+  #      - 9005
 
   dyndb:
     image: postgres:10.2
