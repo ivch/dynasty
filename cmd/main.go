@@ -21,6 +21,7 @@ import (
 	uCli "github.com/ivch/dynasty/clients/users"
 	"github.com/ivch/dynasty/config"
 	"github.com/ivch/dynasty/modules/auth"
+	"github.com/ivch/dynasty/modules/requests"
 	"github.com/ivch/dynasty/modules/users"
 )
 
@@ -56,12 +57,14 @@ func main() {
 
 	usersModule, userService := users.New(db, cfg.UserService.VerifyRegCode, logger)
 	authModule := auth.New(logger, db, uCli.New(userService), cfg.AuthService.JWTSecret)
+	requestsModule := requests.New(logger, db)
 
 	r := chi.NewRouter()
 	r.Use(accessLogMiddleware(logger))
 
 	r.Mount("/users", usersModule)
 	r.Mount("/auth", authModule)
+	r.Mount("/requests", requestsModule)
 
 	r.Get("/about", func(w http.ResponseWriter, _ *http.Request) {
 		json.NewEncoder(w).Encode(map[string]string{

@@ -1,0 +1,6 @@
+http:
+  services:
+    dynasty:
+      loadBalancer:
+        servers:
+          - url: "http://dynasty:9001"

@@ -96,7 +96,7 @@ func newService(log *zerolog.Logger, db *gorm.DB, verifyRegCode bool) Service {
 
 func (s *service) UserByID(_ context.Context, id uint) (*userByIDResponse, error) {
 	var u User
-	if err := s.db.Debug().Preload("Building").Where("id = ?", id).First(&u).Error; err != nil {
+	if err := s.db.Preload("Building").Where("id = ?", id).First(&u).Error; err != nil {
 		return nil, err
 	}
 
@@ -147,13 +147,8 @@ func (s *service) Register(ctx context.Context, r *userRegisterRequest) (*userRe
 	}
 
 	if s.verifyRegCode {
-		var code struct{ Exists bool }
-		if err := s.db.Raw("select exists(select id from reg_codes where code = ? and not used)", r.Code).Scan(&code).Error; err != nil {
+		if err := s.validateRegCode(r.Code); err != nil {
 			return nil, err
-		}
-
-		if !code.Exists {
-			return nil, errInvalidRegCode
 		}
 	}
 
@@ -173,7 +168,7 @@ func (s *service) Register(ctx context.Context, r *userRegisterRequest) (*userRe
 		Role:       defaultUserRole,
 	}
 
-	if err := s.db.Debug().Create(&usr).Error; err != nil {
+	if err := s.db.Create(&usr).Error; err != nil {
 		return nil, err
 	}
 
@@ -190,6 +185,19 @@ func (s *service) Register(ctx context.Context, r *userRegisterRequest) (*userRe
 		ID:    usr.ID,
 		Phone: usr.Phone,
 	}, nil
+}
+
+func (s *service) validateRegCode(c string) error {
+	var code struct{ Exists bool }
+	if err := s.db.Raw("select exists(select id from reg_codes where code = ? and not used)", c).Scan(&code).Error; err != nil {
+		return err
+	}
+
+	if !code.Exists {
+		return errInvalidRegCode
+	}
+
+	return nil
 }
 
 func (s *service) hashAndSalt(pwd string) (string, error) {

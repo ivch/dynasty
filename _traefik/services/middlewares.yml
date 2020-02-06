@@ -1,0 +1,31 @@
+http:
+  middlewares:
+    auth:
+      forwardAuth:
+        address: "http://dynasty:9001/auth/v1/gwfa"
+        authResponseHeaders:
+          - "X-Auth-User"
+
+    cors:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - OPTIONS
+          - PUT
+          - POST
+          - DELETE
+        accessControlAllowOrigin: "*"
+        accessControlAllowHeaders:
+          - "Content-Type"
+          - "Authorization"
+        accessControlMaxAge: 100
+        addVaryHeader: true
+
+    devnull:
+      replacePath:
+        path: "/devnull"
+
+    https_redirect:
+      redirectScheme:
+        scheme: https
+        permanent: true

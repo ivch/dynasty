@@ -1,0 +1,44 @@
+http:
+  routers:
+    http-to-https:
+      rule: "PathPrefix(`/`)"
+      service: "dynasty"
+      entryPoints:
+        - "http"
+      middlewares:
+        - "https_redirect"
+      priority: 100
+
+    user-register:
+      rule: "PathPrefix(`/users/v1/register`)"
+      service: "dynasty"
+      entryPoints:
+        - "https"
+      tls:
+        certResolver: le
+      middlewares:
+        - "cors"
+      priority: 50
+
+    need-auth:
+      rule: "PathPrefix(`/users`) || PathPrefix(`/requests`)"
+      service: "dynasty"
+      entryPoints:
+        - "https"
+      tls:
+        certResolver: le
+      middlewares:
+        - "cors"
+        - "auth"
+      priority: 10
+
+    main:
+      rule: "PathPrefix(`/`)"
+      service: "dynasty"
+      entryPoints:
+        - "https"
+      tls:
+        certResolver: le
+      middlewares:
+        - "cors"
+      priority: 1

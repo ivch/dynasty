@@ -79,7 +79,7 @@ linters-settings:
     local-prefixes: stark,github.com/EdisonJunior
 
   gocyclo:
-    min-complexity: 10
+    min-complexity: 15
 
   dupl:
     # tokens count to trigger issue, 150 by default

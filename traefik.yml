@@ -1,0 +1,91 @@
+providers:
+  file:
+    filename: "/etc/traefik/traefik.yaml"
+
+log:
+  level: "DEBUG"
+
+accessLog: {}
+
+api:
+  insecure: true
+
+entryPoints:
+  http:
+    address: ":80"
+  https:
+    address: ":443"
+
+http:
+  #  SERVICES
+  services:
+    dynasty:
+      loadBalancer:
+        servers:
+          - url: "http://dynasty:9001"
+
+
+
+  #  ROUTERS
+  routers:
+    auth-http-to-https:
+      rule: "PathPrefix(`/auth`)"
+      service: "auth-service"
+      entryPoints:
+        - "http"
+      middlewares:
+        - "https_redirect"
+
+    auth-public:
+      rule: "Host(`ivch.dev`) && PathPrefix(`/auth`)"
+      service: "auth-service"
+      entryPoints:
+        - "https"
+      tls:
+        certResolver: le
+      middlewares:
+        - "cors"
+      priority: 10
+
+
+
+  #  MIDDLEWARES
+  middlewares:
+    auth:
+      forwardAuth:
+        address: "http://dynasty:9001/auth/v1/gwfa"
+        authResponseHeaders:
+          - "X-Auth-User"
+
+    cors:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - OPTIONS
+          - PUT
+          - POST
+          - DELETE
+        accessControlAllowOrigin: "*"
+        accessControlAllowHeaders:
+          - "Content-Type"
+          - "Authorization"
+        accessControlMaxAge: 100
+        addVaryHeader: true
+
+    devnull:
+      replacePath:
+        path: "/devnull"
+
+    https_redirect:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+certificatesResolvers:
+  le:
+    acme:
+      email: i.chobotar@gmail.com
+      storage: /letsencrypt/acme.json
+      httpChallenge:
+        entryPoint: http
+#      caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"

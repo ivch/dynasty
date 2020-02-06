@@ -72,7 +72,6 @@ func decodeRegisterRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc 
 
 		return &req, nil
 	}
-
 }
 
 func encodeHTTPResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
