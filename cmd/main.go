@@ -23,6 +23,7 @@ import (
 	"github.com/ivch/dynasty/modules/auth"
 	"github.com/ivch/dynasty/modules/requests"
 	"github.com/ivch/dynasty/modules/users"
+	"github.com/ivch/dynasty/repository"
 )
 
 var (
@@ -55,7 +56,7 @@ func main() {
 		logger.Fatal().Err(err).Msg("cannot connect to db")
 	}
 
-	usersModule, userService := users.New(db, cfg.UserService.VerifyRegCode, logger)
+	usersModule, userService := users.New(repository.NewUsers(db), cfg.UserService.VerifyRegCode, logger)
 	authModule := auth.New(logger, db, uCli.New(userService), cfg.AuthService.JWTSecret)
 	requestsModule := requests.New(logger, db)
 

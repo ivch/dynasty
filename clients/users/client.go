@@ -17,22 +17,17 @@ type User struct {
 	Email     string `json:"email"`
 }
 
-type Client interface {
-	UserByID(ctx context.Context, id uint) (*User, error)
-	UserByPhoneAndPassword(ctx context.Context, phone, password string) (*User, error)
-}
-
-type client struct {
+type Client struct {
 	svc users.Service
 }
 
-func New(svc users.Service) Client {
-	return &client{
+func New(svc users.Service) *Client {
+	return &Client{
 		svc: svc,
 	}
 }
 
-func (c *client) UserByID(ctx context.Context, id uint) (*User, error) {
+func (c *Client) UserByID(ctx context.Context, id uint) (*User, error) {
 	if id == 0 {
 		return nil, errors.New("empty id")
 	}
@@ -52,7 +47,7 @@ func (c *client) UserByID(ctx context.Context, id uint) (*User, error) {
 	}, nil
 }
 
-func (c *client) UserByPhoneAndPassword(ctx context.Context, phone, password string) (*User, error) {
+func (c *Client) UserByPhoneAndPassword(ctx context.Context, phone, password string) (*User, error) {
 	if phone == "" {
 		return nil, errors.New("empty phone")
 	}
@@ -66,7 +61,5 @@ func (c *client) UserByPhoneAndPassword(ctx context.Context, phone, password str
 		Role:      res.Role,
 		FirstName: res.FirstName,
 		LastName:  res.LastName,
-		Phone:     res.Phone,
-		Email:     res.Email,
 	}, nil
 }

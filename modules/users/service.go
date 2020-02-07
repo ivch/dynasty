@@ -2,53 +2,55 @@ package users
 
 import (
 	"context"
-	"errors"
 
-	"github.com/jinzhu/gorm"
 	"github.com/rs/zerolog"
 	"golang.org/x/crypto/bcrypt"
-)
 
-const defaultUserRole = 4
-
-var (
-	errUserNotFound       = errors.New("user not found")
-	errUserPhoneExists    = errors.New("user with this phone number already exists")
-	errInvalidCredentials = errors.New("invalid login credentials")
-	errInvalidRegCode     = errors.New("registration code is invalid or used")
+	"github.com/ivch/dynasty/models"
 )
 
 type Service interface {
 	Register(ctx context.Context, req *userRegisterRequest) (*userRegisterResponse, error)
-	UserByPhoneAndPassword(ctx context.Context, phone, password string) (*User, error)
+	UserByPhoneAndPassword(ctx context.Context, phone, password string) (*userAuthResponse, error)
 	UserByID(ctx context.Context, id uint) (*userByIDResponse, error)
 }
 
+type userRepository interface {
+	GetUserByID(id uint) (*models.User, error)
+	GetUserByPhone(phone string) (*models.User, error)
+	CreateUser(user *models.User) error
+	DeleteUser(u *models.User) error
+	ValidateRegCode(code string) error
+	UseRegCode(code string) error
+}
+
 type userRegisterRequest struct {
-	Password   string `json:"password,omitempty" validate:"required"`
+	Password   string `json:"password,omitempty" validate:"required,min=6"`
 	Phone      string `json:"phone,omitempty" validate:"required"`
 	FirstName  string `json:"first_name,omitempty" validate:"required"`
 	LastName   string `json:"last_name,omitempty" validate:"required"`
 	BuildingID int    `json:"building_id,omitempty" validate:"required"`
 	Apartment  uint   `json:"apartment,omitempty" validate:"required"`
 	Email      string `json:"email,omitempty" validate:"email"`
-	Code       string `json:"code" validate:"required"`
+	Code       string `json:"code"`
 }
 
-// type userByPhoneAndPasswordRequest struct {
-// 	Phone    string `validate:"required"`
-// 	Password string `validate:"required"`
-// }
+type userAuthResponse struct {
+	ID        uint   `json:"id"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Role      uint   `json:"role"`
+}
 
 type userByIDResponse struct {
-	ID        uint     `json:"id"`
-	Apartment uint     `json:"apartment"`
-	FirstName string   `json:"first_name"`
-	LastName  string   `json:"last_name"`
-	Phone     string   `json:"phone"`
-	Email     string   `json:"email"`
-	Role      uint     `json:"role"`
-	Building  Building `json:"building"`
+	ID        uint            `json:"id"`
+	Apartment uint            `json:"apartment"`
+	FirstName string          `json:"first_name"`
+	LastName  string          `json:"last_name"`
+	Phone     string          `json:"phone"`
+	Email     string          `json:"email"`
+	Role      uint            `json:"role"`
+	Building  models.Building `json:"building"`
 }
 
 type userRegisterResponse struct {
@@ -56,37 +58,14 @@ type userRegisterResponse struct {
 	Phone string `json:"phone"`
 }
 
-type User struct {
-	ID         uint `gorm:"primary_key"`
-	Building   Building
-	Apartment  uint   `json:"apartment,omitempty"`
-	Email      string `json:"email,omitempty"`
-	Password   string `json:"password,omitempty"`
-	Phone      string `json:"phone,omitempty"`
-	FirstName  string `json:"first_name,omitempty"`
-	LastName   string `json:"last_name,omitempty"`
-	Role       uint   `json:"role,omitempty"`
-	BuildingID int    `gorm:"building_id"`
-}
-
-func (User) TableName() string { return "users" }
-
-type Building struct {
-	ID      uint   `gorm:"primary_key" json:"id"`
-	Name    string `json:"name"`
-	Address string `json:"address"`
-}
-
-func (Building) TableName() string { return "buildings" }
-
 type service struct {
-	db            *gorm.DB
+	repo          userRepository
 	verifyRegCode bool
 }
 
-func newService(log *zerolog.Logger, db *gorm.DB, verifyRegCode bool) Service {
+func newService(log *zerolog.Logger, repo userRepository, verifyRegCode bool) Service {
 	s := &service{
-		db:            db,
+		repo:          repo,
 		verifyRegCode: verifyRegCode,
 	}
 	svc := newLoggingMiddleware(log, s)
@@ -95,8 +74,8 @@ func newService(log *zerolog.Logger, db *gorm.DB, verifyRegCode bool) Service {
 }
 
 func (s *service) UserByID(_ context.Context, id uint) (*userByIDResponse, error) {
-	var u User
-	if err := s.db.Preload("Building").Where("id = ?", id).First(&u).Error; err != nil {
+	u, err := s.repo.GetUserByID(id)
+	if err != nil {
 		return nil, err
 	}
 
@@ -111,53 +90,49 @@ func (s *service) UserByID(_ context.Context, id uint) (*userByIDResponse, error
 	}, nil
 }
 
-func (s *service) UserByPhoneAndPassword(ctx context.Context, phone, password string) (*User, error) {
-	u, err := s.userByPhone(ctx, phone)
+func (s *service) UserByPhoneAndPassword(_ context.Context, phone, password string) (*userAuthResponse, error) {
+	u, err := s.repo.GetUserByPhone(phone)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password)); err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
-		// Password does not match!
-		return nil, errInvalidCredentials
-	}
-
-	return u, nil
-}
-
-func (s *service) userByPhone(_ context.Context, phone string) (*User, error) {
-	var u User
-	if err := s.db.Where("phone = ?", phone).First(&u).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return nil, errUserNotFound
+	if err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password)); err != nil {
+		if err == bcrypt.ErrMismatchedHashAndPassword {
+			return nil, models.ErrInvalidCredentials
 		}
 		return nil, err
 	}
-	return &u, nil
+
+	return &userAuthResponse{
+		ID:        u.ID,
+		FirstName: u.FirstName,
+		LastName:  u.LastName,
+		Role:      u.Role,
+	}, nil
 }
 
-func (s *service) Register(ctx context.Context, r *userRegisterRequest) (*userRegisterResponse, error) {
-	u, err := s.userByPhone(ctx, r.Phone)
-	if err != nil && err != errUserNotFound {
+func (s *service) Register(_ context.Context, r *userRegisterRequest) (*userRegisterResponse, error) {
+	u, err := s.repo.GetUserByPhone(r.Phone)
+	if err != nil && err != models.ErrUserNotFound {
 		return nil, err
 	}
 
 	if u != nil {
-		return nil, errUserPhoneExists
+		return nil, models.ErrUserPhoneExists
 	}
 
 	if s.verifyRegCode {
-		if err := s.validateRegCode(r.Code); err != nil {
+		if err := s.repo.ValidateRegCode(r.Code); err != nil {
 			return nil, err
 		}
 	}
 
-	pwd, err := s.hashAndSalt(r.Password)
+	pwd, err := hashAndSalt(r.Password)
 	if err != nil {
 		return nil, err
 	}
 
-	usr := User{
+	usr := models.User{
 		Apartment:  r.Apartment,
 		BuildingID: r.BuildingID,
 		Email:      r.Email,
@@ -165,16 +140,16 @@ func (s *service) Register(ctx context.Context, r *userRegisterRequest) (*userRe
 		FirstName:  r.FirstName,
 		LastName:   r.LastName,
 		Password:   pwd,
-		Role:       defaultUserRole,
+		Role:       models.DefaultUserRole,
 	}
 
-	if err := s.db.Create(&usr).Error; err != nil {
+	if err := s.repo.CreateUser(&usr); err != nil {
 		return nil, err
 	}
 
 	if s.verifyRegCode {
-		if err := s.db.Exec("update reg_codes set used = true where code = ?", r.Code).Error; err != nil {
-			if err := s.db.Delete(&usr).Error; err != nil {
+		if err := s.repo.UseRegCode(r.Code); err != nil {
+			if err := s.repo.DeleteUser(&usr); err != nil {
 				return nil, err
 			}
 			return nil, err
@@ -187,20 +162,7 @@ func (s *service) Register(ctx context.Context, r *userRegisterRequest) (*userRe
 	}, nil
 }
 
-func (s *service) validateRegCode(c string) error {
-	var code struct{ Exists bool }
-	if err := s.db.Raw("select exists(select id from reg_codes where code = ? and not used)", c).Scan(&code).Error; err != nil {
-		return err
-	}
-
-	if !code.Exists {
-		return errInvalidRegCode
-	}
-
-	return nil
-}
-
-func (s *service) hashAndSalt(pwd string) (string, error) {
+func hashAndSalt(pwd string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.MinCost)
 	if err != nil {
 		return "", err

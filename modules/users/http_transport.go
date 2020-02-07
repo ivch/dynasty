@@ -9,15 +9,20 @@ import (
 
 	"github.com/go-chi/chi"
 	httptransport "github.com/go-kit/kit/transport/http"
-	"github.com/jinzhu/gorm"
 	"github.com/rs/zerolog"
 	"gopkg.in/go-playground/validator.v9"
 
 	"github.com/ivch/dynasty/common/middleware"
 )
 
-func New(db *gorm.DB, verifyRegCode bool, log *zerolog.Logger) (http.Handler, Service) {
-	svc := newService(log, db, verifyRegCode)
+func New(repo userRepository, verifyRegCode bool, log *zerolog.Logger) (http.Handler, Service) {
+	svc := newService(log, repo, verifyRegCode)
+	h := newHTTPHandler(log, svc)
+
+	return h, svc
+}
+
+func newHTTPHandler(log *zerolog.Logger, svc Service) http.Handler {
 	options := []httptransport.ServerOption{
 		httptransport.ServerErrorEncoder(encodeHTTPError),
 		httptransport.ServerBefore(middleware.UserIDToCTX),
@@ -36,7 +41,7 @@ func New(db *gorm.DB, verifyRegCode bool, log *zerolog.Logger) (http.Handler, Se
 		encodeHTTPResponse,
 		options...))
 
-	return r, svc
+	return r
 }
 
 func decodeUserByIDRequest(ctx context.Context, _ *http.Request) (interface{}, error) {
