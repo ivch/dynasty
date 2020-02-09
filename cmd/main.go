@@ -58,7 +58,7 @@ func main() {
 
 	usersModule, userService := users.New(repository.NewUsers(db), cfg.UserService.VerifyRegCode, logger)
 	authModule, _ := auth.New(logger, repository.NewAuth(db), uCli.New(userService), cfg.AuthService.JWTSecret)
-	requestsModule := requests.New(logger, db)
+	requestsModule, _ := requests.New(logger, repository.NewRequests(db))
 
 	r := chi.NewRouter()
 	r.Use(accessLogMiddleware(logger))

@@ -3,15 +3,12 @@ package requests
 import (
 	"context"
 
-	"github.com/jinzhu/gorm"
 	"github.com/rs/zerolog"
+
+	"github.com/ivch/dynasty/models"
 )
 
 const (
-	// requestTaxi     = "taxi"
-	// requestDelivery = "delivery"
-	// requestGuest    = "guest"
-
 	requestStatusNew = "new"
 )
 
@@ -23,8 +20,16 @@ type Service interface {
 	My(ctx context.Context, r *myRequest) (*myResponse, error)
 }
 
+type requestsRepository interface {
+	Create(req *models.Request) (uint, error)
+	GetRequestByIDAndUser(id, userId uint) (*models.Request, error)
+	Update(req *models.Request) error
+	Delete(id, userID uint) error
+	ListByUser(userID, limit, offset uint) ([]*models.Request, error)
+}
+
 type service struct {
-	db *gorm.DB
+	repo requestsRepository
 }
 
 type byIDRequest struct {
@@ -33,7 +38,7 @@ type byIDRequest struct {
 }
 
 type getResponse struct {
-	request
+	*models.Request
 }
 
 type createRequest struct {
@@ -53,7 +58,9 @@ type myRequest struct {
 	Limit  uint `json:"limit"`
 }
 
-type myResponse []request
+type myResponse struct {
+	Data []*models.Request
+}
 
 type updateRequest struct {
 	ID          uint
@@ -64,60 +71,53 @@ type updateRequest struct {
 	Status      *string `json:"status,omitempty"`
 }
 
-type request struct {
-	ID          uint   `json:"id"`
-	Type        string `json:"type"`
-	UserID      uint   `json:"user_id"`
-	Time        int64  `json:"time"`
-	Description string `json:"description"`
-	Status      string `json:"status"`
-}
-
-func (request) TableName() string { return "requests" }
-
 func (s *service) Get(_ context.Context, r *byIDRequest) (*getResponse, error) {
-	var req request
-
-	if err := s.db.Where("id = ? AND user_id = ?", r.ID, r.UserID).First(&req).Error; err != nil {
+	req, err := s.repo.GetRequestByIDAndUser(r.ID, r.UserID)
+	if err != nil {
 		return nil, err
 	}
-
 	return &getResponse{req}, nil
 }
+
 func (s *service) Delete(_ context.Context, r *byIDRequest) error {
-	var req request
-
-	if err := s.db.Where("id = ? AND user_id = ?", r.ID, r.UserID).First(&req).Error; err != nil {
-		return err
-	}
-
-	return s.db.Delete(req).Error
+	return s.repo.Delete(r.ID, r.UserID)
 }
 
 func (s *service) Update(_ context.Context, r *updateRequest) error {
-	if err := s.db.Where("id = ? AND user_id = ?", r.ID, r.UserID).First(&request{}).Error; err != nil {
+	req, err := s.repo.GetRequestByIDAndUser(r.ID, r.UserID)
+	if err != nil {
 		return err
 	}
 
-	if err := s.db.Table(request{}.TableName()).Save(&r).Error; err != nil {
-		return err
+	if r.Type != nil {
+		req.Type = *r.Type
 	}
 
-	return nil
+	if r.Description != nil {
+		req.Description = *r.Description
+	}
+
+	if r.Status != nil {
+		req.Status = *r.Status
+	}
+
+	if r.Time != nil {
+		req.Time = *r.Time
+	}
+
+	return s.repo.Update(req)
 }
 
 func (s *service) My(_ context.Context, r *myRequest) (*myResponse, error) {
-	var res myResponse
-
-	if err := s.db.Limit(r.Limit).Offset(r.Offset).Where("user_id = ?", r.UserID).Find(&res).Error; err != nil {
+	reqs, err := s.repo.ListByUser(r.UserID, r.Limit, r.Offset)
+	if err != nil {
 		return nil, err
 	}
-
-	return &res, nil
+	return &myResponse{Data: reqs}, nil
 }
 
 func (s *service) Create(_ context.Context, r *createRequest) (*createResponse, error) {
-	req := request{
+	req := models.Request{
 		Type:        r.Type,
 		UserID:      r.UserID,
 		Time:        r.Time,
@@ -125,15 +125,13 @@ func (s *service) Create(_ context.Context, r *createRequest) (*createResponse, 
 		Status:      requestStatusNew,
 	}
 
-	if err := s.db.Create(&req).Error; err != nil {
-		return nil, err
-	}
+	id, err := s.repo.Create(&req)
 
-	return &createResponse{ID: req.ID}, nil
+	return &createResponse{ID: id}, err
 }
 
-func newService(log *zerolog.Logger, db *gorm.DB) Service {
-	s := service{db: db}
+func newService(log *zerolog.Logger, repo requestsRepository) Service {
+	s := service{repo: repo}
 	srv := newLoggingMiddleware(log, &s)
 	return srv
 }
