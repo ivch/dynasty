@@ -9,13 +9,18 @@ import (
 
 	"github.com/go-chi/chi"
 	httptransport "github.com/go-kit/kit/transport/http"
-	"github.com/jinzhu/gorm"
 	"github.com/rs/zerolog"
 	"gopkg.in/go-playground/validator.v9"
 )
 
-func New(log *zerolog.Logger, db *gorm.DB, usrv UserService, jwtSecret string) http.Handler {
-	svc := newService(log, db, usrv, jwtSecret)
+func New(log *zerolog.Logger, repo authRepository, usrv userService, jwtSecret string) (http.Handler, Service) {
+	svc := newService(log, repo, usrv, jwtSecret)
+	h := newHTTPHandler(log, svc)
+
+	return h, svc
+}
+
+func newHTTPHandler(log *zerolog.Logger, svc Service) http.Handler {
 	options := []httptransport.ServerOption{
 		httptransport.ServerErrorEncoder(encodeHTTPError),
 	}

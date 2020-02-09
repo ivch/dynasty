@@ -57,7 +57,7 @@ func main() {
 	}
 
 	usersModule, userService := users.New(repository.NewUsers(db), cfg.UserService.VerifyRegCode, logger)
-	authModule := auth.New(logger, db, uCli.New(userService), cfg.AuthService.JWTSecret)
+	authModule, _ := auth.New(logger, repository.NewAuth(db), uCli.New(userService), cfg.AuthService.JWTSecret)
 	requestsModule := requests.New(logger, db)
 
 	r := chi.NewRouter()

@@ -5,17 +5,9 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/ivch/dynasty/models"
 	"github.com/ivch/dynasty/modules/users"
 )
-
-type User struct {
-	ID        uint   `json:"id"`
-	Role      uint   `json:"role,omitempty"`
-	FirstName string `json:"first_name,omitempty"`
-	LastName  string `json:"last_name,omitempty"`
-	Phone     string `json:"phone"`
-	Email     string `json:"email"`
-}
 
 type Client struct {
 	svc users.Service
@@ -27,7 +19,7 @@ func New(svc users.Service) *Client {
 	}
 }
 
-func (c *Client) UserByID(ctx context.Context, id uint) (*User, error) {
+func (c *Client) UserByID(ctx context.Context, id uint) (*models.User, error) {
 	if id == 0 {
 		return nil, errors.New("empty id")
 	}
@@ -37,7 +29,7 @@ func (c *Client) UserByID(ctx context.Context, id uint) (*User, error) {
 		return nil, fmt.Errorf("create request: %w", err)
 	}
 
-	return &User{
+	return &models.User{
 		ID:        res.ID,
 		Role:      res.Role,
 		FirstName: res.FirstName,
@@ -47,7 +39,7 @@ func (c *Client) UserByID(ctx context.Context, id uint) (*User, error) {
 	}, nil
 }
 
-func (c *Client) UserByPhoneAndPassword(ctx context.Context, phone, password string) (*User, error) {
+func (c *Client) UserByPhoneAndPassword(ctx context.Context, phone, password string) (*models.User, error) {
 	if phone == "" {
 		return nil, errors.New("empty phone")
 	}
@@ -56,7 +48,7 @@ func (c *Client) UserByPhoneAndPassword(ctx context.Context, phone, password str
 	if err != nil {
 		return nil, errors.New("user with give credentials not found")
 	}
-	return &User{
+	return &models.User{
 		ID:        res.ID,
 		Role:      res.Role,
 		FirstName: res.FirstName,

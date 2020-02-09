@@ -2,7 +2,6 @@ package users
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -80,7 +79,6 @@ func TestHTTP_GetUser(t *testing.T) {
 			rq, _ := http.NewRequest("GET", "/v1/user", nil)
 			rq.Header.Add("X-Auth-User", tt.header)
 			h.ServeHTTP(rr, rq)
-			fmt.Println(rr.Code != tt.wantCode)
 			if (rr.Code != tt.wantCode) && tt.wantErr {
 				t.Errorf("Request error. status = %d, wantCode = %d, wantErr %v", rr.Code, tt.wantCode, tt.wantErr)
 			}

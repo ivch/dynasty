@@ -42,3 +42,4 @@ cover:
 gen:
 	GO111MODULE=off go get github.com/matryer/moq
 	${GOPATH}/bin/moq -out modules/users/users_mock_test.go modules/users userRepository Service
+	${GOPATH}/bin/moq -out modules/auth/auth_mock_test.go modules/auth userService authRepository Service

@@ -7,11 +7,9 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/jinzhu/gorm"
 	"github.com/rs/zerolog"
-	uuid "github.com/satori/go.uuid"
 
-	"github.com/ivch/dynasty/clients/users"
+	"github.com/ivch/dynasty/models"
 )
 
 type Service interface {
@@ -20,25 +18,22 @@ type Service interface {
 	Gwfa(token string) (uint, error)
 }
 
-type UserService interface {
-	UserByPhoneAndPassword(ctx context.Context, phone, password string) (*users.User, error)
-	UserByID(ctx context.Context, id uint) (*users.User, error)
+type userService interface {
+	UserByPhoneAndPassword(ctx context.Context, phone, password string) (*models.User, error)
+	UserByID(ctx context.Context, id uint) (*models.User, error)
+}
+
+type authRepository interface {
+	CreateSession(userID uint) (string, error)
+	FindSessionByAccessToken(token string) (*models.Session, error)
+	DeleteSessionByID(id string) error
 }
 
 type service struct {
 	log       *zerolog.Logger
-	uSrv      UserService
-	db        *gorm.DB
+	uSrv      userService
+	repo      authRepository
 	jwtSecret string
-}
-
-type session struct {
-	ID           string
-	UserID       uint
-	RefreshToken uuid.UUID
-	ExpiresIn    int64
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
 }
 
 type loginRequest struct {
@@ -57,18 +52,11 @@ type refreshTokenRequest struct {
 	Token string `validate:"required"`
 }
 
-type Token struct {
-	ID   uint
-	Name string
-	Role uint
-	jwt.StandardClaims
-}
-
-func newService(log *zerolog.Logger, db *gorm.DB, uSrv UserService, jwtSecret string) Service {
+func newService(log *zerolog.Logger, repo authRepository, uSrv userService, jwtSecret string) Service {
 	s := &service{
 		log:       log,
+		repo:      repo,
 		uSrv:      uSrv,
-		db:        db,
 		jwtSecret: jwtSecret,
 	}
 	svc := newLoggingMiddleware(log, s)
@@ -76,45 +64,38 @@ func newService(log *zerolog.Logger, db *gorm.DB, uSrv UserService, jwtSecret st
 	return svc
 }
 
-var (
-	errParsingToken       = errors.New("failed to parse token")
-	errParsingTokenClaims = errors.New("failed to parse token claims")
-	errTokenIsInvalid     = errors.New("token is invalid")
-	errTokenExpired       = errors.New("token expired")
-)
-
 func (s *service) Gwfa(token string) (uint, error) {
-	var myClaims Token
+	var myClaims models.Token
 	t, err := jwt.ParseWithClaims(token, &myClaims, func(token *jwt.Token) (i interface{}, e error) {
 		return []byte(s.jwtSecret), nil
 	})
 	if err != nil {
-		return 0, fmt.Errorf("%s: %w", errParsingToken, err)
+		return 0, fmt.Errorf("%s: %w", models.ErrParsingToken, err)
 	}
 
-	claims, ok := t.Claims.(*Token)
+	claims, ok := t.Claims.(*models.Token)
 	if !ok {
-		return 0, errParsingTokenClaims
+		return 0, models.ErrParsingTokenClaims
 	}
 
-	if !t.Valid {
-		return 0, errTokenIsInvalid
-	}
-
-	if time.Now().After(time.Unix(claims.ExpiresAt, 0)) {
-		return 0, errTokenExpired
-	}
+	// if !t.Valid {
+	// 	return 0, models.ErrTokenIsInvalid
+	// }
+	//
+	// if time.Now().After(time.Unix(claims.ExpiresAt, 0)) {
+	// 	return 0, models.ErrTokenExpired
+	// }
 
 	return claims.ID, nil
 }
 
 func (s *service) Refresh(ctx context.Context, r *refreshTokenRequest) (*loginResponse, error) {
-	var sess session
-	if err := s.db.Where("refresh_token = ?", r.Token).First(&sess).Error; err != nil {
+	sess, err := s.repo.FindSessionByAccessToken(r.Token)
+	if err != nil {
 		return nil, err
 	}
 
-	if err := s.db.Where("id = ?", sess.ID).Delete(session{}).Error; err != nil {
+	if err := s.repo.DeleteSessionByID(sess.ID); err != nil {
 		return nil, err
 	}
 
@@ -127,7 +108,7 @@ func (s *service) Refresh(ctx context.Context, r *refreshTokenRequest) (*loginRe
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
 
-	rt, err := s.createSession(sess.UserID)
+	rt, err := s.repo.CreateSession(sess.UserID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create session: %w", err)
 	}
@@ -146,11 +127,12 @@ func (s *service) Refresh(ctx context.Context, r *refreshTokenRequest) (*loginRe
 func (s *service) Login(ctx context.Context, r *loginRequest) (*loginResponse, error) {
 	u, err := s.uSrv.UserByPhoneAndPassword(ctx, r.Phone, r.Password)
 	if err != nil {
-		return nil, err
+		s.log.Error().Err(err).Msg("failed to find session")
+		return nil, models.ErrSessionNotFound
 	}
 
 	// todo do not create session if user already has one
-	rt, err := s.createSession(u.ID)
+	rt, err := s.repo.CreateSession(u.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create session: %w", err)
 	}
@@ -166,8 +148,8 @@ func (s *service) Login(ctx context.Context, r *loginRequest) (*loginResponse, e
 	}, nil
 }
 
-func (s *service) generateAccessToken(u *users.User) (string, error) {
-	claims := Token{
+func (s *service) generateAccessToken(u *models.User) (string, error) {
+	claims := models.Token{
 		ID:   u.ID,
 		Name: fmt.Sprintf("%s %s", u.FirstName, u.LastName),
 		Role: u.Role,
@@ -182,21 +164,4 @@ func (s *service) generateAccessToken(u *users.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), claims)
 
 	return token.SignedString([]byte(s.jwtSecret))
-}
-
-func (s *service) createSession(userID uint) (string, error) {
-	rt := uuid.NewV4()
-	sess := session{
-		UserID:       userID,
-		RefreshToken: rt,
-		ExpiresIn:    time.Now().Add(100 * 365 * 24 * time.Hour).Unix(),
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
-	}
-
-	if err := s.db.Create(&sess).Error; err != nil {
-		return "", err
-	}
-
-	return rt.String(), nil
 }
