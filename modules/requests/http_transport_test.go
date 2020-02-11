@@ -9,7 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ivch/dynasty/models"
+	"github.com/ivch/dynasty/models/dto"
+	"github.com/ivch/dynasty/models/entities"
 )
 
 func TestHTTP_Create(t *testing.T) {
@@ -54,7 +55,7 @@ func TestHTTP_Create(t *testing.T) {
 			request: `{"type":"1","description":"abc","time":1}`,
 			header:  "1",
 			svc: &ServiceMock{
-				CreateFunc: func(_ context.Context, _ *createRequest) (*createResponse, error) {
+				CreateFunc: func(_ context.Context, _ *dto.RequestCreateRequest) (*dto.RequestCreateResponse, error) {
 					return nil, errTestError
 				},
 			},
@@ -66,8 +67,8 @@ func TestHTTP_Create(t *testing.T) {
 			request: `{"type":"1","description":"abc","time":1}`,
 			header:  "1",
 			svc: &ServiceMock{
-				CreateFunc: func(_ context.Context, _ *createRequest) (*createResponse, error) {
-					return &createResponse{ID: 1}, nil
+				CreateFunc: func(_ context.Context, _ *dto.RequestCreateRequest) (*dto.RequestCreateResponse, error) {
+					return &dto.RequestCreateResponse{ID: 1}, nil
 				},
 			},
 			want:     `{"id":1}`,
@@ -149,7 +150,7 @@ func TestHTTP_Update(t *testing.T) {
 			request: `{"type":"1","description":"abc","time":1}`,
 			header:  "1",
 			svc: &ServiceMock{
-				UpdateFunc: func(_ context.Context, _ *updateRequest) error {
+				UpdateFunc: func(_ context.Context, _ *dto.RequestUpdateRequest) error {
 					return errTestError
 				},
 			},
@@ -162,8 +163,8 @@ func TestHTTP_Update(t *testing.T) {
 			id:      "1",
 			header:  "1",
 			svc: &ServiceMock{
-				UpdateFunc: func(_ context.Context, r *updateRequest) error {
-					expected := &updateRequest{
+				UpdateFunc: func(_ context.Context, r *dto.RequestUpdateRequest) error {
+					expected := &dto.RequestUpdateRequest{
 						ID:          1,
 						UserID:      1,
 						Type:        func(s string) *string { return &s }("1"),
@@ -268,7 +269,7 @@ func TestHTTP_My(t *testing.T) {
 			query:  "?offset=1&limit=1",
 			header: "1",
 			svc: &ServiceMock{
-				MyFunc: func(_ context.Context, _ *myRequest) (*myResponse, error) {
+				MyFunc: func(_ context.Context, _ *dto.RequestMyRequest) (*dto.RequestMyResponse, error) {
 					return nil, errTestError
 				},
 			},
@@ -280,9 +281,9 @@ func TestHTTP_My(t *testing.T) {
 			query:  `?offset=0&limit=1`,
 			header: "1",
 			svc: &ServiceMock{
-				MyFunc: func(_ context.Context, r *myRequest) (*myResponse, error) {
-					return &myResponse{
-						Data: []*models.Request{
+				MyFunc: func(_ context.Context, r *dto.RequestMyRequest) (*dto.RequestMyResponse, error) {
+					return &dto.RequestMyResponse{
+						Data: []*entities.Request{
 							{
 								ID:          1,
 								Type:        "1",
@@ -354,7 +355,7 @@ func TestHTTP_Delete(t *testing.T) {
 			name:   "error service",
 			header: "1",
 			svc: &ServiceMock{
-				DeleteFunc: func(_ context.Context, _ *byIDRequest) error {
+				DeleteFunc: func(_ context.Context, _ *dto.RequestByID) error {
 					return errTestError
 				},
 			},
@@ -366,7 +367,7 @@ func TestHTTP_Delete(t *testing.T) {
 			id:     "1",
 			header: "1",
 			svc: &ServiceMock{
-				DeleteFunc: func(_ context.Context, r *byIDRequest) error {
+				DeleteFunc: func(_ context.Context, r *dto.RequestByID) error {
 					if r.ID != 1 || r.UserID != 1 {
 						return errTestError
 					}
@@ -435,7 +436,7 @@ func TestHTTP_Get(t *testing.T) {
 			name:   "error service",
 			header: "1",
 			svc: &ServiceMock{
-				GetFunc: func(_ context.Context, _ *byIDRequest) (*getResponse, error) {
+				GetFunc: func(_ context.Context, _ *dto.RequestByID) (*dto.RequestByIDResponse, error) {
 					return nil, errTestError
 				},
 			},
@@ -447,13 +448,13 @@ func TestHTTP_Get(t *testing.T) {
 			id:     "1",
 			header: "1",
 			svc: &ServiceMock{
-				GetFunc: func(_ context.Context, r *byIDRequest) (*getResponse, error) {
+				GetFunc: func(_ context.Context, r *dto.RequestByID) (*dto.RequestByIDResponse, error) {
 					if r.ID != 1 || r.UserID != 1 {
 						return nil, errTestError
 					}
 
-					return &getResponse{
-						&models.Request{
+					return &dto.RequestByIDResponse{
+						&entities.Request{
 							ID:          1,
 							Type:        "1",
 							UserID:      1,

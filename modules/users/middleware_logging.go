@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/rs/zerolog"
+
+	"github.com/ivch/dynasty/models/dto"
 )
 
 type loggingMiddleware struct {
@@ -18,7 +20,7 @@ func newLoggingMiddleware(log *zerolog.Logger, svc Service) Service {
 	}
 }
 
-func (mw loggingMiddleware) Register(ctx context.Context, req *userRegisterRequest) (*userRegisterResponse, error) {
+func (mw loggingMiddleware) Register(ctx context.Context, req *dto.UserRegisterRequest) (*dto.UserRegisterResponse, error) {
 	res, err := mw.next.Register(ctx, req)
 	if err != nil {
 		mw.log.Error().Msg(err.Error())
@@ -27,7 +29,7 @@ func (mw loggingMiddleware) Register(ctx context.Context, req *userRegisterReque
 	return res, err
 }
 
-func (mw loggingMiddleware) UserByPhoneAndPassword(ctx context.Context, phone, password string) (*userAuthResponse, error) {
+func (mw loggingMiddleware) UserByPhoneAndPassword(ctx context.Context, phone, password string) (*dto.UserAuthResponse, error) {
 	res, err := mw.next.UserByPhoneAndPassword(ctx, phone, password)
 	if err != nil {
 		mw.log.Error().Msg(err.Error())
@@ -36,7 +38,7 @@ func (mw loggingMiddleware) UserByPhoneAndPassword(ctx context.Context, phone, p
 	return res, err
 }
 
-func (mw loggingMiddleware) UserByID(ctx context.Context, id uint) (*userByIDResponse, error) {
+func (mw loggingMiddleware) UserByID(ctx context.Context, id uint) (*dto.UserByIDResponse, error) {
 	res, err := mw.next.UserByID(ctx, id)
 	if err != nil {
 		mw.log.Error().Msg(err.Error())

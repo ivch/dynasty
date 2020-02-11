@@ -1,4 +1,4 @@
-package models
+package entities
 
 type Request struct {
 	ID          uint   `json:"id"`

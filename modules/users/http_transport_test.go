@@ -7,7 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ivch/dynasty/models"
+	"github.com/ivch/dynasty/models/dto"
+	"github.com/ivch/dynasty/models/entities"
 )
 
 func TestHTTP_GetUser(t *testing.T) {
@@ -36,7 +37,7 @@ func TestHTTP_GetUser(t *testing.T) {
 		{
 			name: "error service error",
 			svc: &ServiceMock{
-				UserByIDFunc: func(_ context.Context, _ uint) (*userByIDResponse, error) {
+				UserByIDFunc: func(_ context.Context, _ uint) (*dto.UserByIDResponse, error) {
 					return nil, errTestError
 				},
 			},
@@ -47,8 +48,8 @@ func TestHTTP_GetUser(t *testing.T) {
 		{
 			name: "ok",
 			svc: &ServiceMock{
-				UserByIDFunc: func(_ context.Context, _ uint) (*userByIDResponse, error) {
-					return &userByIDResponse{
+				UserByIDFunc: func(_ context.Context, _ uint) (*dto.UserByIDResponse, error) {
+					return &dto.UserByIDResponse{
 						ID:        1,
 						Apartment: 1,
 						FirstName: "1",
@@ -56,7 +57,7 @@ func TestHTTP_GetUser(t *testing.T) {
 						Phone:     "1",
 						Email:     "1",
 						Role:      1,
-						Building: models.Building{
+						Building: entities.Building{
 							ID:      1,
 							Name:    "1",
 							Address: "1",
@@ -161,7 +162,7 @@ func TestHTTP_Register(t *testing.T) {
 		{
 			name: "error service",
 			svc: &ServiceMock{
-				RegisterFunc: func(_ context.Context, _ *userRegisterRequest) (*userRegisterResponse, error) {
+				RegisterFunc: func(_ context.Context, _ *dto.UserRegisterRequest) (*dto.UserRegisterResponse, error) {
 					return nil, errTestError
 				},
 			},
@@ -171,8 +172,8 @@ func TestHTTP_Register(t *testing.T) {
 		{
 			name: "ok",
 			svc: &ServiceMock{
-				RegisterFunc: func(_ context.Context, _ *userRegisterRequest) (*userRegisterResponse, error) {
-					return &userRegisterResponse{
+				RegisterFunc: func(_ context.Context, _ *dto.UserRegisterRequest) (*dto.UserRegisterResponse, error) {
+					return &dto.UserRegisterResponse{
 						ID:    1,
 						Phone: "380671234567",
 					}, nil

@@ -9,23 +9,24 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/rs/zerolog"
 
-	"github.com/ivch/dynasty/models"
+	"github.com/ivch/dynasty/models/dto"
+	"github.com/ivch/dynasty/models/entities"
 )
 
 type Service interface {
-	Login(ctx context.Context, request *loginRequest) (*loginResponse, error)
-	Refresh(ctx context.Context, r *refreshTokenRequest) (*loginResponse, error)
+	Login(ctx context.Context, request *dto.AuthLoginRequest) (*dto.AuthLoginResponse, error)
+	Refresh(ctx context.Context, r *dto.AuthRefreshTokenRequest) (*dto.AuthLoginResponse, error)
 	Gwfa(token string) (uint, error)
 }
 
 type userService interface {
-	UserByPhoneAndPassword(ctx context.Context, phone, password string) (*models.User, error)
-	UserByID(ctx context.Context, id uint) (*models.User, error)
+	UserByPhoneAndPassword(ctx context.Context, phone, password string) (*entities.User, error)
+	UserByID(ctx context.Context, id uint) (*entities.User, error)
 }
 
 type authRepository interface {
 	CreateSession(userID uint) (string, error)
-	FindSessionByAccessToken(token string) (*models.Session, error)
+	FindSessionByAccessToken(token string) (*entities.Session, error)
 	DeleteSessionByID(id string) error
 }
 
@@ -34,22 +35,6 @@ type service struct {
 	uSrv      userService
 	repo      authRepository
 	jwtSecret string
-}
-
-type loginRequest struct {
-	Phone    string `json:"phone" validate:"required"`
-	Password string `json:"password" validate:"required"`
-	// IP       net.IP `json:"ip" validate:"required"`
-	// Ua       string `json:"ua" validate:"required"`
-}
-
-type loginResponse struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-}
-
-type refreshTokenRequest struct {
-	Token string `validate:"required"`
 }
 
 func newService(log *zerolog.Logger, repo authRepository, uSrv userService, jwtSecret string) Service {
@@ -65,17 +50,17 @@ func newService(log *zerolog.Logger, repo authRepository, uSrv userService, jwtS
 }
 
 func (s *service) Gwfa(token string) (uint, error) {
-	var myClaims models.Token
+	var myClaims entities.Token
 	t, err := jwt.ParseWithClaims(token, &myClaims, func(token *jwt.Token) (i interface{}, e error) {
 		return []byte(s.jwtSecret), nil
 	})
 	if err != nil {
-		return 0, fmt.Errorf("%s: %w", models.ErrParsingToken, err)
+		return 0, fmt.Errorf("%s: %w", entities.ErrParsingToken, err)
 	}
 
-	claims, ok := t.Claims.(*models.Token)
+	claims, ok := t.Claims.(*entities.Token)
 	if !ok {
-		return 0, models.ErrParsingTokenClaims
+		return 0, entities.ErrParsingTokenClaims
 	}
 
 	// if !t.Valid {
@@ -89,7 +74,7 @@ func (s *service) Gwfa(token string) (uint, error) {
 	return claims.ID, nil
 }
 
-func (s *service) Refresh(ctx context.Context, r *refreshTokenRequest) (*loginResponse, error) {
+func (s *service) Refresh(ctx context.Context, r *dto.AuthRefreshTokenRequest) (*dto.AuthLoginResponse, error) {
 	sess, err := s.repo.FindSessionByAccessToken(r.Token)
 	if err != nil {
 		return nil, err
@@ -118,17 +103,17 @@ func (s *service) Refresh(ctx context.Context, r *refreshTokenRequest) (*loginRe
 		return nil, fmt.Errorf("failed to create access token: %w", err)
 	}
 
-	return &loginResponse{
+	return &dto.AuthLoginResponse{
 		AccessToken:  at,
 		RefreshToken: rt,
 	}, nil
 }
 
-func (s *service) Login(ctx context.Context, r *loginRequest) (*loginResponse, error) {
+func (s *service) Login(ctx context.Context, r *dto.AuthLoginRequest) (*dto.AuthLoginResponse, error) {
 	u, err := s.uSrv.UserByPhoneAndPassword(ctx, r.Phone, r.Password)
 	if err != nil {
 		s.log.Error().Err(err).Msg("failed to find session")
-		return nil, models.ErrSessionNotFound
+		return nil, entities.ErrSessionNotFound
 	}
 
 	// todo do not create session if user already has one
@@ -142,14 +127,14 @@ func (s *service) Login(ctx context.Context, r *loginRequest) (*loginResponse, e
 		return nil, err
 	}
 
-	return &loginResponse{
+	return &dto.AuthLoginResponse{
 		AccessToken:  at,
 		RefreshToken: rt,
 	}, nil
 }
 
-func (s *service) generateAccessToken(u *models.User) (string, error) {
-	claims := models.Token{
+func (s *service) generateAccessToken(u *entities.User) (string, error) {
+	claims := entities.Token{
 		ID:   u.ID,
 		Name: fmt.Sprintf("%s %s", u.FirstName, u.LastName),
 		Role: u.Role,

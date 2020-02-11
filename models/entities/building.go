@@ -1,4 +1,4 @@
-package models
+package entities
 
 type Building struct {
 	ID      uint   `gorm:"primary_key" json:"id"`

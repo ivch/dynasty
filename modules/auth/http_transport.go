@@ -11,6 +11,8 @@ import (
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/rs/zerolog"
 	"gopkg.in/go-playground/validator.v9"
+
+	"github.com/ivch/dynasty/models/dto"
 )
 
 func New(log *zerolog.Logger, repo authRepository, usrv userService, jwtSecret string) (http.Handler, Service) {
@@ -46,7 +48,7 @@ func newHTTPHandler(log *zerolog.Logger, svc Service) http.Handler {
 
 func decodeRefreshTokenRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
-		var req refreshTokenRequest
+		var req dto.AuthRefreshTokenRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			log.Error().Err(err).Msg("failed to decode request")
 			return nil, err
@@ -63,7 +65,7 @@ func decodeRefreshTokenRequest(log *zerolog.Logger) httptransport.DecodeRequestF
 
 func decodeLoginRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
-		var req loginRequest
+		var req dto.AuthLoginRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			log.Error().Err(err).Msg("failed to decode request")
 			return nil, err

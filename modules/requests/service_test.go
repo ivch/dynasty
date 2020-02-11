@@ -10,7 +10,8 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"github.com/ivch/dynasty/models"
+	"github.com/ivch/dynasty/models/dto"
+	"github.com/ivch/dynasty/models/entities"
 )
 
 var (
@@ -28,18 +29,18 @@ func TestService_Get(t *testing.T) {
 	tests := []struct {
 		name    string
 		repo    requestsRepository
-		req     *byIDRequest
+		req     *dto.RequestByID
 		wantErr bool
-		want    *getResponse
+		want    *dto.RequestByIDResponse
 	}{
 		{
 			name: "error no request",
 			repo: &requestsRepositoryMock{
-				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*models.Request, error) {
+				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*entities.Request, error) {
 					return nil, errTestError
 				},
 			},
-			req: &byIDRequest{
+			req: &dto.RequestByID{
 				UserID: 1,
 				ID:     1,
 			},
@@ -48,8 +49,8 @@ func TestService_Get(t *testing.T) {
 		{
 			name: "ok",
 			repo: &requestsRepositoryMock{
-				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*models.Request, error) {
-					return &models.Request{
+				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*entities.Request, error) {
+					return &entities.Request{
 						ID:          1,
 						Type:        "1",
 						UserID:      1,
@@ -59,13 +60,13 @@ func TestService_Get(t *testing.T) {
 					}, nil
 				},
 			},
-			req: &byIDRequest{
+			req: &dto.RequestByID{
 				UserID: 1,
 				ID:     1,
 			},
 			wantErr: false,
-			want: &getResponse{
-				Request: &models.Request{
+			want: &dto.RequestByIDResponse{
+				Request: &entities.Request{
 					ID:          1,
 					Type:        "1",
 					UserID:      1,
@@ -96,17 +97,17 @@ func TestService_Update(t *testing.T) {
 	tests := []struct {
 		name    string
 		repo    requestsRepository
-		req     *updateRequest
+		req     *dto.RequestUpdateRequest
 		wantErr bool
 	}{
 		{
 			name: "error no request",
 			repo: &requestsRepositoryMock{
-				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*models.Request, error) {
+				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*entities.Request, error) {
 					return nil, errTestError
 				},
 			},
-			req: &updateRequest{
+			req: &dto.RequestUpdateRequest{
 				ID:     1,
 				UserID: 1,
 			},
@@ -115,19 +116,19 @@ func TestService_Update(t *testing.T) {
 		{
 			name: "error type not updated",
 			repo: &requestsRepositoryMock{
-				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*models.Request, error) {
-					return &models.Request{
+				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*entities.Request, error) {
+					return &entities.Request{
 						Type: "1",
 					}, nil
 				},
-				UpdateFunc: func(req *models.Request) error {
+				UpdateFunc: func(req *entities.Request) error {
 					if req.Type != "2" {
 						return errTestError
 					}
 					return nil
 				},
 			},
-			req: &updateRequest{
+			req: &dto.RequestUpdateRequest{
 				ID:     1,
 				UserID: 1,
 				Type:   nil,
@@ -137,19 +138,19 @@ func TestService_Update(t *testing.T) {
 		{
 			name: "error description not updated",
 			repo: &requestsRepositoryMock{
-				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*models.Request, error) {
-					return &models.Request{
+				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*entities.Request, error) {
+					return &entities.Request{
 						Description: "1",
 					}, nil
 				},
-				UpdateFunc: func(req *models.Request) error {
+				UpdateFunc: func(req *entities.Request) error {
 					if req.Description != "2" {
 						return errTestError
 					}
 					return nil
 				},
 			},
-			req: &updateRequest{
+			req: &dto.RequestUpdateRequest{
 				ID:          1,
 				UserID:      1,
 				Description: nil,
@@ -159,19 +160,19 @@ func TestService_Update(t *testing.T) {
 		{
 			name: "error status not updated",
 			repo: &requestsRepositoryMock{
-				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*models.Request, error) {
-					return &models.Request{
+				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*entities.Request, error) {
+					return &entities.Request{
 						Status: "1",
 					}, nil
 				},
-				UpdateFunc: func(req *models.Request) error {
+				UpdateFunc: func(req *entities.Request) error {
 					if req.Status != "2" {
 						return errTestError
 					}
 					return nil
 				},
 			},
-			req: &updateRequest{
+			req: &dto.RequestUpdateRequest{
 				ID:     1,
 				UserID: 1,
 				Status: nil,
@@ -181,19 +182,19 @@ func TestService_Update(t *testing.T) {
 		{
 			name: "error time not updated",
 			repo: &requestsRepositoryMock{
-				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*models.Request, error) {
-					return &models.Request{
+				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*entities.Request, error) {
+					return &entities.Request{
 						Time: 1,
 					}, nil
 				},
-				UpdateFunc: func(req *models.Request) error {
+				UpdateFunc: func(req *entities.Request) error {
 					if req.Time != 2 {
 						return errTestError
 					}
 					return nil
 				},
 			},
-			req: &updateRequest{
+			req: &dto.RequestUpdateRequest{
 				ID:     1,
 				UserID: 1,
 				Time:   nil,
@@ -203,16 +204,16 @@ func TestService_Update(t *testing.T) {
 		{
 			name: "ok",
 			repo: &requestsRepositoryMock{
-				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*models.Request, error) {
-					return &models.Request{
+				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*entities.Request, error) {
+					return &entities.Request{
 						Type: "1",
 					}, nil
 				},
-				UpdateFunc: func(req *models.Request) error {
+				UpdateFunc: func(req *entities.Request) error {
 					return nil
 				},
 			},
-			req: &updateRequest{
+			req: &dto.RequestUpdateRequest{
 				ID:     1,
 				UserID: 1,
 			},
@@ -236,18 +237,18 @@ func TestService_My(t *testing.T) {
 	tests := []struct {
 		name    string
 		repo    requestsRepository
-		req     *myRequest
+		req     *dto.RequestMyRequest
 		wantErr bool
-		want    *myResponse
+		want    *dto.RequestMyResponse
 	}{
 		{
 			name: "error from db",
 			repo: &requestsRepositoryMock{
-				ListByUserFunc: func(_ uint, _ uint, _ uint) ([]*models.Request, error) {
+				ListByUserFunc: func(_ uint, _ uint, _ uint) ([]*entities.Request, error) {
 					return nil, errTestError
 				},
 			},
-			req: &myRequest{
+			req: &dto.RequestMyRequest{
 				UserID: 1,
 				Offset: 0,
 				Limit:  1,
@@ -257,8 +258,8 @@ func TestService_My(t *testing.T) {
 		{
 			name: "ok",
 			repo: &requestsRepositoryMock{
-				ListByUserFunc: func(_ uint, _ uint, _ uint) ([]*models.Request, error) {
-					return []*models.Request{
+				ListByUserFunc: func(_ uint, _ uint, _ uint) ([]*entities.Request, error) {
+					return []*entities.Request{
 						{
 							ID:          1,
 							Type:        "1",
@@ -270,13 +271,13 @@ func TestService_My(t *testing.T) {
 					}, nil
 				},
 			},
-			req: &myRequest{
+			req: &dto.RequestMyRequest{
 				UserID: 1,
 				Offset: 0,
 				Limit:  1,
 			},
 			wantErr: false,
-			want: &myResponse{Data: []*models.Request{
+			want: &dto.RequestMyResponse{Data: []*entities.Request{
 				{
 					ID:          1,
 					Type:        "1",
@@ -308,41 +309,41 @@ func TestService_Create(t *testing.T) {
 	tests := []struct {
 		name    string
 		repo    requestsRepository
-		req     *createRequest
+		req     *dto.RequestCreateRequest
 		wantErr bool
-		want    *createResponse
+		want    *dto.RequestCreateResponse
 	}{
 		{
 			name: "error from db",
 			repo: &requestsRepositoryMock{
-				CreateFunc: func(_ *models.Request) (uint, error) {
+				CreateFunc: func(_ *entities.Request) (uint, error) {
 					return 0, errTestError
 				},
 			},
-			req: &createRequest{
+			req: &dto.RequestCreateRequest{
 				Type:        "",
 				Time:        0,
 				UserID:      0,
 				Description: "",
 			},
 			wantErr: true,
-			want:    &createResponse{ID: 0},
+			want:    &dto.RequestCreateResponse{ID: 0},
 		},
 		{
 			name: "ok",
 			repo: &requestsRepositoryMock{
-				CreateFunc: func(_ *models.Request) (u uint, err error) {
+				CreateFunc: func(_ *entities.Request) (u uint, err error) {
 					return 1, nil
 				},
 			},
-			req: &createRequest{
+			req: &dto.RequestCreateRequest{
 				Type:        "",
 				Time:        0,
 				UserID:      0,
 				Description: "",
 			},
 			wantErr: false,
-			want:    &createResponse{ID: 1},
+			want:    &dto.RequestCreateResponse{ID: 1},
 		},
 	}
 
@@ -365,7 +366,7 @@ func TestService_Delete(t *testing.T) {
 	tests := []struct {
 		name    string
 		repo    requestsRepository
-		req     *byIDRequest
+		req     *dto.RequestByID
 		wantErr bool
 	}{
 		{
@@ -375,7 +376,7 @@ func TestService_Delete(t *testing.T) {
 					return errTestError
 				},
 			},
-			req: &byIDRequest{
+			req: &dto.RequestByID{
 				UserID: 1,
 				ID:     1,
 			},
@@ -388,7 +389,7 @@ func TestService_Delete(t *testing.T) {
 					return nil
 				},
 			},
-			req: &byIDRequest{
+			req: &dto.RequestByID{
 				UserID: 1,
 				ID:     1,
 			},

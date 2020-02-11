@@ -6,6 +6,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/ivch/dynasty/models/dto"
 )
 
 func TestHTTP_Login(t *testing.T) {
@@ -39,7 +41,7 @@ func TestHTTP_Login(t *testing.T) {
 			name:    "error service error",
 			request: `{"password":"123", "phone":"123"}`,
 			svc: &ServiceMock{
-				LoginFunc: func(_ context.Context, _ *loginRequest) (*loginResponse, error) {
+				LoginFunc: func(_ context.Context, _ *dto.AuthLoginRequest) (*dto.AuthLoginResponse, error) {
 					return nil, errTestError
 				},
 			},
@@ -50,8 +52,8 @@ func TestHTTP_Login(t *testing.T) {
 			name:    "ok",
 			request: `{"password":"123", "phone":"123"}`,
 			svc: &ServiceMock{
-				LoginFunc: func(_ context.Context, _ *loginRequest) (*loginResponse, error) {
-					return &loginResponse{
+				LoginFunc: func(_ context.Context, _ *dto.AuthLoginRequest) (*dto.AuthLoginResponse, error) {
+					return &dto.AuthLoginResponse{
 						AccessToken:  "at",
 						RefreshToken: "rt",
 					}, nil
@@ -105,7 +107,7 @@ func TestHTTP_Refresh(t *testing.T) {
 			name:    "error service error",
 			request: `{"token":"token"}`,
 			svc: &ServiceMock{
-				RefreshFunc: func(_ context.Context, _ *refreshTokenRequest) (*loginResponse, error) {
+				RefreshFunc: func(_ context.Context, _ *dto.AuthRefreshTokenRequest) (*dto.AuthLoginResponse, error) {
 					return nil, errTestError
 				},
 			},
@@ -116,8 +118,8 @@ func TestHTTP_Refresh(t *testing.T) {
 			name:    "ok",
 			request: `{"token":"token"}`,
 			svc: &ServiceMock{
-				RefreshFunc: func(_ context.Context, _ *refreshTokenRequest) (*loginResponse, error) {
-					return &loginResponse{
+				RefreshFunc: func(_ context.Context, _ *dto.AuthRefreshTokenRequest) (*dto.AuthLoginResponse, error) {
+					return &dto.AuthLoginResponse{
 						AccessToken:  "at",
 						RefreshToken: "rt",
 					}, nil

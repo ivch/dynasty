@@ -10,7 +10,8 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"github.com/ivch/dynasty/models"
+	"github.com/ivch/dynasty/models/dto"
+	"github.com/ivch/dynasty/models/entities"
 )
 
 var (
@@ -31,7 +32,7 @@ func TestService_Register(t *testing.T) {
 	}
 
 	type args struct {
-		r *userRegisterRequest
+		r *dto.UserRegisterRequest
 	}
 
 	tests := []struct {
@@ -39,18 +40,18 @@ func TestService_Register(t *testing.T) {
 		fields  fields
 		args    args
 		wantErr bool
-		want    *userRegisterResponse
+		want    *dto.UserRegisterResponse
 	}{
 		{
 			name: "error failed to check user",
 			fields: fields{
 				repo: &userRepositoryMock{
-					GetUserByPhoneFunc: func(_ string) (*models.User, error) {
+					GetUserByPhoneFunc: func(_ string) (*entities.User, error) {
 						return nil, errTestError
 					},
 				},
 			},
-			args:    args{r: &userRegisterRequest{}},
+			args:    args{r: &dto.UserRegisterRequest{}},
 			wantErr: true,
 			want:    nil,
 		},
@@ -58,14 +59,14 @@ func TestService_Register(t *testing.T) {
 			name: "error user exists",
 			fields: fields{
 				repo: &userRepositoryMock{
-					GetUserByPhoneFunc: func(_ string) (*models.User, error) {
-						return &models.User{
+					GetUserByPhoneFunc: func(_ string) (*entities.User, error) {
+						return &entities.User{
 							ID: 1,
 						}, nil
 					},
 				},
 			},
-			args:    args{r: &userRegisterRequest{}},
+			args:    args{r: &dto.UserRegisterRequest{}},
 			wantErr: true,
 			want:    nil,
 		},
@@ -74,7 +75,7 @@ func TestService_Register(t *testing.T) {
 			fields: fields{
 				verifyRegCode: true,
 				repo: &userRepositoryMock{
-					GetUserByPhoneFunc: func(_ string) (*models.User, error) {
+					GetUserByPhoneFunc: func(_ string) (*entities.User, error) {
 						return nil, nil
 					},
 					ValidateRegCodeFunc: func(_ string) error {
@@ -82,7 +83,7 @@ func TestService_Register(t *testing.T) {
 					},
 				},
 			},
-			args:    args{r: &userRegisterRequest{}},
+			args:    args{r: &dto.UserRegisterRequest{}},
 			wantErr: true,
 			want:    nil,
 		},
@@ -90,15 +91,15 @@ func TestService_Register(t *testing.T) {
 			name: "error user not created",
 			fields: fields{
 				repo: &userRepositoryMock{
-					GetUserByPhoneFunc: func(_ string) (*models.User, error) {
+					GetUserByPhoneFunc: func(_ string) (*entities.User, error) {
 						return nil, nil
 					},
-					CreateUserFunc: func(_ *models.User) error {
+					CreateUserFunc: func(_ *entities.User) error {
 						return errTestError
 					},
 				},
 			},
-			args:    args{r: &userRegisterRequest{}},
+			args:    args{r: &dto.UserRegisterRequest{}},
 			wantErr: true,
 			want:    nil,
 		},
@@ -107,10 +108,10 @@ func TestService_Register(t *testing.T) {
 			fields: fields{
 				verifyRegCode: true,
 				repo: &userRepositoryMock{
-					GetUserByPhoneFunc: func(_ string) (*models.User, error) {
+					GetUserByPhoneFunc: func(_ string) (*entities.User, error) {
 						return nil, nil
 					},
-					CreateUserFunc: func(*models.User) error {
+					CreateUserFunc: func(*entities.User) error {
 						return nil
 					},
 					ValidateRegCodeFunc: func(_ string) error {
@@ -119,12 +120,12 @@ func TestService_Register(t *testing.T) {
 					UseRegCodeFunc: func(_ string) error {
 						return errTestError
 					},
-					DeleteUserFunc: func(_ *models.User) error {
+					DeleteUserFunc: func(_ *entities.User) error {
 						return nil
 					},
 				},
 			},
-			args:    args{r: &userRegisterRequest{}},
+			args:    args{r: &dto.UserRegisterRequest{}},
 			wantErr: true,
 			want:    nil,
 		},
@@ -133,10 +134,10 @@ func TestService_Register(t *testing.T) {
 			fields: fields{
 				verifyRegCode: true,
 				repo: &userRepositoryMock{
-					GetUserByPhoneFunc: func(_ string) (*models.User, error) {
+					GetUserByPhoneFunc: func(_ string) (*entities.User, error) {
 						return nil, nil
 					},
-					CreateUserFunc: func(*models.User) error {
+					CreateUserFunc: func(*entities.User) error {
 						return nil
 					},
 					ValidateRegCodeFunc: func(_ string) error {
@@ -145,12 +146,12 @@ func TestService_Register(t *testing.T) {
 					UseRegCodeFunc: func(_ string) error {
 						return errTestError
 					},
-					DeleteUserFunc: func(_ *models.User) error {
+					DeleteUserFunc: func(_ *entities.User) error {
 						return errTestError
 					},
 				},
 			},
-			args:    args{r: &userRegisterRequest{}},
+			args:    args{r: &dto.UserRegisterRequest{}},
 			wantErr: true,
 			want:    nil,
 		},
@@ -158,18 +159,18 @@ func TestService_Register(t *testing.T) {
 			name: "ok",
 			fields: fields{
 				repo: &userRepositoryMock{
-					GetUserByPhoneFunc: func(_ string) (*models.User, error) {
+					GetUserByPhoneFunc: func(_ string) (*entities.User, error) {
 						return nil, nil
 					},
-					CreateUserFunc: func(u *models.User) error {
+					CreateUserFunc: func(u *entities.User) error {
 						u.ID = 1
 						return nil
 					},
 				},
 			},
-			args:    args{r: &userRegisterRequest{Phone: "1"}},
+			args:    args{r: &dto.UserRegisterRequest{Phone: "1"}},
 			wantErr: false,
-			want: &userRegisterResponse{
+			want: &dto.UserRegisterResponse{
 				ID:    1,
 				Phone: "1",
 			},
@@ -207,13 +208,13 @@ func TestService_UserByPhoneAndPassword(t *testing.T) {
 		fields  fields
 		args    args
 		wantErr bool
-		want    *userAuthResponse
+		want    *dto.UserAuthResponse
 	}{
 		{
 			name: "error no user",
 			fields: fields{
 				repo: &userRepositoryMock{
-					GetUserByPhoneFunc: func(_ string) (*models.User, error) {
+					GetUserByPhoneFunc: func(_ string) (*entities.User, error) {
 						return nil, errTestError
 					},
 				},
@@ -229,9 +230,9 @@ func TestService_UserByPhoneAndPassword(t *testing.T) {
 			name: "error wrong password",
 			fields: fields{
 				repo: &userRepositoryMock{
-					GetUserByPhoneFunc: func(_ string) (*models.User, error) {
+					GetUserByPhoneFunc: func(_ string) (*entities.User, error) {
 						p, _ := hashAndSalt("1")
-						return &models.User{Password: p}, nil
+						return &entities.User{Password: p}, nil
 					},
 				},
 			},
@@ -246,9 +247,9 @@ func TestService_UserByPhoneAndPassword(t *testing.T) {
 			name: "ok",
 			fields: fields{
 				repo: &userRepositoryMock{
-					GetUserByPhoneFunc: func(_ string) (*models.User, error) {
+					GetUserByPhoneFunc: func(_ string) (*entities.User, error) {
 						p, _ := hashAndSalt("1")
-						return &models.User{ID: 1, FirstName: "a", LastName: "b", Role: 1, Password: p}, nil
+						return &entities.User{ID: 1, FirstName: "a", LastName: "b", Role: 1, Password: p}, nil
 					},
 				},
 			},
@@ -257,7 +258,7 @@ func TestService_UserByPhoneAndPassword(t *testing.T) {
 				password: "1",
 			},
 			wantErr: false,
-			want: &userAuthResponse{
+			want: &dto.UserAuthResponse{
 				ID:        1,
 				FirstName: "a",
 				LastName:  "b",
@@ -296,13 +297,13 @@ func TestService_UserByID(t *testing.T) {
 		fields  fields
 		args    args
 		wantErr bool
-		want    *userByIDResponse
+		want    *dto.UserByIDResponse
 	}{
 		{
 			name: "error no user",
 			fields: fields{
 				repo: &userRepositoryMock{
-					GetUserByIDFunc: func(id uint) (*models.User, error) {
+					GetUserByIDFunc: func(id uint) (*entities.User, error) {
 						return nil, errTestError
 					},
 				},
@@ -315,10 +316,10 @@ func TestService_UserByID(t *testing.T) {
 			name: "ok",
 			fields: fields{
 				repo: &userRepositoryMock{
-					GetUserByIDFunc: func(id uint) (*models.User, error) {
-						return &models.User{
+					GetUserByIDFunc: func(id uint) (*entities.User, error) {
+						return &entities.User{
 							ID: 1,
-							Building: models.Building{
+							Building: entities.Building{
 								ID:      1,
 								Name:    "a",
 								Address: "b",
@@ -335,14 +336,14 @@ func TestService_UserByID(t *testing.T) {
 				},
 			},
 			wantErr: false,
-			want: &userByIDResponse{
+			want: &dto.UserByIDResponse{
 				ID:        1,
 				Apartment: 1,
 				FirstName: "d",
 				LastName:  "e",
 				Phone:     "c",
 				Email:     "a",
-				Building: models.Building{
+				Building: entities.Building{
 					ID:      1,
 					Name:    "a",
 					Address: "b",

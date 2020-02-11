@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/rs/zerolog"
+
+	"github.com/ivch/dynasty/models/dto"
 )
 
 type loggingMiddleware struct {
@@ -18,7 +20,7 @@ func newLoggingMiddleware(log *zerolog.Logger, svc Service) Service {
 	}
 }
 
-func (mw loggingMiddleware) Create(ctx context.Context, req *createRequest) (*createResponse, error) {
+func (mw loggingMiddleware) Create(ctx context.Context, req *dto.RequestCreateRequest) (*dto.RequestCreateResponse, error) {
 	res, err := mw.next.Create(ctx, req)
 	if err != nil {
 		mw.log.Error().Msg(err.Error())
@@ -27,7 +29,7 @@ func (mw loggingMiddleware) Create(ctx context.Context, req *createRequest) (*cr
 	return res, err
 }
 
-func (mw loggingMiddleware) My(ctx context.Context, req *myRequest) (*myResponse, error) {
+func (mw loggingMiddleware) My(ctx context.Context, req *dto.RequestMyRequest) (*dto.RequestMyResponse, error) {
 	res, err := mw.next.My(ctx, req)
 	if err != nil {
 		mw.log.Error().Msg(err.Error())
@@ -36,7 +38,7 @@ func (mw loggingMiddleware) My(ctx context.Context, req *myRequest) (*myResponse
 	return res, err
 }
 
-func (mw loggingMiddleware) Update(ctx context.Context, req *updateRequest) error {
+func (mw loggingMiddleware) Update(ctx context.Context, req *dto.RequestUpdateRequest) error {
 	err := mw.next.Update(ctx, req)
 	if err != nil {
 		mw.log.Error().Msg(err.Error())
@@ -45,7 +47,7 @@ func (mw loggingMiddleware) Update(ctx context.Context, req *updateRequest) erro
 	return err
 }
 
-func (mw loggingMiddleware) Delete(ctx context.Context, req *byIDRequest) error {
+func (mw loggingMiddleware) Delete(ctx context.Context, req *dto.RequestByID) error {
 	err := mw.next.Delete(ctx, req)
 	if err != nil {
 		mw.log.Error().Msg(err.Error())
@@ -54,7 +56,7 @@ func (mw loggingMiddleware) Delete(ctx context.Context, req *byIDRequest) error 
 	return err
 }
 
-func (mw loggingMiddleware) Get(ctx context.Context, req *byIDRequest) (*getResponse, error) {
+func (mw loggingMiddleware) Get(ctx context.Context, req *dto.RequestByID) (*dto.RequestByIDResponse, error) {
 	res, err := mw.next.Get(ctx, req)
 	if err != nil {
 		mw.log.Error().Msg(err.Error())

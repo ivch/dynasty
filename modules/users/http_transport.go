@@ -13,6 +13,7 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 
 	"github.com/ivch/dynasty/common/middleware"
+	"github.com/ivch/dynasty/models/dto"
 )
 
 func New(repo userRepository, verifyRegCode bool, log *zerolog.Logger) (http.Handler, Service) {
@@ -61,7 +62,7 @@ func decodeUserByIDRequest(ctx context.Context, _ *http.Request) (interface{}, e
 
 func decodeRegisterRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
-		var req userRegisterRequest
+		var req dto.UserRegisterRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			log.Error().Err(err).Msg("failed to decode request")
 			return nil, errors.New("failed to decode request")

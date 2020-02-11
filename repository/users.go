@@ -3,7 +3,7 @@ package repository
 import (
 	"github.com/jinzhu/gorm"
 
-	"github.com/ivch/dynasty/models"
+	"github.com/ivch/dynasty/models/entities"
 )
 
 type Users struct {
@@ -14,27 +14,27 @@ func NewUsers(db *gorm.DB) *Users {
 	return &Users{db: db}
 }
 
-func (r *Users) CreateUser(user *models.User) error {
+func (r *Users) CreateUser(user *entities.User) error {
 	return r.db.Create(user).Error
 }
 
-func (r *Users) DeleteUser(u *models.User) error {
+func (r *Users) DeleteUser(u *entities.User) error {
 	return r.db.Delete(u).Error
 }
 
-func (r *Users) GetUserByID(id uint) (*models.User, error) {
-	var u models.User
+func (r *Users) GetUserByID(id uint) (*entities.User, error) {
+	var u entities.User
 	if err := r.db.Preload("Building").Where("id = ?", id).First(&u).Error; err != nil {
 		return nil, err
 	}
 	return &u, nil
 }
 
-func (r *Users) GetUserByPhone(phone string) (*models.User, error) {
-	var u models.User
+func (r *Users) GetUserByPhone(phone string) (*entities.User, error) {
+	var u entities.User
 	if err := r.db.Where("phone = ?", phone).First(&u).Error; err != nil {
 		if gorm.IsRecordNotFoundError(err) {
-			return nil, models.ErrUserNotFound
+			return nil, entities.ErrUserNotFound
 		}
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (r *Users) ValidateRegCode(code string) error {
 	}
 
 	if !c.Exists {
-		return models.ErrInvalidRegCode
+		return entities.ErrInvalidRegCode
 	}
 	return nil
 }

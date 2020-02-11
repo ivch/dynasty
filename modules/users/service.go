@@ -6,56 +6,23 @@ import (
 	"github.com/rs/zerolog"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/ivch/dynasty/models"
+	"github.com/ivch/dynasty/models/dto"
+	"github.com/ivch/dynasty/models/entities"
 )
 
 type Service interface {
-	Register(ctx context.Context, req *userRegisterRequest) (*userRegisterResponse, error)
-	UserByPhoneAndPassword(ctx context.Context, phone, password string) (*userAuthResponse, error)
-	UserByID(ctx context.Context, id uint) (*userByIDResponse, error)
+	Register(ctx context.Context, req *dto.UserRegisterRequest) (*dto.UserRegisterResponse, error)
+	UserByPhoneAndPassword(ctx context.Context, phone, password string) (*dto.UserAuthResponse, error)
+	UserByID(ctx context.Context, id uint) (*dto.UserByIDResponse, error)
 }
 
 type userRepository interface {
-	GetUserByID(id uint) (*models.User, error)
-	GetUserByPhone(phone string) (*models.User, error)
-	CreateUser(user *models.User) error
-	DeleteUser(u *models.User) error
+	GetUserByID(id uint) (*entities.User, error)
+	GetUserByPhone(phone string) (*entities.User, error)
+	CreateUser(user *entities.User) error
+	DeleteUser(u *entities.User) error
 	ValidateRegCode(code string) error
 	UseRegCode(code string) error
-}
-
-type userRegisterRequest struct {
-	Password   string `json:"password,omitempty" validate:"required,min=6"`
-	Phone      string `json:"phone,omitempty" validate:"required"`
-	FirstName  string `json:"first_name,omitempty" validate:"required"`
-	LastName   string `json:"last_name,omitempty" validate:"required"`
-	BuildingID int    `json:"building_id,omitempty" validate:"required"`
-	Apartment  uint   `json:"apartment,omitempty" validate:"required"`
-	Email      string `json:"email,omitempty" validate:"email"`
-	Code       string `json:"code"`
-}
-
-type userAuthResponse struct {
-	ID        uint   `json:"id"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Role      uint   `json:"role"`
-}
-
-type userByIDResponse struct {
-	ID        uint            `json:"id"`
-	Apartment uint            `json:"apartment"`
-	FirstName string          `json:"first_name"`
-	LastName  string          `json:"last_name"`
-	Phone     string          `json:"phone"`
-	Email     string          `json:"email"`
-	Role      uint            `json:"role"`
-	Building  models.Building `json:"building"`
-}
-
-type userRegisterResponse struct {
-	ID    uint   `json:"id"`
-	Phone string `json:"phone"`
 }
 
 type service struct {
@@ -73,13 +40,13 @@ func newService(log *zerolog.Logger, repo userRepository, verifyRegCode bool) Se
 	return svc
 }
 
-func (s *service) UserByID(_ context.Context, id uint) (*userByIDResponse, error) {
+func (s *service) UserByID(_ context.Context, id uint) (*dto.UserByIDResponse, error) {
 	u, err := s.repo.GetUserByID(id)
 	if err != nil {
 		return nil, err
 	}
 
-	return &userByIDResponse{
+	return &dto.UserByIDResponse{
 		ID:        u.ID,
 		Apartment: u.Apartment,
 		FirstName: u.FirstName,
@@ -90,7 +57,7 @@ func (s *service) UserByID(_ context.Context, id uint) (*userByIDResponse, error
 	}, nil
 }
 
-func (s *service) UserByPhoneAndPassword(_ context.Context, phone, password string) (*userAuthResponse, error) {
+func (s *service) UserByPhoneAndPassword(_ context.Context, phone, password string) (*dto.UserAuthResponse, error) {
 	u, err := s.repo.GetUserByPhone(phone)
 	if err != nil {
 		return nil, err
@@ -98,12 +65,12 @@ func (s *service) UserByPhoneAndPassword(_ context.Context, phone, password stri
 
 	if err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password)); err != nil {
 		if err == bcrypt.ErrMismatchedHashAndPassword {
-			return nil, models.ErrInvalidCredentials
+			return nil, entities.ErrInvalidCredentials
 		}
 		return nil, err
 	}
 
-	return &userAuthResponse{
+	return &dto.UserAuthResponse{
 		ID:        u.ID,
 		FirstName: u.FirstName,
 		LastName:  u.LastName,
@@ -111,14 +78,14 @@ func (s *service) UserByPhoneAndPassword(_ context.Context, phone, password stri
 	}, nil
 }
 
-func (s *service) Register(_ context.Context, r *userRegisterRequest) (*userRegisterResponse, error) {
+func (s *service) Register(_ context.Context, r *dto.UserRegisterRequest) (*dto.UserRegisterResponse, error) {
 	u, err := s.repo.GetUserByPhone(r.Phone)
-	if err != nil && err != models.ErrUserNotFound {
+	if err != nil && err != entities.ErrUserNotFound {
 		return nil, err
 	}
 
 	if u != nil {
-		return nil, models.ErrUserPhoneExists
+		return nil, entities.ErrUserPhoneExists
 	}
 
 	if s.verifyRegCode {
@@ -132,7 +99,7 @@ func (s *service) Register(_ context.Context, r *userRegisterRequest) (*userRegi
 		return nil, err
 	}
 
-	usr := models.User{
+	usr := entities.User{
 		Apartment:  r.Apartment,
 		BuildingID: r.BuildingID,
 		Email:      r.Email,
@@ -140,7 +107,7 @@ func (s *service) Register(_ context.Context, r *userRegisterRequest) (*userRegi
 		FirstName:  r.FirstName,
 		LastName:   r.LastName,
 		Password:   pwd,
-		Role:       models.DefaultUserRole,
+		Role:       entities.DefaultUserRole,
 	}
 
 	if err := s.repo.CreateUser(&usr); err != nil {
@@ -156,7 +123,7 @@ func (s *service) Register(_ context.Context, r *userRegisterRequest) (*userRegi
 		}
 	}
 
-	return &userRegisterResponse{
+	return &dto.UserRegisterResponse{
 		ID:    usr.ID,
 		Phone: usr.Phone,
 	}, nil

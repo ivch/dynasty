@@ -5,7 +5,8 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"github.com/ivch/dynasty/models"
+	"github.com/ivch/dynasty/models/dto"
+	"github.com/ivch/dynasty/models/entities"
 )
 
 const (
@@ -13,77 +14,38 @@ const (
 )
 
 type Service interface {
-	Create(ctx context.Context, r *createRequest) (*createResponse, error)
-	Update(ctx context.Context, r *updateRequest) error
-	Delete(ctx context.Context, r *byIDRequest) error
-	Get(ctx context.Context, r *byIDRequest) (*getResponse, error)
-	My(ctx context.Context, r *myRequest) (*myResponse, error)
+	Create(ctx context.Context, r *dto.RequestCreateRequest) (*dto.RequestCreateResponse, error)
+	Update(ctx context.Context, r *dto.RequestUpdateRequest) error
+	Delete(ctx context.Context, r *dto.RequestByID) error
+	Get(ctx context.Context, r *dto.RequestByID) (*dto.RequestByIDResponse, error)
+	My(ctx context.Context, r *dto.RequestMyRequest) (*dto.RequestMyResponse, error)
 }
 
 type requestsRepository interface {
-	Create(req *models.Request) (uint, error)
-	GetRequestByIDAndUser(id, userId uint) (*models.Request, error)
-	Update(req *models.Request) error
+	Create(req *entities.Request) (uint, error)
+	GetRequestByIDAndUser(id, userId uint) (*entities.Request, error)
+	Update(req *entities.Request) error
 	Delete(id, userID uint) error
-	ListByUser(userID, limit, offset uint) ([]*models.Request, error)
+	ListByUser(userID, limit, offset uint) ([]*entities.Request, error)
 }
 
 type service struct {
 	repo requestsRepository
 }
 
-type byIDRequest struct {
-	UserID uint `validate:"required"`
-	ID     uint `validate:"required"`
-}
-
-type getResponse struct {
-	*models.Request
-}
-
-type createRequest struct {
-	Type        string `json:"type" validate:"required"`
-	Time        int64  `json:"time" validate:"required"`
-	UserID      uint   `json:"user_id" validate:"required"`
-	Description string `json:"description"`
-}
-
-type createResponse struct {
-	ID uint `json:"id"`
-}
-
-type myRequest struct {
-	UserID uint `json:"user_id"`
-	Offset uint `json:"offset"`
-	Limit  uint `json:"limit"`
-}
-
-type myResponse struct {
-	Data []*models.Request `json:"data"`
-}
-
-type updateRequest struct {
-	ID          uint
-	UserID      uint    `gorm:"-"`
-	Type        *string `json:"type,omitempty"`
-	Time        *int64  `json:"time,omitempty"`
-	Description *string `json:"description,omitempty"`
-	Status      *string `json:"status,omitempty"`
-}
-
-func (s *service) Get(_ context.Context, r *byIDRequest) (*getResponse, error) {
+func (s *service) Get(_ context.Context, r *dto.RequestByID) (*dto.RequestByIDResponse, error) {
 	req, err := s.repo.GetRequestByIDAndUser(r.ID, r.UserID)
 	if err != nil {
 		return nil, err
 	}
-	return &getResponse{req}, nil
+	return &dto.RequestByIDResponse{req}, nil
 }
 
-func (s *service) Delete(_ context.Context, r *byIDRequest) error {
+func (s *service) Delete(_ context.Context, r *dto.RequestByID) error {
 	return s.repo.Delete(r.ID, r.UserID)
 }
 
-func (s *service) Update(_ context.Context, r *updateRequest) error {
+func (s *service) Update(_ context.Context, r *dto.RequestUpdateRequest) error {
 	req, err := s.repo.GetRequestByIDAndUser(r.ID, r.UserID)
 	if err != nil {
 		return err
@@ -108,16 +70,16 @@ func (s *service) Update(_ context.Context, r *updateRequest) error {
 	return s.repo.Update(req)
 }
 
-func (s *service) My(_ context.Context, r *myRequest) (*myResponse, error) {
+func (s *service) My(_ context.Context, r *dto.RequestMyRequest) (*dto.RequestMyResponse, error) {
 	reqs, err := s.repo.ListByUser(r.UserID, r.Limit, r.Offset)
 	if err != nil {
 		return nil, err
 	}
-	return &myResponse{Data: reqs}, nil
+	return &dto.RequestMyResponse{Data: reqs}, nil
 }
 
-func (s *service) Create(_ context.Context, r *createRequest) (*createResponse, error) {
-	req := models.Request{
+func (s *service) Create(_ context.Context, r *dto.RequestCreateRequest) (*dto.RequestCreateResponse, error) {
+	req := entities.Request{
 		Type:        r.Type,
 		UserID:      r.UserID,
 		Time:        r.Time,
@@ -127,7 +89,7 @@ func (s *service) Create(_ context.Context, r *createRequest) (*createResponse, 
 
 	id, err := s.repo.Create(&req)
 
-	return &createResponse{ID: id}, err
+	return &dto.RequestCreateResponse{ID: id}, err
 }
 
 func newService(log *zerolog.Logger, repo requestsRepository) Service {

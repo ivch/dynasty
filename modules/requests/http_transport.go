@@ -13,6 +13,7 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 
 	"github.com/ivch/dynasty/common/middleware"
+	"github.com/ivch/dynasty/models/dto"
 )
 
 func New(log *zerolog.Logger, repo requestsRepository) (http.Handler, Service) {
@@ -42,8 +43,8 @@ func newHTTPHandler(log *zerolog.Logger, svc Service) http.Handler {
 		options...))
 
 	r.Method("GET", "/v1/my", httptransport.NewServer(
-		makeGetMyRequestsEndpoint(svc),
-		decodeGetMyRequests,
+		makeMyRequestsEndpoint(svc),
+		decodeMyRequest,
 		encodeHTTPResponse,
 		options...))
 
@@ -83,7 +84,7 @@ func decodeByIDRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
 			return nil, errors.New("wrong user id")
 		}
 
-		req := byIDRequest{
+		req := dto.RequestByID{
 			UserID: uint(userID),
 			ID:     uint(id),
 		}
@@ -99,7 +100,7 @@ func decodeByIDRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
 
 func decodeUpdateRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
 	return func(ctx context.Context, r *http.Request) (interface{}, error) {
-		var req updateRequest
+		var req dto.RequestUpdateRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			log.Error().Err(err).Msg("failed to decode request")
 			return nil, err
@@ -135,7 +136,7 @@ func decodeUpdateRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
 	}
 }
 
-func decodeGetMyRequests(ctx context.Context, r *http.Request) (interface{}, error) {
+func decodeMyRequest(ctx context.Context, r *http.Request) (interface{}, error) {
 	_id, ok := middleware.UserIDFromContext(ctx)
 	if !ok || _id == "" || _id == "0" {
 		return nil, errors.New("empty id")
@@ -175,7 +176,7 @@ func decodeGetMyRequests(ctx context.Context, r *http.Request) (interface{}, err
 		return nil, errors.New("limit should less or equal 200")
 	}
 
-	req := &myRequest{
+	req := &dto.RequestMyRequest{
 		UserID: uint(id),
 		Offset: uint(offset),
 		Limit:  uint(limit),
@@ -186,7 +187,7 @@ func decodeGetMyRequests(ctx context.Context, r *http.Request) (interface{}, err
 
 func decodeCreateRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
 	return func(ctx context.Context, r *http.Request) (interface{}, error) {
-		var req createRequest
+		var req dto.RequestCreateRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			log.Error().Err(err).Msg("failed to decode request")
 			return nil, err

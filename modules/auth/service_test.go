@@ -10,7 +10,8 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"github.com/ivch/dynasty/models"
+	"github.com/ivch/dynasty/models/dto"
+	"github.com/ivch/dynasty/models/entities"
 )
 
 var (
@@ -83,24 +84,24 @@ func TestService_Refresh(t *testing.T) {
 	type fields struct {
 		repo authRepository
 		usrv userService
-		req  *refreshTokenRequest
+		req  *dto.AuthRefreshTokenRequest
 	}
 
 	tests := []struct {
 		name    string
 		fields  fields
 		wantErr bool
-		want    *loginResponse
+		want    *dto.AuthLoginResponse
 	}{
 		{
 			name: "error no session",
 			fields: fields{
 				repo: &authRepositoryMock{
-					FindSessionByAccessTokenFunc: func(t string) (*models.Session, error) {
+					FindSessionByAccessTokenFunc: func(t string) (*entities.Session, error) {
 						return nil, errTestError
 					},
 				},
-				req: &refreshTokenRequest{Token: "token"},
+				req: &dto.AuthRefreshTokenRequest{Token: "token"},
 			},
 			wantErr: true,
 		},
@@ -108,14 +109,14 @@ func TestService_Refresh(t *testing.T) {
 			name: "error on session delete",
 			fields: fields{
 				repo: &authRepositoryMock{
-					FindSessionByAccessTokenFunc: func(t string) (*models.Session, error) {
-						return &models.Session{ID: "1"}, nil
+					FindSessionByAccessTokenFunc: func(t string) (*entities.Session, error) {
+						return &entities.Session{ID: "1"}, nil
 					},
 					DeleteSessionByIDFunc: func(_ string) error {
 						return errTestError
 					},
 				},
-				req: &refreshTokenRequest{Token: "token"},
+				req: &dto.AuthRefreshTokenRequest{Token: "token"},
 			},
 			wantErr: true,
 		},
@@ -123,8 +124,8 @@ func TestService_Refresh(t *testing.T) {
 			name: "error expired token",
 			fields: fields{
 				repo: &authRepositoryMock{
-					FindSessionByAccessTokenFunc: func(t string) (*models.Session, error) {
-						return &models.Session{
+					FindSessionByAccessTokenFunc: func(t string) (*entities.Session, error) {
+						return &entities.Session{
 							ID:        "1",
 							ExpiresIn: time.Now().Add(-1 * time.Minute).Unix(),
 						}, nil
@@ -133,7 +134,7 @@ func TestService_Refresh(t *testing.T) {
 						return nil
 					},
 				},
-				req: &refreshTokenRequest{Token: "token"},
+				req: &dto.AuthRefreshTokenRequest{Token: "token"},
 			},
 			wantErr: true,
 		},
@@ -141,8 +142,8 @@ func TestService_Refresh(t *testing.T) {
 			name: "error finding user",
 			fields: fields{
 				repo: &authRepositoryMock{
-					FindSessionByAccessTokenFunc: func(t string) (*models.Session, error) {
-						return &models.Session{
+					FindSessionByAccessTokenFunc: func(t string) (*entities.Session, error) {
+						return &entities.Session{
 							ID:        "1",
 							ExpiresIn: time.Now().Add(10 * time.Minute).Unix(),
 						}, nil
@@ -152,11 +153,11 @@ func TestService_Refresh(t *testing.T) {
 					},
 				},
 				usrv: &userServiceMock{
-					UserByIDFunc: func(_ context.Context, _ uint) (*models.User, error) {
+					UserByIDFunc: func(_ context.Context, _ uint) (*entities.User, error) {
 						return nil, errTestError
 					},
 				},
-				req: &refreshTokenRequest{Token: "token"},
+				req: &dto.AuthRefreshTokenRequest{Token: "token"},
 			},
 			wantErr: true,
 		},
@@ -164,8 +165,8 @@ func TestService_Refresh(t *testing.T) {
 			name: "error creating session",
 			fields: fields{
 				repo: &authRepositoryMock{
-					FindSessionByAccessTokenFunc: func(t string) (*models.Session, error) {
-						return &models.Session{
+					FindSessionByAccessTokenFunc: func(t string) (*entities.Session, error) {
+						return &entities.Session{
 							ID:        "1",
 							ExpiresIn: time.Now().Add(10 * time.Minute).Unix(),
 							UserID:    1,
@@ -179,11 +180,11 @@ func TestService_Refresh(t *testing.T) {
 					},
 				},
 				usrv: &userServiceMock{
-					UserByIDFunc: func(_ context.Context, _ uint) (*models.User, error) {
+					UserByIDFunc: func(_ context.Context, _ uint) (*entities.User, error) {
 						return nil, nil
 					},
 				},
-				req: &refreshTokenRequest{Token: "token"},
+				req: &dto.AuthRefreshTokenRequest{Token: "token"},
 			},
 			wantErr: true,
 		},
@@ -191,8 +192,8 @@ func TestService_Refresh(t *testing.T) {
 			name: "ok",
 			fields: fields{
 				repo: &authRepositoryMock{
-					FindSessionByAccessTokenFunc: func(t string) (*models.Session, error) {
-						return &models.Session{
+					FindSessionByAccessTokenFunc: func(t string) (*entities.Session, error) {
+						return &entities.Session{
 							ID:        "1",
 							ExpiresIn: time.Now().Add(10 * time.Minute).Unix(),
 							UserID:    1,
@@ -206,8 +207,8 @@ func TestService_Refresh(t *testing.T) {
 					},
 				},
 				usrv: &userServiceMock{
-					UserByIDFunc: func(_ context.Context, _ uint) (*models.User, error) {
-						return &models.User{
+					UserByIDFunc: func(_ context.Context, _ uint) (*entities.User, error) {
+						return &entities.User{
 							ID:        1,
 							FirstName: "Jane",
 							LastName:  "Doe",
@@ -215,7 +216,7 @@ func TestService_Refresh(t *testing.T) {
 						}, nil
 					},
 				},
-				req: &refreshTokenRequest{Token: "token"},
+				req: &dto.AuthRefreshTokenRequest{Token: "token"},
 			},
 			wantErr: false,
 		},
@@ -239,7 +240,7 @@ func TestService_Login(t *testing.T) {
 	type fields struct {
 		usrv userService
 		repo authRepository
-		req  *loginRequest
+		req  *dto.AuthLoginRequest
 	}
 
 	tests := []struct {
@@ -251,11 +252,11 @@ func TestService_Login(t *testing.T) {
 			name: "error no user",
 			fields: fields{
 				usrv: &userServiceMock{
-					UserByPhoneAndPasswordFunc: func(_ context.Context, _ string, _ string) (*models.User, error) {
+					UserByPhoneAndPasswordFunc: func(_ context.Context, _ string, _ string) (*entities.User, error) {
 						return nil, errTestError
 					},
 				},
-				req: &loginRequest{Phone: "1", Password: "1"},
+				req: &dto.AuthLoginRequest{Phone: "1", Password: "1"},
 			},
 			wantErr: true,
 		},
@@ -263,8 +264,8 @@ func TestService_Login(t *testing.T) {
 			name: "error on create session",
 			fields: fields{
 				usrv: &userServiceMock{
-					UserByPhoneAndPasswordFunc: func(_ context.Context, _ string, _ string) (*models.User, error) {
-						return &models.User{ID: 1}, nil
+					UserByPhoneAndPasswordFunc: func(_ context.Context, _ string, _ string) (*entities.User, error) {
+						return &entities.User{ID: 1}, nil
 					},
 				},
 				repo: &authRepositoryMock{
@@ -272,7 +273,7 @@ func TestService_Login(t *testing.T) {
 						return "", errTestError
 					},
 				},
-				req: &loginRequest{Phone: "1", Password: "1"},
+				req: &dto.AuthLoginRequest{Phone: "1", Password: "1"},
 			},
 			wantErr: true,
 		},
@@ -280,8 +281,8 @@ func TestService_Login(t *testing.T) {
 			name: "ok",
 			fields: fields{
 				usrv: &userServiceMock{
-					UserByPhoneAndPasswordFunc: func(_ context.Context, _ string, _ string) (*models.User, error) {
-						return &models.User{ID: 1, Role: 1, FirstName: "Jane", LastName: "Doe"}, nil
+					UserByPhoneAndPasswordFunc: func(_ context.Context, _ string, _ string) (*entities.User, error) {
+						return &entities.User{ID: 1, Role: 1, FirstName: "Jane", LastName: "Doe"}, nil
 					},
 				},
 				repo: &authRepositoryMock{
@@ -289,7 +290,7 @@ func TestService_Login(t *testing.T) {
 						return "token", nil
 					},
 				},
-				req: &loginRequest{Phone: "1", Password: "1"},
+				req: &dto.AuthLoginRequest{Phone: "1", Password: "1"},
 			},
 			wantErr: false,
 		},

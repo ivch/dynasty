@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/rs/zerolog"
+
+	"github.com/ivch/dynasty/models/dto"
 )
 
 type loggingMiddleware struct {
@@ -18,7 +20,7 @@ func newLoggingMiddleware(log *zerolog.Logger, svc Service) Service {
 	}
 }
 
-func (mw loggingMiddleware) Login(ctx context.Context, req *loginRequest) (*loginResponse, error) {
+func (mw loggingMiddleware) Login(ctx context.Context, req *dto.AuthLoginRequest) (*dto.AuthLoginResponse, error) {
 	res, err := mw.next.Login(ctx, req)
 	if err != nil {
 		mw.log.Error().Msg(err.Error())
@@ -27,7 +29,7 @@ func (mw loggingMiddleware) Login(ctx context.Context, req *loginRequest) (*logi
 	return res, err
 }
 
-func (mw loggingMiddleware) Refresh(ctx context.Context, req *refreshTokenRequest) (*loginResponse, error) {
+func (mw loggingMiddleware) Refresh(ctx context.Context, req *dto.AuthRefreshTokenRequest) (*dto.AuthLoginResponse, error) {
 	res, err := mw.next.Refresh(ctx, req)
 	if err != nil {
 		mw.log.Error().Msg(err.Error())

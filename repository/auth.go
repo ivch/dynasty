@@ -6,7 +6,7 @@ import (
 	"github.com/jinzhu/gorm"
 	uuid "github.com/satori/go.uuid"
 
-	"github.com/ivch/dynasty/models"
+	"github.com/ivch/dynasty/models/entities"
 )
 
 type Auth struct {
@@ -19,7 +19,7 @@ func NewAuth(db *gorm.DB) *Auth {
 
 func (a *Auth) CreateSession(userID uint) (string, error) {
 	rt := uuid.NewV4()
-	sess := models.Session{
+	sess := entities.Session{
 		UserID:       userID,
 		RefreshToken: rt,
 		ExpiresIn:    time.Now().Add(100 * 365 * 24 * time.Hour).Unix(),
@@ -34,8 +34,8 @@ func (a *Auth) CreateSession(userID uint) (string, error) {
 	return rt.String(), nil
 }
 
-func (a *Auth) FindSessionByAccessToken(token string) (*models.Session, error) {
-	var sess models.Session
+func (a *Auth) FindSessionByAccessToken(token string) (*entities.Session, error) {
+	var sess entities.Session
 	if err := a.db.Where("refresh_token = ?", token).First(&sess).Error; err != nil {
 		return nil, err
 	}
@@ -43,5 +43,5 @@ func (a *Auth) FindSessionByAccessToken(token string) (*models.Session, error) {
 }
 
 func (a *Auth) DeleteSessionByID(id string) error {
-	return a.db.Where("id = ?", id).Delete(models.Session{}).Error
+	return a.db.Where("id = ?", id).Delete(entities.Session{}).Error
 }
