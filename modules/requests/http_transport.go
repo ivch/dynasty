@@ -124,6 +124,10 @@ func decodeUpdateRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
 			return nil, errors.New("wrong user id")
 		}
 
+		if userID == 0 {
+			return nil, errors.New("bad user id")
+		}
+
 		req.ID = uint(id)
 		req.UserID = uint(userID)
 
@@ -137,6 +141,11 @@ func decodeGetMyRequests(ctx context.Context, r *http.Request) (interface{}, err
 		return nil, errors.New("empty id")
 	}
 
+	id, err := strconv.ParseUint(_id, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
 	_offset := r.URL.Query().Get("offset")
 	_limit := r.URL.Query().Get("limit")
 
@@ -144,13 +153,8 @@ func decodeGetMyRequests(ctx context.Context, r *http.Request) (interface{}, err
 		return nil, errors.New("empty offset")
 	}
 
-	if _offset == "" {
+	if _limit == "" {
 		return nil, errors.New("empty limit")
-	}
-
-	id, err := strconv.ParseUint(_id, 10, 64)
-	if err != nil {
-		return nil, err
 	}
 
 	offset, err := strconv.ParseUint(_offset, 10, 32)
@@ -165,6 +169,10 @@ func decodeGetMyRequests(ctx context.Context, r *http.Request) (interface{}, err
 
 	if limit == 0 {
 		return nil, errors.New("limit should be grater then 0")
+	}
+
+	if limit > 200 {
+		return nil, errors.New("limit should less or equal 200")
 	}
 
 	req := &myRequest{

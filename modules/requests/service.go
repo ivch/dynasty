@@ -59,7 +59,7 @@ type myRequest struct {
 }
 
 type myResponse struct {
-	Data []*models.Request
+	Data []*models.Request `json:"data"`
 }
 
 type updateRequest struct {
