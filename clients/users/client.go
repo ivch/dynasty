@@ -5,18 +5,25 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/ivch/dynasty/models/dto"
 	"github.com/ivch/dynasty/models/entities"
 	"github.com/ivch/dynasty/modules/users"
 )
 
 type Client struct {
-	svc users.Service
+	svc userService
 }
 
 func New(svc users.Service) *Client {
 	return &Client{
 		svc: svc,
 	}
+}
+
+type userService interface {
+	Register(ctx context.Context, req *dto.UserRegisterRequest) (*dto.UserRegisterResponse, error)
+	UserByPhoneAndPassword(ctx context.Context, phone, password string) (*dto.UserAuthResponse, error)
+	UserByID(ctx context.Context, id uint) (*dto.UserByIDResponse, error)
 }
 
 func (c *Client) UserByID(ctx context.Context, id uint) (*entities.User, error) {
