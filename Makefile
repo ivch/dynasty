@@ -17,7 +17,7 @@ test:
 
 .PHONY: lint
 lint:
-	GO111MODULE=off go get github.com/golangci/golangci-lint/cmd/golangci-lint
+	go get github.com/golangci/golangci-lint/cmd/golangci-lint
 	golangci-lint run
 
 .PHONY: deps
