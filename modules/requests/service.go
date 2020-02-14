@@ -38,7 +38,7 @@ func (s *service) Get(_ context.Context, r *dto.RequestByID) (*dto.RequestByIDRe
 	if err != nil {
 		return nil, err
 	}
-	return &dto.RequestByIDResponse{req}, nil
+	return &dto.RequestByIDResponse{Data: req}, nil
 }
 
 func (s *service) Delete(_ context.Context, r *dto.RequestByID) error {

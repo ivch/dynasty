@@ -1,5 +1,5 @@
 SHELL=/bin/sh
-IMAGE_TAG := $(shell git rev-parse HEAD)
+IMAGE_TAG := $(shell git rev-parse --short HEAD)
 export GO111MODULE=on
 
 ifneq ($(version),)
@@ -29,7 +29,7 @@ deps:
 
 .PHONY: build
 build:
-	docker build -t ivch/dynasty:latest  .
+	docker build -t ivch/dynasty:${IMAGE_TAG}  .
 
 .PHONY: cover
 cover:
