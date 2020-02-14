@@ -14,6 +14,7 @@ jobs:
       id: go
       env:
         IMAGE_TAG: $(git rev-parse --short HEAD)
+        GO111MODULE: on
 
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
