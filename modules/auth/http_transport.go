@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -13,6 +14,11 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 
 	"github.com/ivch/dynasty/models/dto"
+)
+
+var (
+	errBadRequest     = errors.New("failed to decode request")
+	errInvalidRequest = errors.New("failed to validate request")
 )
 
 func New(log *zerolog.Logger, repo authRepository, usrv userService, jwtSecret string) (http.Handler, Service) {
@@ -68,7 +74,7 @@ func decodeLoginRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
 		var req dto.AuthLoginRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			log.Error().Err(err).Msg("failed to decode request")
-			return nil, err
+			return nil, errBadRequest
 		}
 
 		// ip, _, err := net.SplitHostPort(r.RemoteAddr)
@@ -87,8 +93,8 @@ func decodeLoginRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
 		// req.Ua = r.Header.Get("User-Agent")
 
 		if err := validator.New().Struct(&req); err != nil {
-			log.Error().Err(err).Msg("error validating request")
-			return nil, err
+			log.Error().Err(err).Msg(errInvalidRequest.Error())
+			return nil, errInvalidRequest
 		}
 
 		return &req, nil
@@ -122,7 +128,17 @@ func encodeHTTPResponse(_ context.Context, w http.ResponseWriter, response inter
 }
 
 func encodeHTTPError(_ context.Context, err error, w http.ResponseWriter) {
+	var status int
+	switch {
+	case errors.Is(err, errBadRequest):
+		fallthrough
+	case errors.Is(err, errInvalidRequest):
+		status = http.StatusBadRequest
+	default:
+		status = http.StatusInternalServerError
+	}
+
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(http.StatusInternalServerError)
+	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
 }

@@ -23,19 +23,19 @@ func TestHTTP_Login(t *testing.T) {
 			name:     "error decode request",
 			request:  "}{",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:     "error empty phone",
 			request:  `{"password":"123"}`,
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:     "error empty password",
 			request:  `{"phone":"123"}`,
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:    "error service error",

@@ -2,7 +2,6 @@ package requests
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -27,28 +26,28 @@ func TestHTTP_Create(t *testing.T) {
 			name:     "error parsing request",
 			request:  "}{",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:     "error no user",
 			request:  "{}",
 			header:   "0",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:     "error no type",
 			request:  `{"time":1,"description":"abc"}`,
 			header:   "1",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:     "error no time",
 			request:  `{"type":"1","description":"abc"}`,
 			header:   "1",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:    "error service",
@@ -85,8 +84,8 @@ func TestHTTP_Create(t *testing.T) {
 			rq, _ := http.NewRequest("POST", "/v1/request", strings.NewReader(tt.request))
 			rq.Header.Add("X-Auth-User", tt.header)
 			h.ServeHTTP(rr, rq)
-			if (rr.Code != http.StatusOK) != tt.wantErr {
-				t.Errorf("Request error. status = %d, wantErr %v", rr.Code, tt.wantErr)
+			if (rr.Code != tt.wantCode) && tt.wantErr {
+				t.Errorf("Request error. status = %d, expected %v", rr.Code, tt.wantCode)
 			}
 
 			if !tt.wantErr && tt.want != strings.TrimSpace(rr.Body.String()) {
@@ -111,7 +110,7 @@ func TestHTTP_Update(t *testing.T) {
 			request:  "bad json }}}",
 			id:       "1",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:     "error no id",
@@ -119,7 +118,7 @@ func TestHTTP_Update(t *testing.T) {
 			id:       "0",
 			header:   "0",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:     "error wrong id",
@@ -127,7 +126,7 @@ func TestHTTP_Update(t *testing.T) {
 			id:       "asd",
 			header:   "0",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:     "error wrong user id",
@@ -135,7 +134,7 @@ func TestHTTP_Update(t *testing.T) {
 			id:       "1",
 			header:   "asd",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:     "error no user",
@@ -143,11 +142,12 @@ func TestHTTP_Update(t *testing.T) {
 			id:       "1",
 			header:   "0",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:    "error service",
 			request: `{"type":"1","description":"abc","time":1}`,
+			id:      "1",
 			header:  "1",
 			svc: &ServiceMock{
 				UpdateFunc: func(_ context.Context, _ *dto.RequestUpdateRequest) error {
@@ -189,12 +189,11 @@ func TestHTTP_Update(t *testing.T) {
 			svc := tt.svc
 			h := newHTTPHandler(defaultLogger, svc)
 			rr := httptest.NewRecorder()
-			rq, err := http.NewRequest("PUT", "/v1/request/"+tt.id, strings.NewReader(tt.request))
-			fmt.Println(err)
+			rq, _ := http.NewRequest("PUT", "/v1/request/"+tt.id, strings.NewReader(tt.request))
 			rq.Header.Add("X-Auth-User", tt.header)
 			h.ServeHTTP(rr, rq)
-			if (rr.Code != http.StatusOK) != tt.wantErr {
-				t.Errorf("Request error. status = %d, wantErr %v", rr.Code, tt.wantErr)
+			if (rr.Code != tt.wantCode) && tt.wantErr {
+				t.Errorf("Request error. status = %d, expected %v", rr.Code, tt.wantCode)
 			}
 		})
 	}
@@ -214,55 +213,55 @@ func TestHTTP_My(t *testing.T) {
 			name:     "error no user",
 			header:   "0",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:     "error wrong id",
 			header:   "}{",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:     "error no offset",
 			header:   "1",
 			query:    "?limit=1",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:     "error no limit",
 			header:   "1",
 			query:    "?offset=1",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:     "error bad offset",
 			header:   "1",
 			query:    "?offset=a&limit=1",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:     "error bad limit",
 			header:   "1",
 			query:    "?offset=1&limit=as",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:     "error too low limit",
 			header:   "1",
 			query:    "?offset=1&limit=0",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:     "error too big limit",
 			header:   "1",
 			query:    "?offset=1&limit=300",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:   "error service",
@@ -310,8 +309,8 @@ func TestHTTP_My(t *testing.T) {
 			rq, _ := http.NewRequest("GET", "/v1/my"+tt.query, nil)
 			rq.Header.Add("X-Auth-User", tt.header)
 			h.ServeHTTP(rr, rq)
-			if (rr.Code != http.StatusOK) != tt.wantErr {
-				t.Errorf("Request error. status = %d, wantErr %v", rr.Code, tt.wantErr)
+			if (rr.Code != tt.wantCode) && tt.wantErr {
+				t.Errorf("Request error. status = %d, expected %v", rr.Code, tt.wantCode)
 			}
 
 			if !tt.wantErr && tt.want != strings.TrimSpace(rr.Body.String()) {
@@ -336,23 +335,25 @@ func TestHTTP_Delete(t *testing.T) {
 			id:       "0",
 			header:   "0",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:     "error wrong id",
 			id:       "asd",
 			header:   "0",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:     "error no user",
+			id:       "1",
 			header:   "0",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:   "error service",
+			id:     "1",
 			header: "1",
 			svc: &ServiceMock{
 				DeleteFunc: func(_ context.Context, _ *dto.RequestByID) error {
@@ -387,8 +388,8 @@ func TestHTTP_Delete(t *testing.T) {
 			rq, _ := http.NewRequest("DELETE", "/v1/request/"+tt.id, nil)
 			rq.Header.Add("X-Auth-User", tt.header)
 			h.ServeHTTP(rr, rq)
-			if (rr.Code != http.StatusOK) != tt.wantErr {
-				t.Errorf("Request error. status = %d, wantErr %v", rr.Code, tt.wantErr)
+			if (rr.Code != tt.wantCode) && tt.wantErr {
+				t.Errorf("Request error. status = %d, expected %v", rr.Code, tt.wantCode)
 			}
 		})
 	}
@@ -409,31 +410,32 @@ func TestHTTP_Get(t *testing.T) {
 			id:       "0",
 			header:   "0",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:     "error wrong id",
 			id:       "asd",
 			header:   "0",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:     "error no user",
 			id:       "1",
 			header:   "0",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:     "error wrong user",
 			id:       "1",
 			header:   "asd",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:   "error service",
+			id:     "1",
 			header: "1",
 			svc: &ServiceMock{
 				GetFunc: func(_ context.Context, _ *dto.RequestByID) (*dto.RequestByIDResponse, error) {
@@ -479,8 +481,8 @@ func TestHTTP_Get(t *testing.T) {
 			rq, _ := http.NewRequest("GET", "/v1/request/"+tt.id, nil)
 			rq.Header.Add("X-Auth-User", tt.header)
 			h.ServeHTTP(rr, rq)
-			if (rr.Code != http.StatusOK) != tt.wantErr {
-				t.Errorf("Request error. status = %d, wantErr %v", rr.Code, tt.wantErr)
+			if (rr.Code != tt.wantCode) && tt.wantErr {
+				t.Errorf("Request error. status = %d, expected %v", rr.Code, tt.wantCode)
 			}
 		})
 	}

@@ -25,14 +25,14 @@ func TestHTTP_GetUser(t *testing.T) {
 			svc:      nil,
 			header:   "0",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:     "error wrong id",
 			svc:      nil,
 			header:   "a",
 			wantErr:  true,
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name: "error service error",
