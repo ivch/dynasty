@@ -7,6 +7,9 @@ ifneq ($(version),)
 	IMAGE_TAG := $(version)
 endif
 
+testtag:
+	@echo ${IMAGE_TAG}
+
 .PHONY: rundb
 rundb:
 	docker-compose -f docker-database.yml up -d
