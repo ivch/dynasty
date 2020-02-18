@@ -27,8 +27,8 @@ jobs:
       - name: Lint
         run: ./bin/golangci-lint run
 
-#      - name: Test and Build image
-#        run: make build
-#
-#      - name: Tag and Push image
-#        run: make push
+      - name: Test and Build image
+        run: make build
+
+      - name: Tag and Push image
+        run: make push
