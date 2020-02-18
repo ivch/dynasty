@@ -6,3 +6,4 @@ coverage.html
 zoneinfo.tar.gz
 vendor/
 .data/
+cmd/.env
