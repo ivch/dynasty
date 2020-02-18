@@ -33,7 +33,7 @@ jobs:
         run: |
           echo ${MYTAG}
           make testtag
-          echo MYTAG2
+          echo $MYTAG2
 
 
 
