@@ -31,4 +31,6 @@ jobs:
         run: make build
 
       - name: Tag and Push image
-        run: make push
+        run: |
+        docker login -u ${{secrets.DYN_DOCKER_LOGIN}} -p ${{secrets.DYN_DOCKER_PASSWORD}}
+        make push
