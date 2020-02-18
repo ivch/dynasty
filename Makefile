@@ -1,11 +1,15 @@
 SHELL=/bin/sh
-IMAGE_TAG := $(shell git rev-parse HEAD)
+IMAGE_TAG := $(shell git rev-parse --short HEAD)
+IMAGE_NAME = ivch/dynasty
 export GO111MODULE=on
 
 ifneq ($(version),)
 #if version is set - tag image with given version
 	IMAGE_TAG := $(version)
 endif
+
+testtag:
+	@echo ${IMAGE_TAG}
 
 .PHONY: rundb
 rundb:
@@ -17,7 +21,7 @@ test:
 
 .PHONY: lint
 lint:
-	GO111MODULE=off go get github.com/golangci/golangci-lint/cmd/golangci-lint
+	go get github.com/golangci/golangci-lint/cmd/golangci-lint
 	golangci-lint run
 
 .PHONY: deps
@@ -29,7 +33,9 @@ deps:
 
 .PHONY: build
 build:
-	docker build -t ivch/dynasty:latest  .
+	tar cfz zoneinfo.tar.gz /usr/share/zoneinfo
+	docker build -t ${IMAGE_NAME}:${IMAGE_TAG}  .
+	rm zoneinfo.tar.gz
 
 .PHONY: cover
 cover:
@@ -45,3 +51,15 @@ gen:
 	${GOPATH}/bin/moq -out modules/auth/mock_test.go modules/auth userService authRepository Service
 	${GOPATH}/bin/moq -out modules/requests/mock_test.go modules/requests requestsRepository Service
 	${GOPATH}/bin/moq -out clients/users/mock_test.go clients/users userService
+
+.PHONY: tag
+tag:
+	docker pull ${IMAGE_NAME}:latest
+	docker tag ${IMAGE_NAME}:latest ${IMAGE_NAME}:prev
+	docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
+
+.PHONY: push
+push: tag
+	docker push ${IMAGE_NAME}:prev
+	docker push ${IMAGE_NAME}:${IMAGE_TAG}
+	docker push ${IMAGE_NAME}:latest

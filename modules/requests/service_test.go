@@ -66,7 +66,7 @@ func TestService_Get(t *testing.T) {
 			},
 			wantErr: false,
 			want: &dto.RequestByIDResponse{
-				Request: &entities.Request{
+				Data: &entities.Request{
 					ID:          1,
 					Type:        "1",
 					UserID:      1,

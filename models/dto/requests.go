@@ -8,7 +8,7 @@ type RequestByID struct {
 }
 
 type RequestByIDResponse struct {
-	*entities.Request
+	Data *entities.Request `json:"data"`
 }
 
 type RequestCreateRequest struct {

@@ -1,34 +1,29 @@
-############################
+################################
 # STEP 1 build executable binary
-############################
+################################
 
-FROM golang:1.13-alpine3.10 as builder
+FROM golang:1.13.8-stretch as builder
 
-ARG VERSION
-ARG BRANCH
-ARG COMMIT
+RUN apt update && apt install -y make gcc musl-dev git && mkdir -p /app
 
-RUN apk update && apk add --no-cache make gcc musl-dev linux-headers git
+WORKDIR /app
 
-COPY ./ $GOPATH/src/github.com/ivch/dynasty/
-#COPY ./vendor $GOPATH/src/github.com/ivch/dynasty/$SERVICE/vendor
-WORKDIR $GOPATH/src/github.com/ivch/dynasty/
+ADD go.mod .
+RUN go mod download
 
-RUN cd cmd && go build -ldflags="-X main.Version=$VERSION -X main.Branch=$BRANCH -X main.Commit=$COMMIT" -a -o /go/bin/svc
+COPY . .
+
+RUN CGO_ENABLED=1 GOOS=linux go test -mod=vendor -cover -race -v ./...
+RUN cd cmd && CGO_ENABLED=0 GOOS=linux go build -a -o app
 
 ############################
 # STEP 2 build a small image
 ############################
 
-FROM alpine:latest
+FROM scratch
 
-RUN apk add --no-cache ca-certificates
+ADD zoneinfo.tar.gz /
 
-# Copy our static executable
-COPY --from=builder /go/bin/svc /svc/
-WORKDIR /svc
+COPY --from=builder /app/cmd/app /app
 
-RUN chmod +x svc
-
-# Run the svc binary.
-CMD ["./svc"]
+ENTRYPOINT ["./app"]

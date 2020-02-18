@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -24,17 +23,6 @@ import (
 	"github.com/ivch/dynasty/modules/requests"
 	"github.com/ivch/dynasty/modules/users"
 	"github.com/ivch/dynasty/repository"
-)
-
-var (
-	// Version is the current version of application
-	Version = "0"
-	// Branch is the branch this binary was built from
-	Branch = "0"
-	// Commit is the commit this binary was built from
-	Commit = "0"
-	// BuildTime is the time this binary was built
-	BuildTime = time.Now().Format(time.RFC822)
 )
 
 func main() {
@@ -67,14 +55,6 @@ func main() {
 	r.Mount("/auth", authModule)
 	r.Mount("/requests", requestsModule)
 
-	r.Get("/about", func(w http.ResponseWriter, _ *http.Request) {
-		json.NewEncoder(w).Encode(map[string]string{
-			"version": Version,
-			"branch":  Branch,
-			"commit":  Commit,
-			"time":    BuildTime,
-		}) // nolint: errcheck
-	})
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {})
 
 	server := &http.Server{
