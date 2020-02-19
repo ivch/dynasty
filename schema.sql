@@ -25,7 +25,6 @@ insert into buildings (name, address)
 values ('Дом 1', 'Липковского 37-Г'),
        ('Дом 2', 'Липковского 37-Б');
 
--- auto-generated definition
 create table users
 (
     id            serial not null
@@ -47,9 +46,6 @@ create table users
             references buildings (id),
     refresh_token varchar
 );
-
-alter table users
-    owner to postgres;
 
 create index user_phone_index
     on users (phone);
