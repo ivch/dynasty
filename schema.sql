@@ -25,7 +25,6 @@ insert into buildings (name, address)
 values ('Дом 1', 'Липковского 37-Г'),
        ('Дом 2', 'Липковского 37-Б');
 
--- auto-generated definition
 create table users
 (
     id            serial not null
