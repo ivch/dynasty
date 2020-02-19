@@ -26,7 +26,7 @@ type DB struct {
 	User     string `validate:"required"`
 	Password string `validate:"required"`
 	Database string `validate:"required"`
-	SSL      string `validate:"required,oneof=enable disable"`
+	SSL      string `validate:"required,oneof=enable disable require"`
 }
 
 func New() (*Config, error) {
