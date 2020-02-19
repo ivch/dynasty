@@ -47,9 +47,6 @@ create table users
     refresh_token varchar
 );
 
-alter table users
-    owner to postgres;
-
 create index user_phone_index
     on users (phone);
 
