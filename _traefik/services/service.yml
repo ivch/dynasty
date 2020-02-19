@@ -3,4 +3,4 @@ http:
     dynasty:
       loadBalancer:
         servers:
-          - url: "http://dynasty:9001"
+          - url: "http://backend:9001"

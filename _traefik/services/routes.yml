@@ -10,7 +10,7 @@ http:
       priority: 100
 
     user-register:
-      rule: "PathPrefix(`/users/v1/register`)"
+      rule: "Host(`ivch.dev`) && PathPrefix(`/users/v1/register`)"
       service: "dynasty"
       entryPoints:
         - "https"
@@ -21,7 +21,7 @@ http:
       priority: 50
 
     need-auth:
-      rule: "PathPrefix(`/users`) || PathPrefix(`/requests`)"
+      rule: "Host(`ivch.dev`) && (PathPrefix(`/users`) || PathPrefix(`/requests`))"
       service: "dynasty"
       entryPoints:
         - "https"
@@ -33,7 +33,7 @@ http:
       priority: 10
 
     main:
-      rule: "PathPrefix(`/`)"
+      rule: "Host(`ivch.dev`) && PathPrefix(`/`)"
       service: "dynasty"
       entryPoints:
         - "https"

@@ -15,8 +15,8 @@ services:
       - "./letsencrypt:/letsencrypt/"
 
 
-  dynasty:
-    container_name: dynasty
+  backend:
+    container_name: backend
     image: ivch/dynasty:latest
     environment:
       - LOG_VERBOSE=true

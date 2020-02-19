@@ -2,7 +2,7 @@ http:
   middlewares:
     auth:
       forwardAuth:
-        address: "http://dynasty:9001/auth/v1/gwfa"
+        address: "http://backend:9001/auth/v1/gwfa"
         authResponseHeaders:
           - "X-Auth-User"
 
