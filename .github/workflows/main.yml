@@ -42,6 +42,15 @@ jobs:
     needs: [build]
     runs-on: ubuntu-latest
     steps:
+      - name: executing remote ssh commands using ssh key
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{secrets.DYN_DEPLOY_HOST}}
+          username: ${{secrets.DYN_DEPLOY_LOGIN}}
+          key: ${{secrets.DYN_SSH_KEY}}
+          port: ${{secrets.DYN_DEPLOY_PORT}}
+          script: whoami
+
       - name: Deploy
         uses: appleboy/ssh-action@master
         with:
@@ -49,4 +58,5 @@ jobs:
           username: ${{secrets.DYN_DEPLOY_LOGIN}}
           password: ${{secrets.DYN_DEPLOY_PASS}}
           port: ${{secrets.DYN_DEPLOY_PORT}}
-          script: docker service update --image ivch/dynasty:latest --with-registry-auth dynasty_backend
+          script: whoami
+#          script: docker service update --image ivch/dynasty:latest --with-registry-auth dynasty_backend

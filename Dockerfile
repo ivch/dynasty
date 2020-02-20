@@ -13,7 +13,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=1 GOOS=linux go test -mod=vendor -cover -race -v ./...
+#RUN CGO_ENABLED=1 GOOS=linux go test -mod=vendor -cover -race -v ./...
 RUN cd cmd && CGO_ENABLED=0 GOOS=linux go build -a -o app
 
 ############################
