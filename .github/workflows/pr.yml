@@ -11,10 +11,10 @@ jobs:
       - name: executing remote ssh commands using ssh key
         uses: appleboy/ssh-action@master
         with:
-          host: ${{secrets.DYN_DEPLOY_HOST}}
-          username: ${{secrets.DYN_DEPLOY_LOGIN}}
+          host: 207.154.205.178
+          username: root
           key: ${{secrets.DYN_SSH_KEY}}
-          port: ${{secrets.DYN_DEPLOY_PORT}}
+          port: 22
           script: whoami
 
       - name: Deploy
