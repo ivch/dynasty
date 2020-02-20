@@ -9,72 +9,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - name: executing remote ssh commands using ssh key
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{secrets.DYN_DEPLOY_HOST}}
-        username: ${{secrets.DYN_DEPLOY_LOGIN}}
-        key: ${{secrets.DYN_SSH_KEY}}
-        port: ${{secrets.DYN_DEPLOY_PORT}}
-        script: whoami
-
-      - name: Deploy
-        uses: appleboy/ssh-action@master
+      - name: Set up Go 1.13
+        uses: actions/setup-go@v1
         with:
-          host: ${{secrets.DYN_DEPLOY_HOST}}
-          username: ${{secrets.DYN_DEPLOY_LOGIN}}
-          password: ${{secrets.DYN_DEPLOY_PASS}}
-          port: ${{secrets.DYN_DEPLOY_PORT}}
-          script: whoami
+          go-version: 1.13
+        id: go
+        env:
+          GO111MODULE: on
 
-#      - name: Set up Go 1.13
-#        uses: actions/setup-go@v1
-#        with:
-#          go-version: 1.13
-#        id: go
-#        env:
-#          GO111MODULE: on
-#
-#      - name: Check out code into the Go module directory
-#        uses: actions/checkout@v2
-#
-#      - name: Dependencies
-#        run: make deps
-#
-#      - name: Install linter
-#        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.23.6
-#
-#      - name: Lint
-#        run: ./bin/golangci-lint run
-#
-#      - name: Test and Build image
-#        run: make build
-#
-#      - name: Tag and Push image
-#        run: |
-#          docker login -u ${{secrets.DYN_DOCKER_LOGIN}} -p ${{secrets.DYN_DOCKER_PASSWORD}}
-#          make push
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
 
-#  deploy:
-#    name: Deploy
-#    needs: [build]
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: executing remote ssh commands using ssh key
-#        uses: appleboy/ssh-action@master
-#        with:
-#          host: ${{secrets.DYN_DEPLOY_HOST}}
-#          username: ${{secrets.DYN_DEPLOY_LOGIN}}
-#          key: ${{secrets.DYN_SSH_KEY}}
-#          port: ${{secrets.DYN_DEPLOY_PORT}}
-#          script: whoami
-#
-#      - name: Deploy
-#        uses: appleboy/ssh-action@master
-#        with:
-#          host: ${{secrets.DYN_DEPLOY_HOST}}
-#          username: ${{secrets.DYN_DEPLOY_LOGIN}}
-#          password: ${{secrets.DYN_DEPLOY_PASS}}
-#          port: ${{secrets.DYN_DEPLOY_PORT}}
-#          script: whoami
-#          script: docker service update --image ivch/dynasty:latest --with-registry-auth dynasty_backend
+      - name: Dependencies
+        run: make deps
+
+      - name: Install linter
+        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.23.6
+
+      - name: Lint
+        run: ./bin/golangci-lint run
+
+      - name: Test and Build image
+        run: make build
+
+      - name: Tag and Push image
+        run: |
+          docker login -u ${{secrets.DYN_DOCKER_LOGIN}} -p ${{secrets.DYN_DOCKER_PASSWORD}}
+          make push
