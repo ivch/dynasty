@@ -12,23 +12,23 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: 207.154.205.178
-          username: root
-          key: ${{secrets.DYN_SSH_KEY}}
-          port: 22
+          USERNAME: root
+          KEY: ${{secrets.DYN_SSH_KEY}}
+          PORT: 22
           script: whoami
 
-      - name: Deploy
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{secrets.DYN_DEPLOY_HOST}}
-          username: ${{secrets.DYN_DEPLOY_LOGIN}}
-          password: ${{secrets.DYN_DEPLOY_PASS}}
-          port: ${{secrets.DYN_DEPLOY_PORT}}
-          script: whoami
-#      - name: Set up Go 1.13
-#        uses: actions/setup-go@v1
+#      - name: Deploy
+#        uses: appleboy/ssh-action@master
 #        with:
-#          go-version: 1.13
+#          host: ${{secrets.DYN_DEPLOY_HOST}}
+#          username: ${{secrets.DYN_DEPLOY_LOGIN}}
+#          password: ${{secrets.DYN_DEPLOY_PASS}}
+#          port: ${{secrets.DYN_DEPLOY_PORT}}
+#          script: whoami
+##      - name: Set up Go 1.13
+##        uses: actions/setup-go@v1
+##        with:
+##          go-version: 1.13
 #        id: go
 #        env:
 #          GO111MODULE: on
