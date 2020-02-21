@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"time"
+
 	"github.com/jinzhu/gorm"
 
 	"github.com/ivch/dynasty/models/entities"
@@ -45,4 +47,28 @@ func (r *Requests) Create(req *entities.Request) (uint, error) {
 		return 0, err
 	}
 	return req.ID, nil
+}
+
+func (r *Requests) ListForGuard(limit, offset uint, status string) ([]*entities.Request, error) {
+	from := time.Now().Add(-12 * time.Hour).Unix()
+	to := time.Now().Add(24 * time.Hour).Unix()
+
+	q := r.db.Preload("User").
+		Preload("User.Building").
+		Limit(limit).Offset(offset).
+		Where("time >= ? AND time <= ?", from, to)
+	if status != "all" {
+		q = q.Where("status = ?", status)
+	}
+
+	var reqs []*entities.Request
+	if err := q.Find(&reqs).Error; err != nil {
+		return nil, err
+	}
+	return reqs, nil
+}
+
+func (r *Requests) UpdateForGuard(id uint, status string) error {
+	// todo save who modified the request
+	return r.db.Model(&entities.Request{}).Where("id = ?", id).Update("status", status).Error
 }

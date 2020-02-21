@@ -37,3 +37,14 @@ func makeGetEndpoint(svc Service) endpoint.Endpoint {
 		return svc.Get(ctx, request.(*dto.RequestByID))
 	}
 }
+
+func makeGuardRequestListEndpoint(svc Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		return svc.GuardRequestList(ctx, request.(*dto.GuardListRequest))
+	}
+}
+func makeGuardUpdateRequest(svc Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		return nil, svc.GuardUpdateRequest(ctx, request.(*dto.GuardUpdateRequest))
+	}
+}

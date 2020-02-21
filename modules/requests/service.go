@@ -19,6 +19,9 @@ type Service interface {
 	Delete(ctx context.Context, r *dto.RequestByID) error
 	Get(ctx context.Context, r *dto.RequestByID) (*dto.RequestByIDResponse, error)
 	My(ctx context.Context, r *dto.RequestMyRequest) (*dto.RequestMyResponse, error)
+	//
+	GuardRequestList(ctx context.Context, r *dto.GuardListRequest) (*dto.RequestMyResponse, error)
+	GuardUpdateRequest(_ context.Context, r *dto.GuardUpdateRequest) error
 }
 
 type requestsRepository interface {
@@ -27,6 +30,8 @@ type requestsRepository interface {
 	Update(req *entities.Request) error
 	Delete(id, userID uint) error
 	ListByUser(userID, limit, offset uint) ([]*entities.Request, error)
+	ListForGuard(limit, offset uint, status string) ([]*entities.Request, error)
+	UpdateForGuard(id uint, status string) error
 }
 
 type service struct {
@@ -38,7 +43,14 @@ func (s *service) Get(_ context.Context, r *dto.RequestByID) (*dto.RequestByIDRe
 	if err != nil {
 		return nil, err
 	}
-	return &dto.RequestByIDResponse{Data: req}, nil
+	return &dto.RequestByIDResponse{
+		ID:          req.ID,
+		UserID:      req.UserID,
+		Type:        req.Type,
+		Time:        req.Time,
+		Description: req.Description,
+		Status:      req.Status,
+	}, nil
 }
 
 func (s *service) Delete(_ context.Context, r *dto.RequestByID) error {
