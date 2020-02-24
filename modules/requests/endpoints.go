@@ -16,7 +16,7 @@ func makeCreateEndpoint(svc Service) endpoint.Endpoint {
 
 func makeMyRequestsEndpoint(svc Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		return svc.My(ctx, request.(*dto.RequestMyRequest))
+		return svc.My(ctx, request.(*dto.RequestListFilterRequest))
 	}
 }
 
@@ -40,7 +40,7 @@ func makeGetEndpoint(svc Service) endpoint.Endpoint {
 
 func makeGuardRequestListEndpoint(svc Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		return svc.GuardRequestList(ctx, request.(*dto.GuardListRequest))
+		return svc.GuardRequestList(ctx, request.(*dto.RequestListFilterRequest))
 	}
 }
 func makeGuardUpdateRequest(svc Service) endpoint.Endpoint {

@@ -7,7 +7,7 @@ type Request struct {
 	Time        int64  `json:"time"`
 	Description string `json:"description"`
 	Status      string `json:"status"`
-	User        User
+	User        *User  `json:"user,omitempty"`
 }
 
 func (Request) TableName() string { return "requests" }

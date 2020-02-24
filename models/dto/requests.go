@@ -1,8 +1,6 @@
 package dto
 
 import (
-	"time"
-
 	"github.com/ivch/dynasty/models/entities"
 )
 
@@ -21,7 +19,7 @@ type RequestByIDResponse struct {
 }
 
 type RequestCreateRequest struct {
-	Type        string `json:"type" validate:"required,oneof=taxi delivery guest"`
+	Type        string `json:"type" validate:"oneof=taxi guest delivery noise complain"`
 	Time        int64  `json:"time" validate:"required"`
 	UserID      uint   `json:"user_id" validate:"required"`
 	Description string `json:"description"`
@@ -50,40 +48,29 @@ type RequestUpdateRequest struct {
 	Status      *string `json:"status,omitempty"`
 }
 
-type GuardListRequest struct {
-	Status string `json:"status" validate:"oneof=all new closed"`
-	Offset uint   `json:"offset" validate:"min=0"`
-	Limit  uint   `json:"limit" validate:"required"`
+type RequestListFilterRequest struct {
+	// DateFrom   *time.Time `json:"date_from,omitepmpty"`
+	// DateTo     *time.Time `json:"date_to,omitempty"`
+	Type      string `json:"type,omitempty" validate:"oneof=all taxi guest delivery noise complain"`
+	Offset    uint   `json:"offset" validate:"min=0"`
+	Limit     uint   `json:"limit" validate:"required,min=1"`
+	UserID    uint   `json:"user_id,omitempty"`
+	Apartment string `json:"appartment,omitempty" validate:"omitempty,numeric"`
+	Status    string `json:"status,omitempty" validate:"oneof=all new closed"`
 }
 
-type RequestListFilter struct {
-	DateFrom   *time.Time `json:"date_from,omitepmpty"`
-	DateTo     *time.Time `json:"date_to,omitempty"`
-	Offset     uint       `json:"offset" validate:"min=0"`
-	Limit      uint       `json:"limit" validate:"required"`
-	UserID     *uint      `json:"user_id,omitempty"`
-	Appartment *uint      `json:"appartment,omitempty"`
-	Status     string     `json:"status" validate:"oneof=all new closed"`
-	Guard      bool
+type RequestForGuard struct {
+	ID          uint   `json:"id"`
+	UserID      uint   `json:"user_id" gorm:"-"`
+	Type        string `json:"type"`
+	Time        int64  `json:"time"`
+	Description string `json:"description,omitempty"`
+	Status      string `json:"status"`
+	UserName    string `json:"user_name"`
+	Phone       string `json:"phone"`
+	Address     string `json:"address"`
+	Apartment   uint   `json:"apartment"`
 }
-
-// type RequestForGuard struct {
-// 	ID          uint   `json:"id"`
-// 	Type        string `json:"type"`
-// 	Time        int64  `json:"time"`
-// 	Description string `json:"description"`
-// 	Status      string `json:"status"`
-// 	// Appartment
-// 	// Building   Building
-// 	// Apartment  uint   `json:"apartment,omitempty"`
-// 	// Email      string `json:"email,omitempty"`
-// 	// Password   string `json:"password,omitempty"`
-// 	// Phone      string `json:"phone,omitempty"`
-// 	// FirstName  string `json:"first_name,omitempty"`
-// 	// LastName   string `json:"last_name,omitempty"`
-// 	// Role       uint   `json:"role,omitempty"`
-//
-// }
 
 type GuardUpdateRequest struct {
 	ID     uint   `json:"id" validate:"required"`

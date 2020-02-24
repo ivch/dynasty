@@ -66,14 +66,12 @@ func TestService_Get(t *testing.T) {
 			},
 			wantErr: false,
 			want: &dto.RequestByIDResponse{
-				Data: &entities.Request{
-					ID:          1,
-					Type:        "1",
-					UserID:      1,
-					Time:        1,
-					Description: "1",
-					Status:      "1",
-				},
+				ID:          1,
+				Type:        "1",
+				UserID:      1,
+				Time:        1,
+				Description: "1",
+				Status:      "1",
 			},
 		},
 	}
@@ -237,18 +235,18 @@ func TestService_My(t *testing.T) {
 	tests := []struct {
 		name    string
 		repo    requestsRepository
-		req     *dto.RequestMyRequest
+		req     *dto.RequestListFilterRequest
 		wantErr bool
 		want    *dto.RequestMyResponse
 	}{
 		{
 			name: "error from db",
 			repo: &requestsRepositoryMock{
-				ListByUserFunc: func(_ uint, _ uint, _ uint) ([]*entities.Request, error) {
+				ListByUserFunc: func(_ *dto.RequestListFilterRequest) ([]*entities.Request, error) {
 					return nil, errTestError
 				},
 			},
-			req: &dto.RequestMyRequest{
+			req: &dto.RequestListFilterRequest{
 				UserID: 1,
 				Offset: 0,
 				Limit:  1,
@@ -258,7 +256,7 @@ func TestService_My(t *testing.T) {
 		{
 			name: "ok",
 			repo: &requestsRepositoryMock{
-				ListByUserFunc: func(_ uint, _ uint, _ uint) ([]*entities.Request, error) {
+				ListByUserFunc: func(_ *dto.RequestListFilterRequest) ([]*entities.Request, error) {
 					return []*entities.Request{
 						{
 							ID:          1,
@@ -271,7 +269,7 @@ func TestService_My(t *testing.T) {
 					}, nil
 				},
 			},
-			req: &dto.RequestMyRequest{
+			req: &dto.RequestListFilterRequest{
 				UserID: 1,
 				Offset: 0,
 				Limit:  1,

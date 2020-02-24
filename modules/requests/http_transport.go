@@ -17,12 +17,13 @@ import (
 )
 
 var (
-	errEmptyID        = errors.New("empty id")
-	errBadID          = errors.New("bad id")
-	errEmptyUserID    = errors.New("empty user id")
-	errBadUserID      = errors.New("bad user id")
-	errBadRequest     = errors.New("failed to decode request")
-	errInvalidRequest = errors.New("request validation error")
+	errEmptyID             = errors.New("empty id")
+	errBadID               = errors.New("bad id")
+	errEmptyUserID         = errors.New("empty user id")
+	errBadUserID           = errors.New("bad user id")
+	errBadRequest          = errors.New("failed to decode request")
+	errInvalidRequest      = errors.New("request validation error")
+	errInternalServerError = errors.New("request failed")
 )
 
 func New(log *zerolog.Logger, repo requestsRepository) (http.Handler, Service) {
@@ -106,11 +107,6 @@ func decodeGuardUpdateRequest(log *zerolog.Logger) httptransport.DecodeRequestFu
 
 		req.ID = uint(id)
 
-		if err := validator.New().Struct(&req); err != nil {
-			log.Error().Err(err).Msg("error validating request")
-			return nil, errInvalidRequest
-		}
-
 		return &req, nil
 	}
 }
@@ -123,10 +119,20 @@ func decodeGuardListRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc
 			return nil, errBadRequest
 		}
 
-		req := dto.GuardListRequest{
-			Offset: offset,
-			Limit:  limit,
-			Status: r.URL.Query().Get("status"),
+		req := dto.RequestListFilterRequest{
+			Offset:    offset,
+			Limit:     limit,
+			Type:      r.URL.Query().Get("type"),
+			Status:    r.URL.Query().Get("status"),
+			Apartment: r.URL.Query().Get("apartment"),
+		}
+
+		if req.Type == "" {
+			req.Type = "all"
+		}
+
+		if req.Status == "" {
+			req.Status = "all"
 		}
 
 		if err := validator.New().Struct(&req); err != nil {
@@ -160,11 +166,6 @@ func decodeByIDRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
 		req := dto.RequestByID{
 			UserID: userID,
 			ID:     uint(id),
-		}
-
-		if err := validator.New().Struct(&req); err != nil {
-			log.Error().Err(err).Msg(errInvalidRequest.Error())
-			return nil, errInvalidRequest
 		}
 
 		return &req, nil
@@ -217,18 +218,15 @@ func decodeMyRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
 			return nil, errBadRequest
 		}
 
-		req := &dto.RequestMyRequest{
+		req := dto.RequestListFilterRequest{
 			UserID: userID,
 			Offset: offset,
 			Limit:  limit,
+			Type:   "all",
+			Status: "all",
 		}
 
-		if err := validator.New().Struct(&req); err != nil {
-			log.Error().Err(err).Msg("error validating request")
-			return nil, errInvalidRequest
-		}
-
-		return req, nil
+		return &req, nil
 	}
 }
 
@@ -279,6 +277,7 @@ func encodeHTTPError(_ context.Context, err error, w http.ResponseWriter) {
 	case errors.Is(err, errInvalidRequest):
 		status = http.StatusBadRequest
 	default:
+		err = errInternalServerError
 		status = http.StatusInternalServerError
 	}
 
