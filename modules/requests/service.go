@@ -18,7 +18,10 @@ type Service interface {
 	Update(ctx context.Context, r *dto.RequestUpdateRequest) error
 	Delete(ctx context.Context, r *dto.RequestByID) error
 	Get(ctx context.Context, r *dto.RequestByID) (*dto.RequestByIDResponse, error)
-	My(ctx context.Context, r *dto.RequestMyRequest) (*dto.RequestMyResponse, error)
+	My(ctx context.Context, r *dto.RequestListFilterRequest) (*dto.RequestMyResponse, error)
+	//
+	GuardRequestList(ctx context.Context, r *dto.RequestListFilterRequest) ([]*dto.RequestForGuard, error)
+	GuardUpdateRequest(ctx context.Context, r *dto.GuardUpdateRequest) error
 }
 
 type requestsRepository interface {
@@ -26,7 +29,9 @@ type requestsRepository interface {
 	GetRequestByIDAndUser(id, userId uint) (*entities.Request, error)
 	Update(req *entities.Request) error
 	Delete(id, userID uint) error
-	ListByUser(userID, limit, offset uint) ([]*entities.Request, error)
+	ListByUser(r *dto.RequestListFilterRequest) ([]*entities.Request, error)
+	ListForGuard(req *dto.RequestListFilterRequest) ([]*entities.Request, error)
+	UpdateForGuard(id uint, status string) error
 }
 
 type service struct {
@@ -38,7 +43,14 @@ func (s *service) Get(_ context.Context, r *dto.RequestByID) (*dto.RequestByIDRe
 	if err != nil {
 		return nil, err
 	}
-	return &dto.RequestByIDResponse{Data: req}, nil
+	return &dto.RequestByIDResponse{
+		ID:          req.ID,
+		UserID:      req.UserID,
+		Type:        req.Type,
+		Time:        req.Time,
+		Description: req.Description,
+		Status:      req.Status,
+	}, nil
 }
 
 func (s *service) Delete(_ context.Context, r *dto.RequestByID) error {
@@ -70,8 +82,8 @@ func (s *service) Update(_ context.Context, r *dto.RequestUpdateRequest) error {
 	return s.repo.Update(req)
 }
 
-func (s *service) My(_ context.Context, r *dto.RequestMyRequest) (*dto.RequestMyResponse, error) {
-	reqs, err := s.repo.ListByUser(r.UserID, r.Limit, r.Offset)
+func (s *service) My(_ context.Context, r *dto.RequestListFilterRequest) (*dto.RequestMyResponse, error) {
+	reqs, err := s.repo.ListByUser(r)
 	if err != nil {
 		return nil, err
 	}

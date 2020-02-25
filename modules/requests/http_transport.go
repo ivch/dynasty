@@ -17,12 +17,13 @@ import (
 )
 
 var (
-	errEmptyID        = errors.New("empty id")
-	errBadID          = errors.New("bad id")
-	errEmptyUserID    = errors.New("empty user id")
-	errBadUserID      = errors.New("bad user id")
-	errBadRequest     = errors.New("failed to decode request")
-	errInvalidRequest = errors.New("request validation error")
+	errEmptyID             = errors.New("empty id")
+	errBadID               = errors.New("bad id")
+	errEmptyUserID         = errors.New("empty user id")
+	errBadUserID           = errors.New("bad user id")
+	errBadRequest          = errors.New("failed to decode request")
+	errInvalidRequest      = errors.New("request validation error")
+	errInternalServerError = errors.New("request failed")
 )
 
 func New(log *zerolog.Logger, repo requestsRepository) (http.Handler, Service) {
@@ -69,7 +70,78 @@ func newHTTPHandler(log *zerolog.Logger, svc Service) http.Handler {
 		encodeHTTPResponse,
 		options...))
 
+	// guard
+	r.Method("GET", "/v1/guard/list", httptransport.NewServer(
+		makeGuardRequestListEndpoint(svc),
+		decodeGuardListRequest(log),
+		encodeHTTPResponse,
+		options...))
+
+	r.Method("PUT", "/v1/guard/request/{id}", httptransport.NewServer(
+		makeGuardUpdateRequest(svc),
+		decodeGuardUpdateRequest(log),
+		encodeHTTPResponse,
+		options...))
+
 	return r
+}
+
+func decodeGuardUpdateRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
+	return func(ctx context.Context, r *http.Request) (interface{}, error) {
+		var req dto.GuardUpdateRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			log.Error().Err(err).Msg(errBadRequest.Error())
+			return nil, errBadRequest
+		}
+
+		idStr := chi.URLParam(r, "id")
+		if idStr == "" || idStr == "0" {
+			log.Error().Msg(errEmptyUserID.Error())
+			return "", errEmptyID
+		}
+		id, err := strconv.ParseUint(idStr, 10, 64)
+		if err != nil {
+			log.Error().Err(err).Msg(errBadID.Error())
+			return "", errBadID
+		}
+
+		req.ID = uint(id)
+
+		return &req, nil
+	}
+}
+
+func decodeGuardListRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
+	return func(ctx context.Context, r *http.Request) (interface{}, error) {
+		offset, limit, err := parsePaginationRequest(r)
+		if err != nil {
+			log.Error().Msg(err.Error())
+			return nil, errBadRequest
+		}
+
+		req := dto.RequestListFilterRequest{
+			Offset:    offset,
+			Limit:     limit,
+			Type:      r.URL.Query().Get("type"),
+			Status:    r.URL.Query().Get("status"),
+			Apartment: r.URL.Query().Get("apartment"),
+		}
+
+		if req.Type == "" {
+			req.Type = "all"
+		}
+
+		if req.Status == "" {
+			req.Status = "all"
+		}
+
+		if err := validator.New().Struct(&req); err != nil {
+			log.Error().Err(err).Msg("error validating request")
+			return nil, errInvalidRequest
+		}
+
+		return &req, nil
+	}
 }
 
 func decodeByIDRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
@@ -96,11 +168,6 @@ func decodeByIDRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
 			ID:     uint(id),
 		}
 
-		if err := validator.New().Struct(&req); err != nil {
-			log.Error().Err(err).Msg(errInvalidRequest.Error())
-			return nil, errInvalidRequest
-		}
-
 		return &req, nil
 	}
 }
@@ -116,12 +183,12 @@ func decodeUpdateRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
 		idStr := chi.URLParam(r, "id")
 		if idStr == "" || idStr == "0" {
 			log.Error().Msg(errEmptyUserID.Error())
-			return "", errEmptyID
+			return nil, errEmptyID
 		}
 		id, err := strconv.ParseUint(idStr, 10, 64)
 		if err != nil {
 			log.Error().Err(err).Msg(errBadID.Error())
-			return "", errBadID
+			return nil, errBadID
 		}
 
 		userID, err := getUserID(ctx)
@@ -145,48 +212,21 @@ func decodeMyRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
 			return nil, err
 		}
 
-		_offset := r.URL.Query().Get("offset")
-		_limit := r.URL.Query().Get("limit")
-
-		if _offset == "" {
-			log.Error().Msg("empty offset")
-			return nil, errBadRequest
-		}
-
-		if _limit == "" {
-			log.Error().Msg("empty offset")
-			return nil, errBadRequest
-		}
-
-		offset, err := strconv.ParseUint(_offset, 10, 32)
+		offset, limit, err := parsePaginationRequest(r)
 		if err != nil {
-			log.Error().Err(err).Msg("bad offset")
+			log.Error().Msg(err.Error())
 			return nil, errBadRequest
 		}
 
-		limit, err := strconv.ParseUint(_limit, 10, 32)
-		if err != nil {
-			log.Error().Err(err).Msg("bad limit")
-			return nil, errBadRequest
-		}
-
-		if limit == 0 {
-			log.Error().Err(err).Msg("limit should be grater then 0")
-			return nil, errBadRequest
-		}
-
-		if limit > 200 {
-			log.Error().Err(err).Msg("limit should less or equal 200")
-			return nil, errBadRequest
-		}
-
-		req := &dto.RequestMyRequest{
+		req := dto.RequestListFilterRequest{
 			UserID: userID,
-			Offset: uint(offset),
-			Limit:  uint(limit),
+			Offset: offset,
+			Limit:  limit,
+			Type:   "all",
+			Status: "all",
 		}
 
-		return req, nil
+		return &req, nil
 	}
 }
 
@@ -237,6 +277,7 @@ func encodeHTTPError(_ context.Context, err error, w http.ResponseWriter) {
 	case errors.Is(err, errInvalidRequest):
 		status = http.StatusBadRequest
 	default:
+		err = errInternalServerError
 		status = http.StatusInternalServerError
 	}
 
@@ -261,4 +302,37 @@ func getUserID(ctx context.Context) (uint, error) {
 	}
 
 	return uint(userID), nil
+}
+
+func parsePaginationRequest(r *http.Request) (uint, uint, error) {
+	_offset := r.URL.Query().Get("offset")
+	_limit := r.URL.Query().Get("limit")
+
+	if _offset == "" {
+		return 0, 0, errors.New("empty offset")
+	}
+
+	if _limit == "" {
+		return 0, 0, errors.New("empty limit")
+	}
+
+	offset, err := strconv.ParseUint(_offset, 10, 32)
+	if err != nil {
+		return 0, 0, errors.New("bad offset")
+	}
+
+	limit, err := strconv.ParseUint(_limit, 10, 32)
+	if err != nil {
+		return 0, 0, errors.New("bad limit")
+	}
+
+	if limit == 0 {
+		return 0, 0, errors.New("limit should be grater then 0")
+	}
+
+	if limit > 200 {
+		return 0, 0, errors.New("limit should less or equal 200")
+	}
+
+	return uint(offset), uint(limit), nil
 }

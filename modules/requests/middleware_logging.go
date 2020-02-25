@@ -29,7 +29,7 @@ func (mw loggingMiddleware) Create(ctx context.Context, req *dto.RequestCreateRe
 	return res, err
 }
 
-func (mw loggingMiddleware) My(ctx context.Context, req *dto.RequestMyRequest) (*dto.RequestMyResponse, error) {
+func (mw loggingMiddleware) My(ctx context.Context, req *dto.RequestListFilterRequest) (*dto.RequestMyResponse, error) {
 	res, err := mw.next.My(ctx, req)
 	if err != nil {
 		mw.log.Error().Msg(err.Error())
@@ -63,4 +63,22 @@ func (mw loggingMiddleware) Get(ctx context.Context, req *dto.RequestByID) (*dto
 	}
 
 	return res, err
+}
+
+func (mw loggingMiddleware) GuardRequestList(ctx context.Context, req *dto.RequestListFilterRequest) ([]*dto.RequestForGuard, error) {
+	res, err := mw.next.GuardRequestList(ctx, req)
+	if err != nil {
+		mw.log.Error().Msg(err.Error())
+	}
+
+	return res, err
+}
+
+func (mw loggingMiddleware) GuardUpdateRequest(ctx context.Context, req *dto.GuardUpdateRequest) error {
+	err := mw.next.GuardUpdateRequest(ctx, req)
+	if err != nil {
+		mw.log.Error().Msg(err.Error())
+	}
+
+	return err
 }

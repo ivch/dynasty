@@ -36,22 +36,22 @@ func TestHTTP_Create(t *testing.T) {
 			wantCode: http.StatusBadRequest,
 		},
 		{
-			name:     "error no type",
-			request:  `{"time":1,"description":"abc"}`,
+			name:     "error wrong type",
+			request:  `{"time":1,"description":"abc", "type":"test"}`,
 			header:   "1",
 			wantErr:  true,
 			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:     "error no time",
-			request:  `{"type":"1","description":"abc"}`,
+			request:  `{"type":"taxi","description":"abc"}`,
 			header:   "1",
 			wantErr:  true,
 			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:    "error service",
-			request: `{"type":"1","description":"abc","time":1}`,
+			request: `{"type":"taxi","description":"abc","time":1}`,
 			header:  "1",
 			svc: &ServiceMock{
 				CreateFunc: func(_ context.Context, _ *dto.RequestCreateRequest) (*dto.RequestCreateResponse, error) {
@@ -63,7 +63,7 @@ func TestHTTP_Create(t *testing.T) {
 		},
 		{
 			name:    "ok",
-			request: `{"type":"1","description":"abc","time":1}`,
+			request: `{"type":"taxi","description":"abc","time":1}`,
 			header:  "1",
 			svc: &ServiceMock{
 				CreateFunc: func(_ context.Context, _ *dto.RequestCreateRequest) (*dto.RequestCreateResponse, error) {
@@ -268,7 +268,7 @@ func TestHTTP_My(t *testing.T) {
 			query:  "?offset=1&limit=1",
 			header: "1",
 			svc: &ServiceMock{
-				MyFunc: func(_ context.Context, _ *dto.RequestMyRequest) (*dto.RequestMyResponse, error) {
+				MyFunc: func(_ context.Context, _ *dto.RequestListFilterRequest) (*dto.RequestMyResponse, error) {
 					return nil, errTestError
 				},
 			},
@@ -280,19 +280,17 @@ func TestHTTP_My(t *testing.T) {
 			query:  `?offset=0&limit=1`,
 			header: "1",
 			svc: &ServiceMock{
-				MyFunc: func(_ context.Context, r *dto.RequestMyRequest) (*dto.RequestMyResponse, error) {
-					return &dto.RequestMyResponse{
-						Data: []*entities.Request{
-							{
-								ID:          1,
-								Type:        "1",
-								UserID:      1,
-								Time:        1,
-								Description: "1",
-								Status:      "1",
-							},
+				MyFunc: func(ctx context.Context, r *dto.RequestListFilterRequest) (response *dto.RequestMyResponse, err error) {
+					return &dto.RequestMyResponse{Data: []*entities.Request{
+						{
+							ID:          1,
+							Type:        "1",
+							UserID:      1,
+							Time:        1,
+							Description: "1",
+							Status:      "1",
 						},
-					}, nil
+					}}, nil
 				},
 			},
 			wantErr:  false,
@@ -456,14 +454,12 @@ func TestHTTP_Get(t *testing.T) {
 					}
 
 					return &dto.RequestByIDResponse{
-						&entities.Request{
-							ID:          1,
-							Type:        "1",
-							UserID:      1,
-							Time:        1,
-							Description: "1",
-							Status:      "1",
-						},
+						ID:          1,
+						Type:        "1",
+						UserID:      1,
+						Time:        1,
+						Description: "1",
+						Status:      "1",
 					}, nil
 				},
 			},
@@ -485,5 +481,191 @@ func TestHTTP_Get(t *testing.T) {
 				t.Errorf("Request error. status = %d, expected %v", rr.Code, tt.wantCode)
 			}
 		})
+	}
+}
+
+func TestHTTP_GuardUpdate(t *testing.T) {
+	tests := []struct {
+		name     string
+		svc      Service
+		id       string
+		request  string
+		wantErr  bool
+		wantCode int
+	}{
+		{
+			name:     "error parsing request",
+			request:  "bad json }}}",
+			id:       "1",
+			wantErr:  true,
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:     "error no id",
+			request:  "{}",
+			id:       "0",
+			wantErr:  true,
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:     "error wrong id",
+			request:  "{}",
+			id:       "asd",
+			wantErr:  true,
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:    "error service",
+			request: `{"status":"closed"}`,
+			id:      "1",
+			svc: &ServiceMock{
+				GuardUpdateRequestFunc: func(_ context.Context, _ *dto.GuardUpdateRequest) error {
+					return errTestError
+				},
+			},
+			wantErr:  true,
+			wantCode: http.StatusInternalServerError,
+		},
+		{
+			name:    "ok",
+			request: `{"type":"1","description":"abc","time":1,"status":"new"}`,
+			id:      "1",
+			svc: &ServiceMock{
+				GuardUpdateRequestFunc: func(_ context.Context, _ *dto.GuardUpdateRequest) error {
+					return nil
+				},
+			},
+			wantErr:  false,
+			wantCode: http.StatusOK,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := tt.svc
+			h := newHTTPHandler(defaultLogger, svc)
+			rr := httptest.NewRecorder()
+			rq, _ := http.NewRequest("PUT", "/v1/guard/request/"+tt.id, strings.NewReader(tt.request))
+			h.ServeHTTP(rr, rq)
+			if (rr.Code != tt.wantCode) && tt.wantErr {
+				t.Errorf("Request error. status = %d, expected %v", rr.Code, tt.wantCode)
+			}
+		})
+	}
+}
+
+func TestHTTP_GuardList(t *testing.T) {
+	tests := []struct {
+		name     string
+		svc      Service
+		query    string
+		wantErr  bool
+		wantCode int
+		want     string
+	}{
+		{
+			name:     "error no offset",
+			query:    "?limit=1",
+			wantErr:  true,
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:     "error no limit",
+			query:    "?offset=1",
+			wantErr:  true,
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:     "error bad offset",
+			query:    "?offset=a&limit=1",
+			wantErr:  true,
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:     "error bad limit",
+			query:    "?offset=1&limit=as",
+			wantErr:  true,
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:     "error too low limit",
+			query:    "?offset=1&limit=0",
+			wantErr:  true,
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:     "error too big limit",
+			query:    "?offset=1&limit=300",
+			wantErr:  true,
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:     "error bad type",
+			query:    "?offset=1&limit=10&type=asd",
+			wantErr:  true,
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:     "error bad status",
+			query:    "?offset=1&limit=10&status=asd",
+			wantErr:  true,
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:     "error bad apartment",
+			query:    "?offset=1&limit=10&apartment=asde",
+			wantErr:  true,
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:  "error service",
+			query: "?offset=1&limit=1",
+			svc: &ServiceMock{
+				GuardRequestListFunc: func(_ context.Context, _ *dto.RequestListFilterRequest) ([]*dto.RequestForGuard, error) {
+					return nil, errTestError
+				},
+			},
+			wantErr:  true,
+			wantCode: http.StatusInternalServerError,
+		},
+		{
+			name:  "ok",
+			query: `?offset=0&limit=1`,
+			svc: &ServiceMock{
+				GuardRequestListFunc: func(_ context.Context, _ *dto.RequestListFilterRequest) ([]*dto.RequestForGuard, error) {
+					return []*dto.RequestForGuard{
+						{
+							ID:          1,
+							Type:        "1",
+							UserID:      1,
+							Time:        1,
+							Description: "1",
+							Status:      "1",
+						},
+					}, nil
+				},
+			},
+			wantErr:  false,
+			wantCode: http.StatusOK,
+			want:     `[{"id":1,"user_id":1,"type":"1","time":1,"description":"1","status":"1","user_name":"","phone":"","address":"","apartment":0}]`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := tt.svc
+			h := newHTTPHandler(defaultLogger, svc)
+			rr := httptest.NewRecorder()
+			rq, _ := http.NewRequest("GET", "/v1/guard/list"+tt.query, nil)
+			h.ServeHTTP(rr, rq)
+			if (rr.Code != tt.wantCode) && tt.wantErr {
+				t.Errorf("Request error. status = %d, expected %v", rr.Code, tt.wantCode)
+			}
+
+			if !tt.wantErr && tt.want != strings.TrimSpace(rr.Body.String()) {
+				t.Errorf("Response error, got = %s, want = %s", rr.Body.String(), tt.want)
+			}
+		})
+
 	}
 }
