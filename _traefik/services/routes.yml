@@ -9,6 +9,17 @@ http:
         - "https_redirect"
       priority: 100
 
+    guard-api:
+      rule: "Host(`ivch.dev`) && PathPrefix(`/requests/v1/guard`)"
+      service: "dynasty"
+      entryPoints:
+        - "https"
+      tls:
+        certResolver: le
+      middlewares:
+        - "cors"
+      priority: 60
+
     user-register:
       rule: "Host(`ivch.dev`) && PathPrefix(`/users/v1/register`)"
       service: "dynasty"

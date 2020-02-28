@@ -15,13 +15,30 @@ func TestService_GuardRequestList(t *testing.T) {
 		repo    requestsRepository
 		req     *dto.RequestListFilterRequest
 		wantErr bool
-		want    []*dto.RequestForGuard
+		want    *dto.RequestGuardListResponse
 	}{
 		{
-			name: "error from db",
+			name: "error from db on search",
 			repo: &requestsRepositoryMock{
 				ListForGuardFunc: func(_ *dto.RequestListFilterRequest) ([]*entities.Request, error) {
 					return nil, errTestError
+				},
+			},
+			req: &dto.RequestListFilterRequest{
+				UserID: 1,
+				Offset: 0,
+				Limit:  1,
+			},
+			wantErr: true,
+		},
+		{
+			name: "error from db on count",
+			repo: &requestsRepositoryMock{
+				ListForGuardFunc: func(_ *dto.RequestListFilterRequest) ([]*entities.Request, error) {
+					return nil, nil
+				},
+				CountForGuardFunc: func(_ *dto.RequestListFilterRequest) (int, error) {
+					return 0, errTestError
 				},
 			},
 			req: &dto.RequestListFilterRequest{
@@ -53,6 +70,9 @@ func TestService_GuardRequestList(t *testing.T) {
 						},
 					}, nil
 				},
+				CountForGuardFunc: func(req *dto.RequestListFilterRequest) (int, error) {
+					return 1, nil
+				},
 			},
 			req: &dto.RequestListFilterRequest{
 				UserID: 1,
@@ -60,19 +80,22 @@ func TestService_GuardRequestList(t *testing.T) {
 				Limit:  1,
 			},
 			wantErr: false,
-			want: []*dto.RequestForGuard{
-				{
-					ID:          1,
-					UserID:      1,
-					Type:        "1",
-					Time:        1,
-					Description: "1",
-					Status:      "1",
-					UserName:    "1 1",
-					Phone:       "1",
-					Address:     "1",
-					Apartment:   1,
+			want: &dto.RequestGuardListResponse{
+				Data: []*dto.RequestForGuard{
+					{
+						ID:          1,
+						UserID:      1,
+						Type:        "1",
+						Time:        1,
+						Description: "1",
+						Status:      "1",
+						UserName:    "1 1",
+						Phone:       "1",
+						Address:     "1",
+						Apartment:   1,
+					},
 				},
+				Count: 1,
 			},
 		},
 	}

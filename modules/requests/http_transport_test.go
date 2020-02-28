@@ -621,7 +621,7 @@ func TestHTTP_GuardList(t *testing.T) {
 			name:  "error service",
 			query: "?offset=1&limit=1",
 			svc: &ServiceMock{
-				GuardRequestListFunc: func(_ context.Context, _ *dto.RequestListFilterRequest) ([]*dto.RequestForGuard, error) {
+				GuardRequestListFunc: func(_ context.Context, _ *dto.RequestListFilterRequest) (*dto.RequestGuardListResponse, error) {
 					return nil, errTestError
 				},
 			},
@@ -632,22 +632,25 @@ func TestHTTP_GuardList(t *testing.T) {
 			name:  "ok",
 			query: `?offset=0&limit=1`,
 			svc: &ServiceMock{
-				GuardRequestListFunc: func(_ context.Context, _ *dto.RequestListFilterRequest) ([]*dto.RequestForGuard, error) {
-					return []*dto.RequestForGuard{
-						{
-							ID:          1,
-							Type:        "1",
-							UserID:      1,
-							Time:        1,
-							Description: "1",
-							Status:      "1",
+				GuardRequestListFunc: func(_ context.Context, _ *dto.RequestListFilterRequest) (*dto.RequestGuardListResponse, error) {
+					return &dto.RequestGuardListResponse{
+						Data: []*dto.RequestForGuard{
+							{
+								ID:          1,
+								Type:        "1",
+								UserID:      1,
+								Time:        1,
+								Description: "1",
+								Status:      "1",
+							},
 						},
+						Count: 1,
 					}, nil
 				},
 			},
 			wantErr:  false,
 			wantCode: http.StatusOK,
-			want:     `[{"id":1,"user_id":1,"type":"1","time":1,"description":"1","status":"1","user_name":"","phone":"","address":"","apartment":0}]`,
+			want:     `{"data":[{"id":1,"user_id":1,"type":"1","time":1,"description":"1","status":"1","user_name":"","phone":"","address":"","apartment":0}],"count":1}`,
 		},
 	}
 

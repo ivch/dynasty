@@ -21,6 +21,7 @@ import (
 	"github.com/ivch/dynasty/config"
 	"github.com/ivch/dynasty/modules/auth"
 	"github.com/ivch/dynasty/modules/requests"
+	"github.com/ivch/dynasty/modules/ui"
 	"github.com/ivch/dynasty/modules/users"
 	"github.com/ivch/dynasty/repository"
 )
@@ -54,6 +55,7 @@ func main() {
 	r.Mount("/users", usersModule)
 	r.Mount("/auth", authModule)
 	r.Mount("/requests", requestsModule)
+	r.Mount("/ui", ui.NewHTTPHandler())
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {})
 

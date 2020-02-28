@@ -11,6 +11,7 @@ import (
 )
 
 var (
+	lockrequestsRepositoryMockCountForGuard         sync.RWMutex
 	lockrequestsRepositoryMockCreate                sync.RWMutex
 	lockrequestsRepositoryMockDelete                sync.RWMutex
 	lockrequestsRepositoryMockGetRequestByIDAndUser sync.RWMutex
@@ -30,6 +31,9 @@ var _ requestsRepository = &requestsRepositoryMock{}
 //
 //         // make and configure a mocked requestsRepository
 //         mockedrequestsRepository := &requestsRepositoryMock{
+//             CountForGuardFunc: func(req *dto.RequestListFilterRequest) (int, error) {
+// 	               panic("mock out the CountForGuard method")
+//             },
 //             CreateFunc: func(req *entities.Request) (uint, error) {
 // 	               panic("mock out the Create method")
 //             },
@@ -58,6 +62,9 @@ var _ requestsRepository = &requestsRepositoryMock{}
 //
 //     }
 type requestsRepositoryMock struct {
+	// CountForGuardFunc mocks the CountForGuard method.
+	CountForGuardFunc func(req *dto.RequestListFilterRequest) (int, error)
+
 	// CreateFunc mocks the Create method.
 	CreateFunc func(req *entities.Request) (uint, error)
 
@@ -81,6 +88,11 @@ type requestsRepositoryMock struct {
 
 	// calls tracks calls to the methods.
 	calls struct {
+		// CountForGuard holds details about calls to the CountForGuard method.
+		CountForGuard []struct {
+			// Req is the req argument value.
+			Req *dto.RequestListFilterRequest
+		}
 		// Create holds details about calls to the Create method.
 		Create []struct {
 			// Req is the req argument value.
@@ -123,6 +135,37 @@ type requestsRepositoryMock struct {
 			Status string
 		}
 	}
+}
+
+// CountForGuard calls CountForGuardFunc.
+func (mock *requestsRepositoryMock) CountForGuard(req *dto.RequestListFilterRequest) (int, error) {
+	if mock.CountForGuardFunc == nil {
+		panic("requestsRepositoryMock.CountForGuardFunc: method is nil but requestsRepository.CountForGuard was just called")
+	}
+	callInfo := struct {
+		Req *dto.RequestListFilterRequest
+	}{
+		Req: req,
+	}
+	lockrequestsRepositoryMockCountForGuard.Lock()
+	mock.calls.CountForGuard = append(mock.calls.CountForGuard, callInfo)
+	lockrequestsRepositoryMockCountForGuard.Unlock()
+	return mock.CountForGuardFunc(req)
+}
+
+// CountForGuardCalls gets all the calls that were made to CountForGuard.
+// Check the length with:
+//     len(mockedrequestsRepository.CountForGuardCalls())
+func (mock *requestsRepositoryMock) CountForGuardCalls() []struct {
+	Req *dto.RequestListFilterRequest
+} {
+	var calls []struct {
+		Req *dto.RequestListFilterRequest
+	}
+	lockrequestsRepositoryMockCountForGuard.RLock()
+	calls = mock.calls.CountForGuard
+	lockrequestsRepositoryMockCountForGuard.RUnlock()
+	return calls
 }
 
 // Create calls CreateFunc.
@@ -383,7 +426,7 @@ var _ Service = &ServiceMock{}
 //             GetFunc: func(ctx context.Context, r *dto.RequestByID) (*dto.RequestByIDResponse, error) {
 // 	               panic("mock out the Get method")
 //             },
-//             GuardRequestListFunc: func(ctx context.Context, r *dto.RequestListFilterRequest) ([]*dto.RequestForGuard, error) {
+//             GuardRequestListFunc: func(ctx context.Context, r *dto.RequestListFilterRequest) (*dto.RequestGuardListResponse, error) {
 // 	               panic("mock out the GuardRequestList method")
 //             },
 //             GuardUpdateRequestFunc: func(ctx context.Context, r *dto.GuardUpdateRequest) error {
@@ -412,7 +455,7 @@ type ServiceMock struct {
 	GetFunc func(ctx context.Context, r *dto.RequestByID) (*dto.RequestByIDResponse, error)
 
 	// GuardRequestListFunc mocks the GuardRequestList method.
-	GuardRequestListFunc func(ctx context.Context, r *dto.RequestListFilterRequest) ([]*dto.RequestForGuard, error)
+	GuardRequestListFunc func(ctx context.Context, r *dto.RequestListFilterRequest) (*dto.RequestGuardListResponse, error)
 
 	// GuardUpdateRequestFunc mocks the GuardUpdateRequest method.
 	GuardUpdateRequestFunc func(ctx context.Context, r *dto.GuardUpdateRequest) error
@@ -583,7 +626,7 @@ func (mock *ServiceMock) GetCalls() []struct {
 }
 
 // GuardRequestList calls GuardRequestListFunc.
-func (mock *ServiceMock) GuardRequestList(ctx context.Context, r *dto.RequestListFilterRequest) ([]*dto.RequestForGuard, error) {
+func (mock *ServiceMock) GuardRequestList(ctx context.Context, r *dto.RequestListFilterRequest) (*dto.RequestGuardListResponse, error) {
 	if mock.GuardRequestListFunc == nil {
 		panic("ServiceMock.GuardRequestListFunc: method is nil but Service.GuardRequestList was just called")
 	}

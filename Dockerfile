@@ -25,5 +25,6 @@ FROM scratch
 ADD zoneinfo.tar.gz /
 
 COPY --from=builder /app/cmd/app /app
+COPY /_ui /_ui
 
 ENTRYPOINT ["./app"]

@@ -20,7 +20,7 @@ type Service interface {
 	Get(ctx context.Context, r *dto.RequestByID) (*dto.RequestByIDResponse, error)
 	My(ctx context.Context, r *dto.RequestListFilterRequest) (*dto.RequestMyResponse, error)
 	//
-	GuardRequestList(ctx context.Context, r *dto.RequestListFilterRequest) ([]*dto.RequestForGuard, error)
+	GuardRequestList(ctx context.Context, r *dto.RequestListFilterRequest) (*dto.RequestGuardListResponse, error)
 	GuardUpdateRequest(ctx context.Context, r *dto.GuardUpdateRequest) error
 }
 
@@ -32,6 +32,7 @@ type requestsRepository interface {
 	ListByUser(r *dto.RequestListFilterRequest) ([]*entities.Request, error)
 	ListForGuard(req *dto.RequestListFilterRequest) ([]*entities.Request, error)
 	UpdateForGuard(id uint, status string) error
+	CountForGuard(req *dto.RequestListFilterRequest) (int, error)
 }
 
 type service struct {

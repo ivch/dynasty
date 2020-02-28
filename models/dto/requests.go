@@ -59,6 +59,11 @@ type RequestListFilterRequest struct {
 	Status    string `json:"status,omitempty" validate:"oneof=all new closed"`
 }
 
+type RequestGuardListResponse struct {
+	Data  []*RequestForGuard `json:"data"`
+	Count int                `json:"count"`
+}
+
 type RequestForGuard struct {
 	ID          uint   `json:"id"`
 	UserID      uint   `json:"user_id" gorm:"-"`
