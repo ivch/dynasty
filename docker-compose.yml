@@ -17,7 +17,7 @@ services:
 
   backend:
     container_name: backend
-    image: ivch/dynasty:latest
+    image: ivch/dynasty:f4b9862
     environment:
       - LOG_VERBOSE=true
       - HTTP_PORT=9001
@@ -31,6 +31,8 @@ services:
       - USER_VERIFY_REG_CODE=false
     expose:
       - 9001
+    ports:
+    - 9001:9001
     depends_on:
       dyndb:
         condition: service_healthy

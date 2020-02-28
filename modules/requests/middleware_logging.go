@@ -65,7 +65,7 @@ func (mw loggingMiddleware) Get(ctx context.Context, req *dto.RequestByID) (*dto
 	return res, err
 }
 
-func (mw loggingMiddleware) GuardRequestList(ctx context.Context, req *dto.RequestListFilterRequest) ([]*dto.RequestForGuard, error) {
+func (mw loggingMiddleware) GuardRequestList(ctx context.Context, req *dto.RequestListFilterRequest) (*dto.RequestGuardListResponse, error) {
 	res, err := mw.next.GuardRequestList(ctx, req)
 	if err != nil {
 		mw.log.Error().Msg(err.Error())

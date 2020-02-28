@@ -29,3 +29,8 @@ http:
       redirectScheme:
         scheme: https
         permanent: true
+
+    basicauth:
+      basicAuth:
+        users:
+          - "testuser:{SHA}BQEe6dtHN+uIO69dgMfG1PRbRNY="

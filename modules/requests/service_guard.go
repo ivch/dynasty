@@ -7,15 +7,20 @@ import (
 	"github.com/ivch/dynasty/models/dto"
 )
 
-func (s *service) GuardRequestList(_ context.Context, r *dto.RequestListFilterRequest) ([]*dto.RequestForGuard, error) {
+func (s *service) GuardRequestList(_ context.Context, r *dto.RequestListFilterRequest) (*dto.RequestGuardListResponse, error) {
 	reqs, err := s.repo.ListForGuard(r)
 	if err != nil {
 		return nil, err
 	}
 
-	res := make([]*dto.RequestForGuard, len(reqs))
+	cnt, err := s.repo.CountForGuard(r)
+	if err != nil {
+		return nil, err
+	}
+
+	data := make([]*dto.RequestForGuard, len(reqs))
 	for i, v := range reqs {
-		res[i] = &dto.RequestForGuard{
+		data[i] = &dto.RequestForGuard{
 			ID:          v.ID,
 			UserID:      v.UserID,
 			Type:        v.Type,
@@ -28,7 +33,11 @@ func (s *service) GuardRequestList(_ context.Context, r *dto.RequestListFilterRe
 			Apartment:   v.User.Apartment,
 		}
 	}
-	return res, nil
+
+	return &dto.RequestGuardListResponse{
+		Data:  data,
+		Count: cnt,
+	}, nil
 }
 
 func (s *service) GuardUpdateRequest(_ context.Context, r *dto.GuardUpdateRequest) error {

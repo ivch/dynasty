@@ -107,6 +107,11 @@ func decodeGuardUpdateRequest(log *zerolog.Logger) httptransport.DecodeRequestFu
 
 		req.ID = uint(id)
 
+		if err := validator.New().Struct(&req); err != nil {
+			log.Error().Err(err).Msg("error validating request")
+			return nil, errInvalidRequest
+		}
+
 		return &req, nil
 	}
 }

@@ -43,12 +43,44 @@ func (r *Requests) Create(req *entities.Request) (uint, error) {
 }
 
 func (r *Requests) ListForGuard(req *dto.RequestListFilterRequest) ([]*entities.Request, error) {
+	q := buildGuardFilterQuery(r.db, req).Limit(req.Limit).Offset(req.Offset).Order("time desc")
+
+	var reqs []*entities.Request
+	if err := q.Find(&reqs).Error; err != nil {
+		return nil, err
+	}
+	return reqs, nil
+}
+
+func (r *Requests) CountForGuard(req *dto.RequestListFilterRequest) (int, error) {
+	q := buildGuardFilterQuery(r.db, req)
+
+	var count int
+	if err := q.Model(&entities.Request{}).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (r *Requests) UpdateForGuard(id uint, status string) error {
+	// todo save who modified the request
+	return r.db.Model(&entities.Request{}).Where("id = ?", id).Update("status", status).Error
+}
+
+func (r *Requests) ListByUser(req *dto.RequestListFilterRequest) ([]*entities.Request, error) {
+	var reqs []*entities.Request
+	if err := r.db.Limit(req.Limit).Offset(req.Offset).Where("user_id = ?", req.UserID).Find(&reqs).Error; err != nil {
+		return nil, err
+	}
+	return reqs, nil
+}
+
+func buildGuardFilterQuery(db *gorm.DB, req *dto.RequestListFilterRequest) *gorm.DB {
 	from := time.Now().Add(-12 * time.Hour).Unix()
 	to := time.Now().Add(12 * time.Hour).Unix()
 
-	q := r.db.Preload("User.Building").
-		Where("time >= ? AND time <= ?", from, to).
-		Limit(req.Limit).Offset(req.Offset)
+	q := db.Preload("User.Building").
+		Where("time >= ? AND time <= ?", from, to)
 
 	if req.Type != "all" {
 		q = q.Where("type = ?", req.Type)
@@ -63,22 +95,5 @@ func (r *Requests) ListForGuard(req *dto.RequestListFilterRequest) ([]*entities.
 			Where("users.apartment = ?", req.Apartment)
 	}
 
-	var reqs []*entities.Request
-	if err := q.Find(&reqs).Error; err != nil {
-		return nil, err
-	}
-	return reqs, nil
-}
-
-func (r *Requests) UpdateForGuard(id uint, status string) error {
-	// todo save who modified the request
-	return r.db.Model(&entities.Request{}).Where("id = ?", id).Update("status", status).Error
-}
-
-func (r *Requests) ListByUser(req *dto.RequestListFilterRequest) ([]*entities.Request, error) {
-	var reqs []*entities.Request
-	if err := r.db.Limit(req.Limit).Offset(req.Offset).Where("user_id = ?", req.UserID).Find(&reqs).Error; err != nil {
-		return nil, err
-	}
-	return reqs, nil
+	return q
 }
