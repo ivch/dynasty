@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"html/template"
 	"io"
 	"net/http"
 	"os"
@@ -8,16 +9,27 @@ import (
 	"github.com/go-chi/chi"
 )
 
-func NewHTTPHandler() http.Handler {
+type pageConfig struct {
+	APIHost    string
+	PageURI    string
+	PagerLimit int
+}
+
+func NewHTTPHandler(apiHost, pageURI string, pagerLimit int) http.Handler {
 	r := chi.NewRouter()
 
+	tmpl := template.Must(template.ParseFiles("../_ui/guard/index.html"))
+	cfg := pageConfig{
+		APIHost:    apiHost,
+		PageURI:    pageURI,
+		PagerLimit: pagerLimit,
+	}
+
 	r.Get("/guard", func(w http.ResponseWriter, r *http.Request) {
-		fp, err := os.Open("../_ui/guard/index.html")
-		if err != nil {
+		if err := tmpl.Execute(w, cfg); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		io.Copy(w, fp)
 	})
 
 	r.Get("/assets/img/logo.png", func(w http.ResponseWriter, r *http.Request) {

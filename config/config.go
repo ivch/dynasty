@@ -9,15 +9,24 @@ type Config struct {
 	AuthService
 	UserService
 	DB
+	GuardUI
 	HTTPPort   string `validate:"required"`
 	LogVerbose bool
 }
 
 type UserService struct {
 	VerifyRegCode bool
+	MembersLimit  int
 }
+
 type AuthService struct {
 	JWTSecret string `validate:"required"`
+}
+
+type GuardUI struct {
+	APIHost    string `validate:"required"`
+	PageURI    string `validate:"required"`
+	PagerLimit int    `validate:"required"`
 }
 
 type DB struct {
@@ -49,6 +58,12 @@ func New() (*Config, error) {
 		},
 		UserService: UserService{
 			VerifyRegCode: v.GetBool("USER_VERIFY_REG_CODE"),
+			MembersLimit:  v.GetInt("FAMILY_MEMBERS_LIMIT"),
+		},
+		GuardUI: GuardUI{
+			APIHost:    v.GetString("UI_GUARD_API_HOST"),
+			PageURI:    v.GetString("UI_GUARD_PAGE_URI"),
+			PagerLimit: v.GetInt("UI_GUARD_PAGER_LIMIT"),
 		},
 	}
 

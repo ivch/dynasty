@@ -55,7 +55,7 @@ type RequestListFilterRequest struct {
 	Offset    uint   `json:"offset" validate:"min=0"`
 	Limit     uint   `json:"limit" validate:"required,min=1"`
 	UserID    uint   `json:"user_id,omitempty"`
-	Apartment string `json:"appartment,omitempty" validate:"omitempty,numeric"`
+	Apartment string `json:"apartment,omitempty" validate:"omitempty,numeric"`
 	Status    string `json:"status,omitempty" validate:"oneof=all new closed"`
 }
 

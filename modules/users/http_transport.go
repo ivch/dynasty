@@ -17,14 +17,18 @@ import (
 )
 
 var (
-	errEmptyUserID    = errors.New("empty user id")
-	errBadUserID      = errors.New("bad user id")
-	errBadRequest     = errors.New("failed to decode request")
-	errInvalidRequest = errors.New("request validation error")
+	errEmptyUserID                   = errors.New("empty user id")
+	errBadUserID                     = errors.New("bad user id")
+	errBadRequest                    = errors.New("failed to decode request")
+	errInvalidRequest                = errors.New("request validation error")
+	errMasterAccountExists           = errors.New("master account for this apt already exists")
+	errFamilyMembersLimitExceeded    = errors.New("family members limit exceeded")
+	errProvidedWrongRegCode          = errors.New("provided wrong reg code")
+	errFamilyMemberAlreadyRegistered = errors.New("family member already registered")
 )
 
-func New(repo userRepository, verifyRegCode bool, log *zerolog.Logger) (http.Handler, Service) {
-	svc := newService(log, repo, verifyRegCode)
+func New(repo userRepository, verifyRegCode bool, membersLimit int, log *zerolog.Logger) (http.Handler, Service) {
+	svc := newService(log, repo, verifyRegCode, membersLimit)
 	h := newHTTPHandler(log, svc)
 
 	return h, svc
@@ -45,29 +49,89 @@ func newHTTPHandler(log *zerolog.Logger, svc Service) http.Handler {
 
 	r.Method("GET", "/v1/user", httptransport.NewServer(
 		makeUserByIDRequest(svc),
-		decodeUserByIDRequest(log),
+		decodeUserByIDRequest,
+		encodeHTTPResponse,
+		options...))
+
+	r.Method("POST", "/v1/member", httptransport.NewServer(
+		makeAddFamilyMemberEndpoint(svc),
+		decodeAddFamilyMemberRequest(log),
+		encodeHTTPResponse,
+		options...))
+
+	r.Method("GET", "/v1/members", httptransport.NewServer(
+		makeListFamilyMembersEndpoint(svc),
+		decodeListFamilyMembersRequest,
+		encodeHTTPResponse,
+		options...))
+
+	r.Method("DELETE", "/v1/member/{id}", httptransport.NewServer(
+		makeDeleteFamilyMemberEndpoint(svc),
+		decodeDeleteFamilyMemberRequest(log),
 		encodeHTTPResponse,
 		options...))
 
 	return r
 }
 
-func decodeUserByIDRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
-	return func(ctx context.Context, _ *http.Request) (interface{}, error) {
-		idStr, ok := middleware.UserIDFromContext(ctx)
-
-		if !ok || idStr == "" || idStr == "0" {
-			return "", errEmptyUserID
+func decodeDeleteFamilyMemberRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
+	return func(ctx context.Context, r *http.Request) (interface{}, error) {
+		ownerID, err := getUserID(ctx)
+		if err != nil {
+			return nil, err
 		}
 
-		id, err := strconv.ParseUint(idStr, 10, 64)
+		memberID, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
 		if err != nil {
 			log.Error().Err(err).Msg(errBadUserID.Error())
-			return "", errBadUserID
+			return nil, errBadUserID
 		}
 
-		return uint(id), nil
+		if memberID == 0 {
+			log.Error().Msg(errEmptyUserID.Error())
+			return nil, errEmptyUserID
+		}
+
+		if uint(memberID) == ownerID {
+			return nil, errBadRequest
+		}
+
+		return &dto.DeleteFamilyMemberRequest{
+			OwnerID:  ownerID,
+			MemberID: uint(memberID),
+		}, nil
 	}
+}
+
+func decodeListFamilyMembersRequest(ctx context.Context, _ *http.Request) (interface{}, error) {
+	return getUserID(ctx)
+}
+
+func decodeAddFamilyMemberRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
+	return func(ctx context.Context, r *http.Request) (interface{}, error) {
+		id, err := getUserID(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		var req dto.AddFamilyMemberRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			log.Error().Err(err).Msg("failed to decode request")
+			return nil, errBadRequest
+		}
+
+		req.OwnerID = id
+
+		if err := validator.New().Struct(&req); err != nil {
+			return nil, errInvalidRequest
+		}
+
+		return &req, nil
+	}
+}
+
+func decodeUserByIDRequest(ctx context.Context, _ *http.Request) (interface{}, error) {
+	return getUserID(ctx)
 }
 
 func decodeRegisterRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
@@ -97,7 +161,11 @@ func encodeHTTPResponse(_ context.Context, w http.ResponseWriter, response inter
 }
 
 func encodeHTTPError(_ context.Context, err error, w http.ResponseWriter) {
-	var status int
+	var (
+		status  = http.StatusInternalServerError
+		message = err.Error()
+	)
+
 	switch {
 	case errors.Is(err, errEmptyUserID):
 		fallthrough
@@ -106,12 +174,34 @@ func encodeHTTPError(_ context.Context, err error, w http.ResponseWriter) {
 	case errors.Is(err, errBadRequest):
 		fallthrough
 	case errors.Is(err, errInvalidRequest):
+		fallthrough
+	case errors.Is(err, errProvidedWrongRegCode):
 		status = http.StatusBadRequest
+	case errors.Is(err, errMasterAccountExists):
+		status = http.StatusConflict
 	default:
-		status = http.StatusInternalServerError
+		message = "something went wrong"
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+	json.NewEncoder(w).Encode(map[string]string{"error": message})
+}
+
+func getUserID(ctx context.Context) (uint, error) {
+	idStr, ok := middleware.UserIDFromContext(ctx)
+	if !ok {
+		return 0, errEmptyUserID
+	}
+
+	userID, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		return 0, errBadUserID
+	}
+
+	if userID == 0 {
+		return 0, errBadUserID
+	}
+
+	return uint(userID), nil
 }

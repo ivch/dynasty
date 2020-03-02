@@ -28,6 +28,7 @@ func TestMain(m *testing.M) {
 func TestService_Register(t *testing.T) {
 	type fields struct {
 		verifyRegCode bool
+		maxMembers    int
 		repo          userRepository
 	}
 
@@ -179,7 +180,7 @@ func TestService_Register(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := newService(defaultLogger, tt.fields.repo, tt.fields.verifyRegCode)
+			s := newService(defaultLogger, tt.fields.repo, tt.fields.verifyRegCode, tt.fields.maxMembers)
 			got, err := s.Register(context.Background(), tt.args.r)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Register() error = %v, wantErr %v", err, tt.wantErr)
@@ -195,6 +196,7 @@ func TestService_Register(t *testing.T) {
 func TestService_UserByPhoneAndPassword(t *testing.T) {
 	type fields struct {
 		verifyRegCode bool
+		maxMembers    int
 		repo          userRepository
 	}
 
@@ -269,7 +271,7 @@ func TestService_UserByPhoneAndPassword(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := newService(defaultLogger, tt.fields.repo, tt.fields.verifyRegCode)
+			s := newService(defaultLogger, tt.fields.repo, tt.fields.verifyRegCode, tt.fields.maxMembers)
 			got, err := s.UserByPhoneAndPassword(context.Background(), tt.args.phone, tt.args.password)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UserByPhoneAndPassword() error = %v, wantErr %v", err, tt.wantErr)
@@ -285,6 +287,7 @@ func TestService_UserByPhoneAndPassword(t *testing.T) {
 func TestService_UserByID(t *testing.T) {
 	type fields struct {
 		verifyRegCode bool
+		maxMembers    int
 		repo          userRepository
 	}
 
@@ -354,7 +357,7 @@ func TestService_UserByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := newService(defaultLogger, tt.fields.repo, tt.fields.verifyRegCode)
+			s := newService(defaultLogger, tt.fields.repo, tt.fields.verifyRegCode, tt.fields.maxMembers)
 			got, err := s.UserByID(context.Background(), tt.args.id)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UserByID() error = %v, wantErr %v", err, tt.wantErr)

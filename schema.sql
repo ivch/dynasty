@@ -27,24 +27,28 @@ values ('Дом 1', 'Липковского 37-Г'),
 
 create table users
 (
-    id            serial not null
+    id          serial not null
         constraint user_pk
             unique,
-    apartment     integer,
-    email         varchar,
-    password      varchar,
-    phone         varchar,
-    first_name    varchar,
-    last_name     varchar,
-    role          integer default 4
+    apartment   integer,
+    email       varchar,
+    password    varchar,
+    phone       varchar,
+    first_name  varchar,
+    last_name   varchar,
+    role        integer    default 4
         constraint user_user_roles_id_fk
             references user_roles
             on update cascade on delete set null,
-    residence_id  integer,
-    building_id   integer
+    building_id integer
         constraint user_buildings_id_fk
             references buildings (id),
-    refresh_token varchar
+    parent_id   integer
+        constraint users_users_id_fk
+            references users (id)
+            on update cascade on delete cascade,
+    active      bool       default true,
+    reg_code    varchar(5) default null
 );
 
 create index user_phone_index
@@ -71,30 +75,33 @@ alter table sessions
 create index sessions_refresh_token_index
     on sessions (refresh_token);
 
-    create table reg_codes
+create table reg_codes
 (
-	id serial,
-	code varchar(10) not null,
-	used bool default false
+    id   serial,
+    code varchar(10) not null,
+    used bool default false
 );
 
 create unique index reg_codes_code_uindex
-	on reg_codes (code);
+    on reg_codes (code);
 
 create index reg_codes_code_used_index
-	on reg_codes (code, used);
+    on reg_codes (code, used);
 
 create table requests
 (
-	id serial
-		constraint requests_pk
-			primary key,
-	type varchar(50) not null,
-	user_id int not null
-		constraint requests_users_id_fk
-			references users (id)
-				on delete cascade,
-	time int not null,
-	description varchar(1000),
-	status varchar(15) default 'new' not null
+    id          serial
+        constraint requests_pk
+            primary key,
+    type        varchar(50)               not null,
+    user_id     int                       not null
+        constraint requests_users_id_fk
+            references users (id)
+            on delete cascade,
+    time        int                       not null,
+    description varchar(1000),
+    status      varchar(15) default 'new' not null
 );
+
+alter table users
+    add active bool default true;

@@ -13,6 +13,9 @@ type User struct {
 	LastName   string `json:"last_name,omitempty"`
 	Role       uint   `json:"role,omitempty"`
 	BuildingID int    `gorm:"building_id"`
+	Active     bool   `json:"active" gorm:"active"`
+	RegCode    string `json:"-"`
+	ParentID   *uint  `json:"-"`
 }
 
 func (User) TableName() string { return "users" }

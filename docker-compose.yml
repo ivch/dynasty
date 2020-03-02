@@ -11,13 +11,13 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "./_traefik/traefik.yml:/etc/traefik/traefik.yml"
-      - "./_traefik/services:/etc/traefik/services"
+      - "./_traefik/dev/services:/etc/traefik/services"
       - "./letsencrypt:/letsencrypt/"
 
 
   backend:
     container_name: backend
-    image: ivch/dynasty:f4b9862
+    image: ivch/dynasty:latest
     environment:
       - LOG_VERBOSE=true
       - HTTP_PORT=9001

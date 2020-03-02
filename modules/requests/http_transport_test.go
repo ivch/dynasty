@@ -515,6 +515,13 @@ func TestHTTP_GuardUpdate(t *testing.T) {
 			wantCode: http.StatusBadRequest,
 		},
 		{
+			name:     "error bad request",
+			request:  `{"status":"asd"}`,
+			id:       "2",
+			wantErr:  true,
+			wantCode: http.StatusBadRequest,
+		},
+		{
 			name:    "error service",
 			request: `{"status":"closed"}`,
 			id:      "1",

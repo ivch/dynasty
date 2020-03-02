@@ -35,3 +35,29 @@ type UserByIDResponse struct {
 	Role      uint              `json:"role"`
 	Building  entities.Building `json:"building"`
 }
+
+type AddFamilyMemberRequest struct {
+	OwnerID uint
+	Phone   string `json:"phone" validate:"required"`
+}
+
+type AddFamilyMemberResponse struct {
+	Code string `json:"code"`
+}
+
+type ListFamilyMembersResponse struct {
+	Data []*FamilyMember `json:"data"`
+}
+
+type FamilyMember struct {
+	ID     uint   `json:"id"`
+	Name   string `json:"name,omitempty"`
+	Phone  string `json:"phone"`
+	Code   string `json:"code"`
+	Active bool   `json:"active"`
+}
+
+type DeleteFamilyMemberRequest struct {
+	OwnerID  uint
+	MemberID uint
+}

@@ -11,12 +11,15 @@ import (
 )
 
 var (
-	lockuserRepositoryMockCreateUser      sync.RWMutex
-	lockuserRepositoryMockDeleteUser      sync.RWMutex
-	lockuserRepositoryMockGetUserByID     sync.RWMutex
-	lockuserRepositoryMockGetUserByPhone  sync.RWMutex
-	lockuserRepositoryMockUseRegCode      sync.RWMutex
-	lockuserRepositoryMockValidateRegCode sync.RWMutex
+	lockuserRepositoryMockCreateUser       sync.RWMutex
+	lockuserRepositoryMockDeleteUser       sync.RWMutex
+	lockuserRepositoryMockGetFamilyMembers sync.RWMutex
+	lockuserRepositoryMockGetRegCode       sync.RWMutex
+	lockuserRepositoryMockGetUserByID      sync.RWMutex
+	lockuserRepositoryMockGetUserByPhone   sync.RWMutex
+	lockuserRepositoryMockUpdateUser       sync.RWMutex
+	lockuserRepositoryMockUseRegCode       sync.RWMutex
+	lockuserRepositoryMockValidateRegCode  sync.RWMutex
 )
 
 // Ensure, that userRepositoryMock does implement userRepository.
@@ -35,11 +38,20 @@ var _ userRepository = &userRepositoryMock{}
 //             DeleteUserFunc: func(u *entities.User) error {
 // 	               panic("mock out the DeleteUser method")
 //             },
+//             GetFamilyMembersFunc: func(ownerID uint) ([]*entities.User, error) {
+// 	               panic("mock out the GetFamilyMembers method")
+//             },
+//             GetRegCodeFunc: func() (string, error) {
+// 	               panic("mock out the GetRegCode method")
+//             },
 //             GetUserByIDFunc: func(id uint) (*entities.User, error) {
 // 	               panic("mock out the GetUserByID method")
 //             },
 //             GetUserByPhoneFunc: func(phone string) (*entities.User, error) {
 // 	               panic("mock out the GetUserByPhone method")
+//             },
+//             UpdateUserFunc: func(u *entities.User) error {
+// 	               panic("mock out the UpdateUser method")
 //             },
 //             UseRegCodeFunc: func(code string) error {
 // 	               panic("mock out the UseRegCode method")
@@ -60,11 +72,20 @@ type userRepositoryMock struct {
 	// DeleteUserFunc mocks the DeleteUser method.
 	DeleteUserFunc func(u *entities.User) error
 
+	// GetFamilyMembersFunc mocks the GetFamilyMembers method.
+	GetFamilyMembersFunc func(ownerID uint) ([]*entities.User, error)
+
+	// GetRegCodeFunc mocks the GetRegCode method.
+	GetRegCodeFunc func() (string, error)
+
 	// GetUserByIDFunc mocks the GetUserByID method.
 	GetUserByIDFunc func(id uint) (*entities.User, error)
 
 	// GetUserByPhoneFunc mocks the GetUserByPhone method.
 	GetUserByPhoneFunc func(phone string) (*entities.User, error)
+
+	// UpdateUserFunc mocks the UpdateUser method.
+	UpdateUserFunc func(u *entities.User) error
 
 	// UseRegCodeFunc mocks the UseRegCode method.
 	UseRegCodeFunc func(code string) error
@@ -84,6 +105,14 @@ type userRepositoryMock struct {
 			// U is the u argument value.
 			U *entities.User
 		}
+		// GetFamilyMembers holds details about calls to the GetFamilyMembers method.
+		GetFamilyMembers []struct {
+			// OwnerID is the ownerID argument value.
+			OwnerID uint
+		}
+		// GetRegCode holds details about calls to the GetRegCode method.
+		GetRegCode []struct {
+		}
 		// GetUserByID holds details about calls to the GetUserByID method.
 		GetUserByID []struct {
 			// ID is the id argument value.
@@ -93,6 +122,11 @@ type userRepositoryMock struct {
 		GetUserByPhone []struct {
 			// Phone is the phone argument value.
 			Phone string
+		}
+		// UpdateUser holds details about calls to the UpdateUser method.
+		UpdateUser []struct {
+			// U is the u argument value.
+			U *entities.User
 		}
 		// UseRegCode holds details about calls to the UseRegCode method.
 		UseRegCode []struct {
@@ -169,6 +203,63 @@ func (mock *userRepositoryMock) DeleteUserCalls() []struct {
 	return calls
 }
 
+// GetFamilyMembers calls GetFamilyMembersFunc.
+func (mock *userRepositoryMock) GetFamilyMembers(ownerID uint) ([]*entities.User, error) {
+	if mock.GetFamilyMembersFunc == nil {
+		panic("userRepositoryMock.GetFamilyMembersFunc: method is nil but userRepository.GetFamilyMembers was just called")
+	}
+	callInfo := struct {
+		OwnerID uint
+	}{
+		OwnerID: ownerID,
+	}
+	lockuserRepositoryMockGetFamilyMembers.Lock()
+	mock.calls.GetFamilyMembers = append(mock.calls.GetFamilyMembers, callInfo)
+	lockuserRepositoryMockGetFamilyMembers.Unlock()
+	return mock.GetFamilyMembersFunc(ownerID)
+}
+
+// GetFamilyMembersCalls gets all the calls that were made to GetFamilyMembers.
+// Check the length with:
+//     len(mockeduserRepository.GetFamilyMembersCalls())
+func (mock *userRepositoryMock) GetFamilyMembersCalls() []struct {
+	OwnerID uint
+} {
+	var calls []struct {
+		OwnerID uint
+	}
+	lockuserRepositoryMockGetFamilyMembers.RLock()
+	calls = mock.calls.GetFamilyMembers
+	lockuserRepositoryMockGetFamilyMembers.RUnlock()
+	return calls
+}
+
+// GetRegCode calls GetRegCodeFunc.
+func (mock *userRepositoryMock) GetRegCode() (string, error) {
+	if mock.GetRegCodeFunc == nil {
+		panic("userRepositoryMock.GetRegCodeFunc: method is nil but userRepository.GetRegCode was just called")
+	}
+	callInfo := struct {
+	}{}
+	lockuserRepositoryMockGetRegCode.Lock()
+	mock.calls.GetRegCode = append(mock.calls.GetRegCode, callInfo)
+	lockuserRepositoryMockGetRegCode.Unlock()
+	return mock.GetRegCodeFunc()
+}
+
+// GetRegCodeCalls gets all the calls that were made to GetRegCode.
+// Check the length with:
+//     len(mockeduserRepository.GetRegCodeCalls())
+func (mock *userRepositoryMock) GetRegCodeCalls() []struct {
+} {
+	var calls []struct {
+	}
+	lockuserRepositoryMockGetRegCode.RLock()
+	calls = mock.calls.GetRegCode
+	lockuserRepositoryMockGetRegCode.RUnlock()
+	return calls
+}
+
 // GetUserByID calls GetUserByIDFunc.
 func (mock *userRepositoryMock) GetUserByID(id uint) (*entities.User, error) {
 	if mock.GetUserByIDFunc == nil {
@@ -228,6 +319,37 @@ func (mock *userRepositoryMock) GetUserByPhoneCalls() []struct {
 	lockuserRepositoryMockGetUserByPhone.RLock()
 	calls = mock.calls.GetUserByPhone
 	lockuserRepositoryMockGetUserByPhone.RUnlock()
+	return calls
+}
+
+// UpdateUser calls UpdateUserFunc.
+func (mock *userRepositoryMock) UpdateUser(u *entities.User) error {
+	if mock.UpdateUserFunc == nil {
+		panic("userRepositoryMock.UpdateUserFunc: method is nil but userRepository.UpdateUser was just called")
+	}
+	callInfo := struct {
+		U *entities.User
+	}{
+		U: u,
+	}
+	lockuserRepositoryMockUpdateUser.Lock()
+	mock.calls.UpdateUser = append(mock.calls.UpdateUser, callInfo)
+	lockuserRepositoryMockUpdateUser.Unlock()
+	return mock.UpdateUserFunc(u)
+}
+
+// UpdateUserCalls gets all the calls that were made to UpdateUser.
+// Check the length with:
+//     len(mockeduserRepository.UpdateUserCalls())
+func (mock *userRepositoryMock) UpdateUserCalls() []struct {
+	U *entities.User
+} {
+	var calls []struct {
+		U *entities.User
+	}
+	lockuserRepositoryMockUpdateUser.RLock()
+	calls = mock.calls.UpdateUser
+	lockuserRepositoryMockUpdateUser.RUnlock()
 	return calls
 }
 
@@ -294,6 +416,9 @@ func (mock *userRepositoryMock) ValidateRegCodeCalls() []struct {
 }
 
 var (
+	lockServiceMockAddFamilyMember        sync.RWMutex
+	lockServiceMockDeleteFamilyMember     sync.RWMutex
+	lockServiceMockListFamilyMembers      sync.RWMutex
 	lockServiceMockRegister               sync.RWMutex
 	lockServiceMockUserByID               sync.RWMutex
 	lockServiceMockUserByPhoneAndPassword sync.RWMutex
@@ -309,6 +434,15 @@ var _ Service = &ServiceMock{}
 //
 //         // make and configure a mocked Service
 //         mockedService := &ServiceMock{
+//             AddFamilyMemberFunc: func(ctx context.Context, r *dto.AddFamilyMemberRequest) (*dto.AddFamilyMemberResponse, error) {
+// 	               panic("mock out the AddFamilyMember method")
+//             },
+//             DeleteFamilyMemberFunc: func(ctx context.Context, r *dto.DeleteFamilyMemberRequest) error {
+// 	               panic("mock out the DeleteFamilyMember method")
+//             },
+//             ListFamilyMembersFunc: func(ctx context.Context, id uint) (*dto.ListFamilyMembersResponse, error) {
+// 	               panic("mock out the ListFamilyMembers method")
+//             },
 //             RegisterFunc: func(ctx context.Context, req *dto.UserRegisterRequest) (*dto.UserRegisterResponse, error) {
 // 	               panic("mock out the Register method")
 //             },
@@ -325,6 +459,15 @@ var _ Service = &ServiceMock{}
 //
 //     }
 type ServiceMock struct {
+	// AddFamilyMemberFunc mocks the AddFamilyMember method.
+	AddFamilyMemberFunc func(ctx context.Context, r *dto.AddFamilyMemberRequest) (*dto.AddFamilyMemberResponse, error)
+
+	// DeleteFamilyMemberFunc mocks the DeleteFamilyMember method.
+	DeleteFamilyMemberFunc func(ctx context.Context, r *dto.DeleteFamilyMemberRequest) error
+
+	// ListFamilyMembersFunc mocks the ListFamilyMembers method.
+	ListFamilyMembersFunc func(ctx context.Context, id uint) (*dto.ListFamilyMembersResponse, error)
+
 	// RegisterFunc mocks the Register method.
 	RegisterFunc func(ctx context.Context, req *dto.UserRegisterRequest) (*dto.UserRegisterResponse, error)
 
@@ -336,6 +479,27 @@ type ServiceMock struct {
 
 	// calls tracks calls to the methods.
 	calls struct {
+		// AddFamilyMember holds details about calls to the AddFamilyMember method.
+		AddFamilyMember []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// R is the r argument value.
+			R *dto.AddFamilyMemberRequest
+		}
+		// DeleteFamilyMember holds details about calls to the DeleteFamilyMember method.
+		DeleteFamilyMember []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// R is the r argument value.
+			R *dto.DeleteFamilyMemberRequest
+		}
+		// ListFamilyMembers holds details about calls to the ListFamilyMembers method.
+		ListFamilyMembers []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// ID is the id argument value.
+			ID uint
+		}
 		// Register holds details about calls to the Register method.
 		Register []struct {
 			// Ctx is the ctx argument value.
@@ -360,6 +524,111 @@ type ServiceMock struct {
 			Password string
 		}
 	}
+}
+
+// AddFamilyMember calls AddFamilyMemberFunc.
+func (mock *ServiceMock) AddFamilyMember(ctx context.Context, r *dto.AddFamilyMemberRequest) (*dto.AddFamilyMemberResponse, error) {
+	if mock.AddFamilyMemberFunc == nil {
+		panic("ServiceMock.AddFamilyMemberFunc: method is nil but Service.AddFamilyMember was just called")
+	}
+	callInfo := struct {
+		Ctx context.Context
+		R   *dto.AddFamilyMemberRequest
+	}{
+		Ctx: ctx,
+		R:   r,
+	}
+	lockServiceMockAddFamilyMember.Lock()
+	mock.calls.AddFamilyMember = append(mock.calls.AddFamilyMember, callInfo)
+	lockServiceMockAddFamilyMember.Unlock()
+	return mock.AddFamilyMemberFunc(ctx, r)
+}
+
+// AddFamilyMemberCalls gets all the calls that were made to AddFamilyMember.
+// Check the length with:
+//     len(mockedService.AddFamilyMemberCalls())
+func (mock *ServiceMock) AddFamilyMemberCalls() []struct {
+	Ctx context.Context
+	R   *dto.AddFamilyMemberRequest
+} {
+	var calls []struct {
+		Ctx context.Context
+		R   *dto.AddFamilyMemberRequest
+	}
+	lockServiceMockAddFamilyMember.RLock()
+	calls = mock.calls.AddFamilyMember
+	lockServiceMockAddFamilyMember.RUnlock()
+	return calls
+}
+
+// DeleteFamilyMember calls DeleteFamilyMemberFunc.
+func (mock *ServiceMock) DeleteFamilyMember(ctx context.Context, r *dto.DeleteFamilyMemberRequest) error {
+	if mock.DeleteFamilyMemberFunc == nil {
+		panic("ServiceMock.DeleteFamilyMemberFunc: method is nil but Service.DeleteFamilyMember was just called")
+	}
+	callInfo := struct {
+		Ctx context.Context
+		R   *dto.DeleteFamilyMemberRequest
+	}{
+		Ctx: ctx,
+		R:   r,
+	}
+	lockServiceMockDeleteFamilyMember.Lock()
+	mock.calls.DeleteFamilyMember = append(mock.calls.DeleteFamilyMember, callInfo)
+	lockServiceMockDeleteFamilyMember.Unlock()
+	return mock.DeleteFamilyMemberFunc(ctx, r)
+}
+
+// DeleteFamilyMemberCalls gets all the calls that were made to DeleteFamilyMember.
+// Check the length with:
+//     len(mockedService.DeleteFamilyMemberCalls())
+func (mock *ServiceMock) DeleteFamilyMemberCalls() []struct {
+	Ctx context.Context
+	R   *dto.DeleteFamilyMemberRequest
+} {
+	var calls []struct {
+		Ctx context.Context
+		R   *dto.DeleteFamilyMemberRequest
+	}
+	lockServiceMockDeleteFamilyMember.RLock()
+	calls = mock.calls.DeleteFamilyMember
+	lockServiceMockDeleteFamilyMember.RUnlock()
+	return calls
+}
+
+// ListFamilyMembers calls ListFamilyMembersFunc.
+func (mock *ServiceMock) ListFamilyMembers(ctx context.Context, id uint) (*dto.ListFamilyMembersResponse, error) {
+	if mock.ListFamilyMembersFunc == nil {
+		panic("ServiceMock.ListFamilyMembersFunc: method is nil but Service.ListFamilyMembers was just called")
+	}
+	callInfo := struct {
+		Ctx context.Context
+		ID  uint
+	}{
+		Ctx: ctx,
+		ID:  id,
+	}
+	lockServiceMockListFamilyMembers.Lock()
+	mock.calls.ListFamilyMembers = append(mock.calls.ListFamilyMembers, callInfo)
+	lockServiceMockListFamilyMembers.Unlock()
+	return mock.ListFamilyMembersFunc(ctx, id)
+}
+
+// ListFamilyMembersCalls gets all the calls that were made to ListFamilyMembers.
+// Check the length with:
+//     len(mockedService.ListFamilyMembersCalls())
+func (mock *ServiceMock) ListFamilyMembersCalls() []struct {
+	Ctx context.Context
+	ID  uint
+} {
+	var calls []struct {
+		Ctx context.Context
+		ID  uint
+	}
+	lockServiceMockListFamilyMembers.RLock()
+	calls = mock.calls.ListFamilyMembers
+	lockServiceMockListFamilyMembers.RUnlock()
+	return calls
 }
 
 // Register calls RegisterFunc.

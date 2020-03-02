@@ -45,7 +45,7 @@ func main() {
 		logger.Fatal().Err(err).Msg("cannot connect to db")
 	}
 
-	usersModule, userService := users.New(repository.NewUsers(db), cfg.UserService.VerifyRegCode, logger)
+	usersModule, userService := users.New(repository.NewUsers(db), cfg.UserService.VerifyRegCode, cfg.UserService.MembersLimit, logger)
 	authModule, _ := auth.New(logger, repository.NewAuth(db), uCli.New(userService), cfg.AuthService.JWTSecret)
 	requestsModule, _ := requests.New(logger, repository.NewRequests(db))
 
@@ -55,7 +55,7 @@ func main() {
 	r.Mount("/users", usersModule)
 	r.Mount("/auth", authModule)
 	r.Mount("/requests", requestsModule)
-	r.Mount("/ui", ui.NewHTTPHandler())
+	r.Mount("/ui", ui.NewHTTPHandler(cfg.GuardUI.APIHost, cfg.GuardUI.PageURI, cfg.GuardUI.PagerLimit))
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {})
 

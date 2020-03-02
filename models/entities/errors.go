@@ -10,8 +10,9 @@ var (
 
 	ErrParsingToken       = errors.New("failed to parse token")
 	ErrParsingTokenClaims = errors.New("failed to parse token claims")
-	ErrTokenIsInvalid     = errors.New("token is invalid")
-	ErrTokenExpired       = errors.New("token expired")
+	// ErrTokenIsInvalid     = errors.New("token is invalid")
+	// ErrTokenExpired       = errors.New("token expired")
 
-	ErrSessionNotFound = errors.New("session not found")
+	ErrSessionNotFound    = errors.New("session not found")
+	ErrNoRegCodeAvailable = errors.New("no reg codes available")
 )
