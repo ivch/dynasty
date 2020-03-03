@@ -50,6 +50,7 @@ gen:
 	${GOPATH}/bin/moq -out modules/users/mock_test.go modules/users userRepository Service
 	${GOPATH}/bin/moq -out modules/auth/mock_test.go modules/auth userService authRepository Service
 	${GOPATH}/bin/moq -out modules/requests/mock_test.go modules/requests requestsRepository Service
+	${GOPATH}/bin/moq -out modules/dictionaries/mock_test.go modules/dictionaries dictRepository Service
 	${GOPATH}/bin/moq -out clients/users/mock_test.go clients/users userService
 
 .PHONY: tag

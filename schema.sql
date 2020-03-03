@@ -22,8 +22,8 @@ create table if not exists buildings
     address varchar
 );
 insert into buildings (name, address)
-values ('Дом 1', 'Липковского 37-Г'),
-       ('Дом 2', 'Липковского 37-Б');
+values ('37-В', 'Киев, Василия Липковского 37-В'),
+       ('37-Б', 'Киев, Василия Липковского 37-Б');
 
 create table users
 (
@@ -105,3 +105,24 @@ create table requests
 
 alter table users
     add active bool default true;
+
+create table entries
+(
+    id serial,
+    name varchar(20),
+    building_id int
+        constraint entries_buildings_id_fk
+            references buildings (id)
+            on update cascade on delete cascade
+);
+
+insert into entries (name, building_id)
+values ('Секцiя 1', 1),
+       ('Секцiя 2', 1),
+       ('Секцiя 3', 1),
+       ('Секцiя 4', 1),
+       ('Секцiя 5', 1),
+       ('Секцiя 1', 2),
+       ('Секцiя 2', 2),
+       ('Секцiя 3', 2),
+       ('Секцiя 4', 2);

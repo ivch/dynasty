@@ -20,6 +20,7 @@ import (
 	uCli "github.com/ivch/dynasty/clients/users"
 	"github.com/ivch/dynasty/config"
 	"github.com/ivch/dynasty/modules/auth"
+	"github.com/ivch/dynasty/modules/dictionaries"
 	"github.com/ivch/dynasty/modules/requests"
 	"github.com/ivch/dynasty/modules/ui"
 	"github.com/ivch/dynasty/modules/users"
@@ -48,6 +49,7 @@ func main() {
 	usersModule, userService := users.New(repository.NewUsers(db), cfg.UserService.VerifyRegCode, cfg.UserService.MembersLimit, logger)
 	authModule, _ := auth.New(logger, repository.NewAuth(db), uCli.New(userService), cfg.AuthService.JWTSecret)
 	requestsModule, _ := requests.New(logger, repository.NewRequests(db))
+	dictionariesModule, _ := dictionaries.New(repository.NewDictionaries(db), logger)
 
 	r := chi.NewRouter()
 	r.Use(accessLogMiddleware(logger))
@@ -55,6 +57,7 @@ func main() {
 	r.Mount("/users", usersModule)
 	r.Mount("/auth", authModule)
 	r.Mount("/requests", requestsModule)
+	r.Mount("/dictionary", dictionariesModule)
 	r.Mount("/ui", ui.NewHTTPHandler(cfg.GuardUI.APIHost, cfg.GuardUI.PageURI, cfg.GuardUI.PagerLimit))
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {})

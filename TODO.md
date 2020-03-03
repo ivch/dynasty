@@ -1,7 +1,8 @@
 # TODO List
 
 ## Registration
-- [x] add section number
+- [ ] add section number
+- [ ] check building and entry id
 - [x] add master account
 - [x] add ability to create accounts under master account
 
@@ -22,3 +23,4 @@
 - [ ] deny logging in if master deactivated/deleted account
 - [ ] on login check if user is active
 - [ ] on token validation check if user is active
+- [ ] update schema on prod and cleanup db

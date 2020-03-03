@@ -48,7 +48,7 @@ func newHTTPHandler(log *zerolog.Logger, svc Service) http.Handler {
 		options...))
 
 	r.Method("GET", "/v1/user", httptransport.NewServer(
-		makeUserByIDRequest(svc),
+		makeUserByIDEndpoint(svc),
 		decodeUserByIDRequest,
 		encodeHTTPResponse,
 		options...))
