@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi"
 	httptransport "github.com/go-kit/kit/transport/http"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/rs/zerolog"
 	"gopkg.in/go-playground/validator.v9"
 
@@ -26,13 +27,13 @@ var (
 	errInternalServerError = errors.New("request failed")
 )
 
-func New(log *zerolog.Logger, repo requestsRepository) (http.Handler, Service) {
+func New(log *zerolog.Logger, repo requestsRepository, p *bluemonday.Policy) (http.Handler, Service) {
 	svc := newService(log, repo)
-	h := newHTTPHandler(log, svc)
+	h := newHTTPHandler(log, svc, p)
 	return h, svc
 }
 
-func newHTTPHandler(log *zerolog.Logger, svc Service) http.Handler {
+func newHTTPHandler(log *zerolog.Logger, svc Service, p *bluemonday.Policy) http.Handler {
 	options := []httptransport.ServerOption{
 		httptransport.ServerErrorEncoder(encodeHTTPError),
 		httptransport.ServerBefore(middleware.UserIDToCTX),
@@ -42,13 +43,13 @@ func newHTTPHandler(log *zerolog.Logger, svc Service) http.Handler {
 
 	r.Method("POST", "/v1/request", httptransport.NewServer(
 		makeCreateEndpoint(svc),
-		decodeCreateRequest(log),
+		decodeCreateRequest(log, p),
 		encodeHTTPResponse,
 		options...))
 
 	r.Method("PUT", "/v1/request/{id}", httptransport.NewServer(
 		makeUpdateEndpoint(svc),
-		decodeUpdateRequest(log),
+		decodeUpdateRequest(log, p),
 		encodeHTTPResponse,
 		options...))
 
@@ -177,7 +178,7 @@ func decodeByIDRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
 	}
 }
 
-func decodeUpdateRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
+func decodeUpdateRequest(log *zerolog.Logger, p *bluemonday.Policy) httptransport.DecodeRequestFunc {
 	return func(ctx context.Context, r *http.Request) (interface{}, error) {
 		var req dto.RequestUpdateRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -204,7 +205,7 @@ func decodeUpdateRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
 
 		req.ID = uint(id)
 		req.UserID = userID
-
+		req.Sanitize(p)
 		return &req, nil
 	}
 }
@@ -235,7 +236,7 @@ func decodeMyRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
 	}
 }
 
-func decodeCreateRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
+func decodeCreateRequest(log *zerolog.Logger, p *bluemonday.Policy) httptransport.DecodeRequestFunc {
 	return func(ctx context.Context, r *http.Request) (interface{}, error) {
 		var req dto.RequestCreateRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -248,8 +249,8 @@ func decodeCreateRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
 			log.Error().Err(err).Msg("failed to get user id")
 			return nil, err
 		}
-
 		req.UserID = userID
+		req.Sanitize(p)
 		if err := validator.New().Struct(&req); err != nil {
 			log.Error().Err(err).Msg("error validating request")
 			return nil, errInvalidRequest

@@ -1,16 +1,26 @@
 package dto
 
-import "github.com/ivch/dynasty/models/entities"
+import (
+	"github.com/microcosm-cc/bluemonday"
+
+	"github.com/ivch/dynasty/models/entities"
+)
 
 type UserRegisterRequest struct {
 	Password   string `json:"password,omitempty" validate:"required,min=6"`
-	Phone      string `json:"phone,omitempty" validate:"required"`
+	Phone      string `json:"phone,omitempty" validate:"required,numeric"`
 	FirstName  string `json:"first_name,omitempty" validate:"required"`
 	LastName   string `json:"last_name,omitempty" validate:"required"`
 	BuildingID int    `json:"building_id,omitempty" validate:"required"`
 	Apartment  uint   `json:"apartment,omitempty" validate:"required"`
-	Email      string `json:"email,omitempty" validate:"email"`
+	Email      string `json:"email" validate:"required,email"`
 	Code       string `json:"code"`
+}
+
+func (r *UserRegisterRequest) Sanitize(p *bluemonday.Policy) {
+	r.FirstName = p.Sanitize(r.FirstName)
+	r.LastName = p.Sanitize(r.LastName)
+	r.Code = p.Sanitize(r.Code)
 }
 
 type UserRegisterResponse struct {
@@ -38,7 +48,7 @@ type UserByIDResponse struct {
 
 type AddFamilyMemberRequest struct {
 	OwnerID uint
-	Phone   string `json:"phone" validate:"required"`
+	Phone   string `json:"phone" validate:"required,numeric"`
 }
 
 type AddFamilyMemberResponse struct {

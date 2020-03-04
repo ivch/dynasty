@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi"
 	httptransport "github.com/go-kit/kit/transport/http"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/rs/zerolog"
 	"gopkg.in/go-playground/validator.v9"
 
@@ -27,14 +28,14 @@ var (
 	errFamilyMemberAlreadyRegistered = errors.New("family member already registered")
 )
 
-func New(repo userRepository, verifyRegCode bool, membersLimit int, log *zerolog.Logger) (http.Handler, Service) {
+func New(repo userRepository, verifyRegCode bool, membersLimit int, log *zerolog.Logger, p *bluemonday.Policy) (http.Handler, Service) {
 	svc := newService(log, repo, verifyRegCode, membersLimit)
-	h := newHTTPHandler(log, svc)
+	h := newHTTPHandler(log, svc, p)
 
 	return h, svc
 }
 
-func newHTTPHandler(log *zerolog.Logger, svc Service) http.Handler {
+func newHTTPHandler(log *zerolog.Logger, svc Service, p *bluemonday.Policy) http.Handler {
 	options := []httptransport.ServerOption{
 		httptransport.ServerErrorEncoder(encodeHTTPError),
 		httptransport.ServerBefore(middleware.UserIDToCTX),
@@ -43,7 +44,7 @@ func newHTTPHandler(log *zerolog.Logger, svc Service) http.Handler {
 	r := chi.NewRouter()
 	r.Method("POST", "/v1/register", httptransport.NewServer(
 		makeRegisterEndpoint(svc),
-		decodeRegisterRequest(log),
+		decodeRegisterRequest(log, p),
 		encodeHTTPResponse,
 		options...))
 
@@ -134,13 +135,15 @@ func decodeUserByIDRequest(ctx context.Context, _ *http.Request) (interface{}, e
 	return getUserID(ctx)
 }
 
-func decodeRegisterRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
+func decodeRegisterRequest(log *zerolog.Logger, p *bluemonday.Policy) httptransport.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var req dto.UserRegisterRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			log.Error().Err(err).Msg("failed to decode request")
 			return nil, errBadRequest
 		}
+
+		req.Sanitize(p)
 
 		if err := validator.New().Struct(&req); err != nil {
 			return nil, errInvalidRequest

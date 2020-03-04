@@ -15,6 +15,7 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/joho/godotenv"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/rs/zerolog"
 
 	uCli "github.com/ivch/dynasty/clients/users"
@@ -46,9 +47,10 @@ func main() {
 		logger.Fatal().Err(err).Msg("cannot connect to db")
 	}
 
-	usersModule, userService := users.New(repository.NewUsers(db), cfg.UserService.VerifyRegCode, cfg.UserService.MembersLimit, logger)
+	p := bluemonday.StrictPolicy()
+	usersModule, userService := users.New(repository.NewUsers(db), cfg.UserService.VerifyRegCode, cfg.UserService.MembersLimit, logger, p)
 	authModule, _ := auth.New(logger, repository.NewAuth(db), uCli.New(userService), cfg.AuthService.JWTSecret)
-	requestsModule, _ := requests.New(logger, repository.NewRequests(db))
+	requestsModule, _ := requests.New(logger, repository.NewRequests(db), p)
 	dictionariesModule, _ := dictionaries.New(repository.NewDictionaries(db), logger)
 
 	r := chi.NewRouter()

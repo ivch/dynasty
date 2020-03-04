@@ -75,7 +75,7 @@ func TestHTTP_GetUser(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := newHTTPHandler(defaultLogger, svc)
+			h := newHTTPHandler(defaultLogger, svc, defaultPolicy)
 			rr := httptest.NewRecorder()
 			rq, _ := http.NewRequest("GET", "/v1/user", nil)
 			rq.Header.Add("X-Auth-User", tt.header)
@@ -188,7 +188,7 @@ func TestHTTP_Register(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := newHTTPHandler(defaultLogger, svc)
+			h := newHTTPHandler(defaultLogger, svc, defaultPolicy)
 			rr := httptest.NewRecorder()
 			rq, _ := http.NewRequest("POST", "/v1/register", strings.NewReader(tt.request))
 			h.ServeHTTP(rr, rq)
@@ -260,7 +260,7 @@ func TestHTTP_AddFamilyMember(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := newHTTPHandler(defaultLogger, svc)
+			h := newHTTPHandler(defaultLogger, svc, defaultPolicy)
 			rr := httptest.NewRecorder()
 			rq, _ := http.NewRequest("POST", "/v1/member", strings.NewReader(tt.request))
 			rq.Header.Add("X-Auth-User", tt.header)
@@ -326,7 +326,7 @@ func TestHTTP_ListFamilyMembers(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := newHTTPHandler(defaultLogger, svc)
+			h := newHTTPHandler(defaultLogger, svc, defaultPolicy)
 			rr := httptest.NewRecorder()
 			rq, _ := http.NewRequest("GET", "/v1/members", nil)
 			rq.Header.Add("X-Auth-User", tt.header)
@@ -405,7 +405,7 @@ func TestHTTP_DeleteFamilyMember(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := newHTTPHandler(defaultLogger, svc)
+			h := newHTTPHandler(defaultLogger, svc, defaultPolicy)
 			rr := httptest.NewRecorder()
 			rq, _ := http.NewRequest("DELETE", "/v1/member/"+tt.request, nil)
 			rq.Header.Add("X-Auth-User", tt.header)

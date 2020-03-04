@@ -79,7 +79,7 @@ func TestHTTP_Create(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := newHTTPHandler(defaultLogger, svc)
+			h := newHTTPHandler(defaultLogger, svc, defaultPolicy)
 			rr := httptest.NewRecorder()
 			rq, _ := http.NewRequest("POST", "/v1/request", strings.NewReader(tt.request))
 			rq.Header.Add("X-Auth-User", tt.header)
@@ -187,7 +187,7 @@ func TestHTTP_Update(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := newHTTPHandler(defaultLogger, svc)
+			h := newHTTPHandler(defaultLogger, svc, defaultPolicy)
 			rr := httptest.NewRecorder()
 			rq, _ := http.NewRequest("PUT", "/v1/request/"+tt.id, strings.NewReader(tt.request))
 			rq.Header.Add("X-Auth-User", tt.header)
@@ -302,7 +302,7 @@ func TestHTTP_My(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := newHTTPHandler(defaultLogger, svc)
+			h := newHTTPHandler(defaultLogger, svc, defaultPolicy)
 			rr := httptest.NewRecorder()
 			rq, _ := http.NewRequest("GET", "/v1/my"+tt.query, nil)
 			rq.Header.Add("X-Auth-User", tt.header)
@@ -381,7 +381,7 @@ func TestHTTP_Delete(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := newHTTPHandler(defaultLogger, svc)
+			h := newHTTPHandler(defaultLogger, svc, defaultPolicy)
 			rr := httptest.NewRecorder()
 			rq, _ := http.NewRequest("DELETE", "/v1/request/"+tt.id, nil)
 			rq.Header.Add("X-Auth-User", tt.header)
@@ -472,7 +472,7 @@ func TestHTTP_Get(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := newHTTPHandler(defaultLogger, svc)
+			h := newHTTPHandler(defaultLogger, svc, defaultPolicy)
 			rr := httptest.NewRecorder()
 			rq, _ := http.NewRequest("GET", "/v1/request/"+tt.id, nil)
 			rq.Header.Add("X-Auth-User", tt.header)
@@ -550,7 +550,7 @@ func TestHTTP_GuardUpdate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := newHTTPHandler(defaultLogger, svc)
+			h := newHTTPHandler(defaultLogger, svc, defaultPolicy)
 			rr := httptest.NewRecorder()
 			rq, _ := http.NewRequest("PUT", "/v1/guard/request/"+tt.id, strings.NewReader(tt.request))
 			h.ServeHTTP(rr, rq)
@@ -664,7 +664,7 @@ func TestHTTP_GuardList(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := newHTTPHandler(defaultLogger, svc)
+			h := newHTTPHandler(defaultLogger, svc, defaultPolicy)
 			rr := httptest.NewRecorder()
 			rq, _ := http.NewRequest("GET", "/v1/guard/list"+tt.query, nil)
 			h.ServeHTTP(rr, rq)

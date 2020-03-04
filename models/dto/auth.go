@@ -1,7 +1,7 @@
 package dto
 
 type AuthLoginRequest struct {
-	Phone    string `json:"phone" validate:"required"`
+	Phone    string `json:"phone" validate:"required,numeric"`
 	Password string `json:"password" validate:"required"`
 	// IP       net.IP `json:"ip" validate:"required"`
 	// Ua       string `json:"ua" validate:"required"`
@@ -13,5 +13,5 @@ type AuthLoginResponse struct {
 }
 
 type AuthRefreshTokenRequest struct {
-	Token string `validate:"required"`
+	Token string `validate:"required,uuid"`
 }
