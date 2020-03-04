@@ -11,15 +11,20 @@ type Users struct {
 }
 
 func NewUsers(db *gorm.DB) *Users {
+	db.AutoMigrate(&entities.User{})
 	return &Users{db: db}
 }
 
 func (r *Users) CreateUser(user *entities.User) error {
-	return r.db.Create(user).Error
+	return r.db.Debug().Create(user).Error
 }
 
 func (r *Users) DeleteUser(u *entities.User) error {
 	return r.db.Delete(u).Error
+}
+
+func (r *Users) UpdateUser(u *entities.User) error {
+	return r.db.Save(u).Error
 }
 
 func (r *Users) GetUserByID(id uint) (*entities.User, error) {
@@ -55,4 +60,25 @@ func (r *Users) ValidateRegCode(code string) error {
 
 func (r *Users) UseRegCode(code string) error {
 	return r.db.Exec("update reg_codes set used = true where code = ?", code).Error
+}
+
+func (r *Users) GetRegCode() (string, error) {
+	var code []string
+	if err := r.db.Table("reg_codes").Where("used = ?", false).Pluck("code", &code).Error; err != nil {
+		return "", err
+	}
+
+	if len(code) == 0 {
+		return "", entities.ErrNoRegCodeAvailable
+	}
+
+	return code[0], nil
+}
+
+func (r *Users) GetFamilyMembers(ownerID uint) ([]*entities.User, error) {
+	var res []*entities.User
+	if err := r.db.Where("parent_id = ?", ownerID).Find(&res).Error; err != nil {
+		return nil, err
+	}
+	return res, nil
 }

@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/rs/zerolog"
 
 	"github.com/ivch/dynasty/models/dto"
@@ -17,6 +18,7 @@ import (
 var (
 	defaultLogger *zerolog.Logger
 	errTestError  = errors.New("some err")
+	defaultPolicy = bluemonday.StrictPolicy()
 )
 
 func TestMain(m *testing.M) {

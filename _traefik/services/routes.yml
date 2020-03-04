@@ -10,7 +10,7 @@ http:
       priority: 100
 
     guard-api:
-      rule: "Host(`ivch.dev`) && PathPrefix(`/requests/v1/guard`)"
+      rule: "PathPrefix(`/requests/v1/guard`)"
       service: "dynasty"
       entryPoints:
         - "https"
@@ -21,7 +21,7 @@ http:
       priority: 60
 
     user-register:
-      rule: "Host(`ivch.dev`) && PathPrefix(`/users/v1/register`)"
+      rule: "PathPrefix(`/users/v1/register`)"
       service: "dynasty"
       entryPoints:
         - "https"
@@ -32,7 +32,7 @@ http:
       priority: 50
 
     need-auth:
-      rule: "Host(`ivch.dev`) && (PathPrefix(`/users`) || PathPrefix(`/requests`))"
+      rule: "PathPrefix(`/users`) || PathPrefix(`/requests`)"
       service: "dynasty"
       entryPoints:
         - "https"
@@ -44,7 +44,7 @@ http:
       priority: 10
 
     main:
-      rule: "Host(`ivch.dev`) && PathPrefix(`/`)"
+      rule: "PathPrefix(`/`)"
       service: "dynasty"
       entryPoints:
         - "https"

@@ -109,12 +109,12 @@
         return queryParams;
     };
 
-    let pageURI = "/ui/guard";
-    let apiHost = "http://localhost:9001/requests";
+    let pageURI = {{.PageURI}};
+    let apiHost = {{.APIHost}};
     let reqType = {"taxi": "Такси", "guest": "Гости", "delivery": "Доставка", "noise": "Шум", "complain": "Жалоба"};
     let queryParams = getQueryParams(window.location.hash.substr(1));
     let currPage = typeof queryParams["page"] === "undefined" ? 1 : parseInt(queryParams["page"]);
-    let limit = 2;
+    let limit = {{.PagerLimit}};
     let reqStatus = !localStorage.getItem('reqStatus') ? 'new' : localStorage.getItem('reqStatus');
 
     $(document).ready(function () {

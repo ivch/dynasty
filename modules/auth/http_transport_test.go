@@ -38,6 +38,12 @@ func TestHTTP_Login(t *testing.T) {
 			wantCode: http.StatusBadRequest,
 		},
 		{
+			name:     "error bad phone",
+			request:  `{"phone":"asd", "password":"123"}`,
+			wantErr:  true,
+			wantCode: http.StatusBadRequest,
+		},
+		{
 			name:    "error service error",
 			request: `{"password":"123", "phone":"123"}`,
 			svc: &ServiceMock{
@@ -104,8 +110,14 @@ func TestHTTP_Refresh(t *testing.T) {
 			wantCode: http.StatusInternalServerError,
 		},
 		{
+			name:     "error bad token in request",
+			request:  `{"token":"asdsadasdas"}`,
+			wantErr:  true,
+			wantCode: http.StatusInternalServerError,
+		},
+		{
 			name:    "error service error",
-			request: `{"token":"token"}`,
+			request: `{"token":"d3ffebcf-1cec-441b-93d6-a984b7647d48"}`,
 			svc: &ServiceMock{
 				RefreshFunc: func(_ context.Context, _ *dto.AuthRefreshTokenRequest) (*dto.AuthLoginResponse, error) {
 					return nil, errTestError
@@ -116,7 +128,7 @@ func TestHTTP_Refresh(t *testing.T) {
 		},
 		{
 			name:    "ok",
-			request: `{"token":"token"}`,
+			request: `{"token":"d3ffebcf-1cec-441b-93d6-a984b7647d48"}`,
 			svc: &ServiceMock{
 				RefreshFunc: func(_ context.Context, _ *dto.AuthRefreshTokenRequest) (*dto.AuthLoginResponse, error) {
 					return &dto.AuthLoginResponse{

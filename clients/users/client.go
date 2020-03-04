@@ -7,14 +7,13 @@ import (
 
 	"github.com/ivch/dynasty/models/dto"
 	"github.com/ivch/dynasty/models/entities"
-	"github.com/ivch/dynasty/modules/users"
 )
 
 type Client struct {
 	svc userService
 }
 
-func New(svc users.Service) *Client {
+func New(svc userService) *Client {
 	return &Client{
 		svc: svc,
 	}

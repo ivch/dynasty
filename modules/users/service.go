@@ -14,25 +14,33 @@ type Service interface {
 	Register(ctx context.Context, req *dto.UserRegisterRequest) (*dto.UserRegisterResponse, error)
 	UserByPhoneAndPassword(ctx context.Context, phone, password string) (*dto.UserAuthResponse, error)
 	UserByID(ctx context.Context, id uint) (*dto.UserByIDResponse, error)
+	AddFamilyMember(ctx context.Context, r *dto.AddFamilyMemberRequest) (*dto.AddFamilyMemberResponse, error)
+	ListFamilyMembers(ctx context.Context, id uint) (*dto.ListFamilyMembersResponse, error)
+	DeleteFamilyMember(ctx context.Context, r *dto.DeleteFamilyMemberRequest) error
 }
 
 type userRepository interface {
 	GetUserByID(id uint) (*entities.User, error)
 	GetUserByPhone(phone string) (*entities.User, error)
 	CreateUser(user *entities.User) error
+	UpdateUser(u *entities.User) error
 	DeleteUser(u *entities.User) error
 	ValidateRegCode(code string) error
 	UseRegCode(code string) error
+	GetRegCode() (string, error)
+	GetFamilyMembers(ownerID uint) ([]*entities.User, error)
 }
 
 type service struct {
 	repo          userRepository
+	membersLimit  int
 	verifyRegCode bool
 }
 
-func newService(log *zerolog.Logger, repo userRepository, verifyRegCode bool) Service {
+func newService(log *zerolog.Logger, repo userRepository, verifyRegCode bool, membersLimit int) Service {
 	s := &service{
 		repo:          repo,
+		membersLimit:  membersLimit,
 		verifyRegCode: verifyRegCode,
 	}
 	svc := newLoggingMiddleware(log, s)
@@ -78,13 +86,16 @@ func (s *service) UserByPhoneAndPassword(_ context.Context, phone, password stri
 	}, nil
 }
 
-func (s *service) Register(_ context.Context, r *dto.UserRegisterRequest) (*dto.UserRegisterResponse, error) {
+func (s *service) Register(ctx context.Context, r *dto.UserRegisterRequest) (*dto.UserRegisterResponse, error) {
 	u, err := s.repo.GetUserByPhone(r.Phone)
 	if err != nil && err != entities.ErrUserNotFound {
 		return nil, err
 	}
 
 	if u != nil {
+		if u.ParentID != nil {
+			return s.registerFamilyMember(ctx, r, u)
+		}
 		return nil, entities.ErrUserPhoneExists
 	}
 

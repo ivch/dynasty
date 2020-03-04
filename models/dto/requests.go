@@ -1,6 +1,8 @@
 package dto
 
 import (
+	"github.com/microcosm-cc/bluemonday"
+
 	"github.com/ivch/dynasty/models/entities"
 )
 
@@ -25,6 +27,10 @@ type RequestCreateRequest struct {
 	Description string `json:"description"`
 }
 
+func (r *RequestCreateRequest) Sanitize(p *bluemonday.Policy) {
+	r.Description = p.Sanitize(r.Description)
+}
+
 type RequestCreateResponse struct {
 	ID uint `json:"id"`
 }
@@ -42,10 +48,18 @@ type RequestMyResponse struct {
 type RequestUpdateRequest struct {
 	ID          uint
 	UserID      uint    `gorm:"-"`
-	Type        *string `json:"type,omitempty"`
+	Type        *string `json:"type,omitempty" validate:"omitempty,oneof=all taxi guest delivery noise complain"`
 	Time        *int64  `json:"time,omitempty"`
 	Description *string `json:"description,omitempty"`
-	Status      *string `json:"status,omitempty"`
+	Status      *string `json:"status,omitempty" validate:"omitempty,oneof=all new closed"`
+}
+
+func (r *RequestUpdateRequest) Sanitize(p *bluemonday.Policy) {
+	if r.Description == nil {
+		return
+	}
+	desc := p.Sanitize(*r.Description)
+	r.Description = &desc
 }
 
 type RequestListFilterRequest struct {
@@ -55,7 +69,7 @@ type RequestListFilterRequest struct {
 	Offset    uint   `json:"offset" validate:"min=0"`
 	Limit     uint   `json:"limit" validate:"required,min=1"`
 	UserID    uint   `json:"user_id,omitempty"`
-	Apartment string `json:"appartment,omitempty" validate:"omitempty,numeric"`
+	Apartment string `json:"apartment,omitempty" validate:"omitempty,numeric"`
 	Status    string `json:"status,omitempty" validate:"oneof=all new closed"`
 }
 
