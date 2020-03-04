@@ -48,6 +48,7 @@ create table users
             references users (id)
             on update cascade on delete cascade,
     active      bool       default true,
+    entry_id    int    null,
     reg_code    varchar(5) default null
 );
 
@@ -108,8 +109,8 @@ alter table users
 
 create table entries
 (
-    id serial,
-    name varchar(20),
+    id          serial,
+    name        varchar(20),
     building_id int
         constraint entries_buildings_id_fk
             references buildings (id)

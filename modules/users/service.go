@@ -61,7 +61,8 @@ func (s *service) UserByID(_ context.Context, id uint) (*dto.UserByIDResponse, e
 		LastName:  u.LastName,
 		Phone:     u.Phone,
 		Email:     u.Email,
-		Building:  u.Building,
+		Building:  &u.Building,
+		Entry:     &u.Entry,
 	}, nil
 }
 

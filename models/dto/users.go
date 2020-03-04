@@ -11,7 +11,8 @@ type UserRegisterRequest struct {
 	Phone      string `json:"phone,omitempty" validate:"required,numeric"`
 	FirstName  string `json:"first_name,omitempty" validate:"required"`
 	LastName   string `json:"last_name,omitempty" validate:"required"`
-	BuildingID int    `json:"building_id,omitempty" validate:"required"`
+	BuildingID uint   `json:"building_id,omitempty" validate:"required"`
+	EntryID    uint   `json:"entry_id" validate:"omitempty,numeric"`
 	Apartment  uint   `json:"apartment,omitempty" validate:"required"`
 	Email      string `json:"email" validate:"required,email"`
 	Code       string `json:"code"`
@@ -36,14 +37,15 @@ type UserAuthResponse struct {
 }
 
 type UserByIDResponse struct {
-	ID        uint              `json:"id"`
-	Apartment uint              `json:"apartment"`
-	FirstName string            `json:"first_name"`
-	LastName  string            `json:"last_name"`
-	Phone     string            `json:"phone"`
-	Email     string            `json:"email"`
-	Role      uint              `json:"role"`
-	Building  entities.Building `json:"building"`
+	ID        uint               `json:"id"`
+	Apartment uint               `json:"apartment"`
+	FirstName string             `json:"first_name"`
+	LastName  string             `json:"last_name"`
+	Phone     string             `json:"phone"`
+	Email     string             `json:"email"`
+	Role      uint               `json:"role"`
+	Building  *entities.Building `json:"building"`
+	Entry     *entities.Entry    `json:"entry,omitempty"`
 }
 
 type AddFamilyMemberRequest struct {

@@ -5,6 +5,7 @@ const DefaultUserRole = 4
 type User struct {
 	ID         uint `gorm:"primary_key"`
 	Building   Building
+	Entry      Entry
 	Apartment  uint   `json:"apartment,omitempty"`
 	Email      string `json:"email,omitempty"`
 	Password   string `json:"password,omitempty"`
@@ -12,7 +13,8 @@ type User struct {
 	FirstName  string `json:"first_name,omitempty"`
 	LastName   string `json:"last_name,omitempty"`
 	Role       uint   `json:"role,omitempty"`
-	BuildingID int    `gorm:"building_id"`
+	BuildingID uint   `gorm:"building_id"`
+	EntryID    uint   `gorm:"entry_id"`
 	Active     bool   `json:"active" gorm:"active"`
 	RegCode    string `json:"-"`
 	ParentID   *uint  `json:"-"`
