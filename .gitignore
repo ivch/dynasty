@@ -6,3 +6,4 @@ zoneinfo.tar.gz
 vendor/
 .data/
 cmd/.env
+.DS_Store
