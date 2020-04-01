@@ -83,3 +83,11 @@ func (r *Users) GetFamilyMembers(ownerID uint) ([]*entities.User, error) {
 	}
 	return res, nil
 }
+
+func (r *Users) FindUserByApartment(building uint, apt uint) (*entities.User, error) {
+	var u entities.User
+	if err := r.db.Where("building_id = ? AND apartment = ? AND parent_id  IS NULL", building, apt).First(&u).Error; err != nil {
+		return nil, err
+	}
+	return &u, nil
+}

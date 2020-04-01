@@ -2,6 +2,7 @@ package users
 
 import (
 	"context"
+	"errors"
 
 	"github.com/rs/zerolog"
 	"golang.org/x/crypto/bcrypt"
@@ -29,6 +30,7 @@ type userRepository interface {
 	UseRegCode(code string) error
 	GetRegCode() (string, error)
 	GetFamilyMembers(ownerID uint) ([]*entities.User, error)
+	FindUserByApartment(building uint, apt uint) (*entities.User, error)
 }
 
 type service struct {
@@ -89,7 +91,7 @@ func (s *service) UserByPhoneAndPassword(_ context.Context, phone, password stri
 
 func (s *service) Register(ctx context.Context, r *dto.UserRegisterRequest) (*dto.UserRegisterResponse, error) {
 	u, err := s.repo.GetUserByPhone(r.Phone)
-	if err != nil && err != entities.ErrUserNotFound {
+	if err != nil && !errors.Is(err, entities.ErrUserNotFound) {
 		return nil, err
 	}
 
@@ -106,6 +108,15 @@ func (s *service) Register(ctx context.Context, r *dto.UserRegisterRequest) (*dt
 		}
 	}
 
+	m, err := s.repo.FindUserByApartment(r.BuildingID, r.Apartment)
+	if err != nil {
+		return nil, err
+	}
+
+	if m != nil {
+		return nil, entities.ErrMasterAccountExists
+	}
+
 	pwd, err := hashAndSalt(r.Password)
 	if err != nil {
 		return nil, err
@@ -114,6 +125,7 @@ func (s *service) Register(ctx context.Context, r *dto.UserRegisterRequest) (*dt
 	usr := entities.User{
 		Apartment:  r.Apartment,
 		BuildingID: r.BuildingID,
+		EntryID:    r.EntryID,
 		Email:      r.Email,
 		Phone:      r.Phone,
 		FirstName:  r.FirstName,

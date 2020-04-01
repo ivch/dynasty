@@ -57,7 +57,7 @@ func TestHTTP_GetUser(t *testing.T) {
 						Phone:     "1",
 						Email:     "1",
 						Role:      1,
-						Building: entities.Building{
+						Building: &entities.Building{
 							ID:      1,
 							Name:    "1",
 							Address: "1",
