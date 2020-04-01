@@ -11,15 +11,16 @@ import (
 )
 
 var (
-	lockuserRepositoryMockCreateUser       sync.RWMutex
-	lockuserRepositoryMockDeleteUser       sync.RWMutex
-	lockuserRepositoryMockGetFamilyMembers sync.RWMutex
-	lockuserRepositoryMockGetRegCode       sync.RWMutex
-	lockuserRepositoryMockGetUserByID      sync.RWMutex
-	lockuserRepositoryMockGetUserByPhone   sync.RWMutex
-	lockuserRepositoryMockUpdateUser       sync.RWMutex
-	lockuserRepositoryMockUseRegCode       sync.RWMutex
-	lockuserRepositoryMockValidateRegCode  sync.RWMutex
+	lockuserRepositoryMockCreateUser          sync.RWMutex
+	lockuserRepositoryMockDeleteUser          sync.RWMutex
+	lockuserRepositoryMockFindUserByApartment sync.RWMutex
+	lockuserRepositoryMockGetFamilyMembers    sync.RWMutex
+	lockuserRepositoryMockGetRegCode          sync.RWMutex
+	lockuserRepositoryMockGetUserByID         sync.RWMutex
+	lockuserRepositoryMockGetUserByPhone      sync.RWMutex
+	lockuserRepositoryMockUpdateUser          sync.RWMutex
+	lockuserRepositoryMockUseRegCode          sync.RWMutex
+	lockuserRepositoryMockValidateRegCode     sync.RWMutex
 )
 
 // Ensure, that userRepositoryMock does implement userRepository.
@@ -37,6 +38,9 @@ var _ userRepository = &userRepositoryMock{}
 //             },
 //             DeleteUserFunc: func(u *entities.User) error {
 // 	               panic("mock out the DeleteUser method")
+//             },
+//             FindUserByApartmentFunc: func(building uint, apt uint) (*entities.User, error) {
+// 	               panic("mock out the FindUserByApartment method")
 //             },
 //             GetFamilyMembersFunc: func(ownerID uint) ([]*entities.User, error) {
 // 	               panic("mock out the GetFamilyMembers method")
@@ -72,6 +76,9 @@ type userRepositoryMock struct {
 	// DeleteUserFunc mocks the DeleteUser method.
 	DeleteUserFunc func(u *entities.User) error
 
+	// FindUserByApartmentFunc mocks the FindUserByApartment method.
+	FindUserByApartmentFunc func(building uint, apt uint) (*entities.User, error)
+
 	// GetFamilyMembersFunc mocks the GetFamilyMembers method.
 	GetFamilyMembersFunc func(ownerID uint) ([]*entities.User, error)
 
@@ -104,6 +111,13 @@ type userRepositoryMock struct {
 		DeleteUser []struct {
 			// U is the u argument value.
 			U *entities.User
+		}
+		// FindUserByApartment holds details about calls to the FindUserByApartment method.
+		FindUserByApartment []struct {
+			// Building is the building argument value.
+			Building uint
+			// Apt is the apt argument value.
+			Apt uint
 		}
 		// GetFamilyMembers holds details about calls to the GetFamilyMembers method.
 		GetFamilyMembers []struct {
@@ -200,6 +214,41 @@ func (mock *userRepositoryMock) DeleteUserCalls() []struct {
 	lockuserRepositoryMockDeleteUser.RLock()
 	calls = mock.calls.DeleteUser
 	lockuserRepositoryMockDeleteUser.RUnlock()
+	return calls
+}
+
+// FindUserByApartment calls FindUserByApartmentFunc.
+func (mock *userRepositoryMock) FindUserByApartment(building uint, apt uint) (*entities.User, error) {
+	if mock.FindUserByApartmentFunc == nil {
+		panic("userRepositoryMock.FindUserByApartmentFunc: method is nil but userRepository.FindUserByApartment was just called")
+	}
+	callInfo := struct {
+		Building uint
+		Apt      uint
+	}{
+		Building: building,
+		Apt:      apt,
+	}
+	lockuserRepositoryMockFindUserByApartment.Lock()
+	mock.calls.FindUserByApartment = append(mock.calls.FindUserByApartment, callInfo)
+	lockuserRepositoryMockFindUserByApartment.Unlock()
+	return mock.FindUserByApartmentFunc(building, apt)
+}
+
+// FindUserByApartmentCalls gets all the calls that were made to FindUserByApartment.
+// Check the length with:
+//     len(mockeduserRepository.FindUserByApartmentCalls())
+func (mock *userRepositoryMock) FindUserByApartmentCalls() []struct {
+	Building uint
+	Apt      uint
+} {
+	var calls []struct {
+		Building uint
+		Apt      uint
+	}
+	lockuserRepositoryMockFindUserByApartment.RLock()
+	calls = mock.calls.FindUserByApartment
+	lockuserRepositoryMockFindUserByApartment.RUnlock()
 	return calls
 }
 

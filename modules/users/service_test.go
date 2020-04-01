@@ -91,10 +91,43 @@ func TestService_Register(t *testing.T) {
 			want:    nil,
 		},
 		{
+			name: "error failed to find user by apartment",
+			fields: fields{
+				repo: &userRepositoryMock{
+					GetUserByPhoneFunc: func(_ string) (*entities.User, error) {
+						return nil, nil
+					},
+					FindUserByApartmentFunc: func(_ uint, _ uint) (*entities.User, error) {
+						return nil, errTestError
+					},
+				},
+			},
+			args:    args{r: &dto.UserRegisterRequest{}},
+			wantErr: true,
+		},
+		{
+			name: "error master account already exists",
+			fields: fields{
+				repo: &userRepositoryMock{
+					GetUserByPhoneFunc: func(_ string) (*entities.User, error) {
+						return nil, nil
+					},
+					FindUserByApartmentFunc: func(_ uint, _ uint) (*entities.User, error) {
+						return &entities.User{}, nil
+					},
+				},
+			},
+			args:    args{r: &dto.UserRegisterRequest{}},
+			wantErr: true,
+		},
+		{
 			name: "error user not created",
 			fields: fields{
 				repo: &userRepositoryMock{
 					GetUserByPhoneFunc: func(_ string) (*entities.User, error) {
+						return nil, nil
+					},
+					FindUserByApartmentFunc: func(_ uint, _ uint) (*entities.User, error) {
 						return nil, nil
 					},
 					CreateUserFunc: func(_ *entities.User) error {
@@ -112,6 +145,9 @@ func TestService_Register(t *testing.T) {
 				verifyRegCode: true,
 				repo: &userRepositoryMock{
 					GetUserByPhoneFunc: func(_ string) (*entities.User, error) {
+						return nil, nil
+					},
+					FindUserByApartmentFunc: func(_ uint, _ uint) (*entities.User, error) {
 						return nil, nil
 					},
 					CreateUserFunc: func(*entities.User) error {
@@ -140,6 +176,9 @@ func TestService_Register(t *testing.T) {
 					GetUserByPhoneFunc: func(_ string) (*entities.User, error) {
 						return nil, nil
 					},
+					FindUserByApartmentFunc: func(_ uint, _ uint) (*entities.User, error) {
+						return nil, nil
+					},
 					CreateUserFunc: func(*entities.User) error {
 						return nil
 					},
@@ -163,6 +202,9 @@ func TestService_Register(t *testing.T) {
 			fields: fields{
 				repo: &userRepositoryMock{
 					GetUserByPhoneFunc: func(_ string) (*entities.User, error) {
+						return nil, nil
+					},
+					FindUserByApartmentFunc: func(_ uint, _ uint) (*entities.User, error) {
 						return nil, nil
 					},
 					CreateUserFunc: func(u *entities.User) error {
@@ -329,6 +371,11 @@ func TestService_UserByID(t *testing.T) {
 								Name:    "a",
 								Address: "b",
 							},
+							Entry: entities.Entry{
+								ID:         1,
+								Name:       "1",
+								BuildingID: 1,
+							},
 							Apartment:  1,
 							Email:      "a",
 							Password:   "b",
@@ -348,10 +395,15 @@ func TestService_UserByID(t *testing.T) {
 				LastName:  "e",
 				Phone:     "c",
 				Email:     "a",
-				Building: entities.Building{
+				Building: &entities.Building{
 					ID:      1,
 					Name:    "a",
 					Address: "b",
+				},
+				Entry: &entities.Entry{
+					ID:         1,
+					Name:       "1",
+					BuildingID: 1,
 				},
 			},
 		},

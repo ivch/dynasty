@@ -1,8 +1,8 @@
 # TODO List
 
 ## Registration
-- [ ] add section number
-- [ ] check building and entry id
+- [x] add section number
+- [x] check building and entry id
 - [x] add master account
 - [x] add ability to create accounts under master account
 
@@ -15,12 +15,18 @@
 - [x] get neighbor info for request
 
 ## Guard UI
-- [ ] add FE configuration from BE
+- [x] add FE configuration from BE
 
 ## Family members
-- [ ] cancel registration if there is a user for this building/app
+- [x] cancel registration if there is a user for this building/app
 - [x] limit family members to 10
 - [ ] deny logging in if master deactivated/deleted account
 - [ ] on login check if user is active
 - [ ] on token validation check if user is active
 - [ ] update schema on prod and cleanup db
+
+## Errors
+- [ ] rethink entities.errors
+
+
+`alter table users alter column parent_id set default null;`

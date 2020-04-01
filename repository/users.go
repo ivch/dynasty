@@ -29,7 +29,8 @@ func (r *Users) UpdateUser(u *entities.User) error {
 
 func (r *Users) GetUserByID(id uint) (*entities.User, error) {
 	var u entities.User
-	if err := r.db.Preload("Building").Where("id = ?", id).First(&u).Error; err != nil {
+	if err := r.db.Preload("Building").Preload("Entry").
+		Where("id = ?", id).First(&u).Error; err != nil {
 		return nil, err
 	}
 	return &u, nil
@@ -81,4 +82,12 @@ func (r *Users) GetFamilyMembers(ownerID uint) ([]*entities.User, error) {
 		return nil, err
 	}
 	return res, nil
+}
+
+func (r *Users) FindUserByApartment(building uint, apt uint) (*entities.User, error) {
+	var u entities.User
+	if err := r.db.Where("building_id = ? AND apartment = ? AND parent_id  IS NULL", building, apt).First(&u).Error; err != nil {
+		return nil, err
+	}
+	return &u, nil
 }
