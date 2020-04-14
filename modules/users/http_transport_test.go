@@ -179,7 +179,7 @@ func TestHTTP_Register(t *testing.T) {
 					}, nil
 				},
 			},
-			request: `{"email":"test@test.com","first_name":"John","last_name":"Doe","apartment":1,"password":"1213123", "phone":"+380671234567","building_id": 2, "code":"1231"}`,
+			request: `{"email":"test@test.com","first_name":"John","last_name":"Doe","apartment":1,"password":"1213123", "phone":"+380671234567","building_id": 2, "code":"1231", "entry_id":1}`,
 			wantErr: false,
 			want:    `{"id":1,"phone":"380671234567"}`,
 		},
