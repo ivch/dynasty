@@ -146,6 +146,7 @@ func decodeRegisterRequest(log *zerolog.Logger, p *bluemonday.Policy) httptransp
 		req.Sanitize(p)
 
 		if err := validator.New().Struct(&req); err != nil {
+			log.Error().Err(err).Msg(errInvalidRequest.Error())
 			return nil, errInvalidRequest
 		}
 
@@ -181,6 +182,7 @@ func encodeHTTPError(_ context.Context, err error, w http.ResponseWriter) {
 	case errors.Is(err, errProvidedWrongRegCode):
 		status = http.StatusBadRequest
 	case errors.Is(err, errMasterAccountExists):
+		message = err.Error()
 		status = http.StatusConflict
 	default:
 		message = "something went wrong"

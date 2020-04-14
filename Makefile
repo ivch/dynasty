@@ -13,7 +13,7 @@ testtag:
 
 .PHONY: rundb
 rundb:
-	docker-compose -f docker-database.yml up -d
+	docker-compose -f docker-database.yml up -d --remove-orphans --force-recreate
 
 .PHONY: test
 test:

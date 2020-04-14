@@ -12,7 +12,7 @@ type UserRegisterRequest struct {
 	FirstName  string `json:"first_name,omitempty" validate:"required"`
 	LastName   string `json:"last_name,omitempty" validate:"required"`
 	BuildingID uint   `json:"building_id,omitempty" validate:"required"`
-	EntryID    uint   `json:"entry_id" validate:"omitempty,numeric"`
+	EntryID    uint   `json:"entry_id" validate:"required,numeric"`
 	Apartment  uint   `json:"apartment,omitempty" validate:"required"`
 	Email      string `json:"email" validate:"required,email"`
 	Code       string `json:"code"`

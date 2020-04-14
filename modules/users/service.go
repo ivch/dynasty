@@ -114,7 +114,7 @@ func (s *service) Register(ctx context.Context, r *dto.UserRegisterRequest) (*dt
 	}
 
 	if m != nil {
-		return nil, entities.ErrMasterAccountExists
+		return nil, errMasterAccountExists
 	}
 
 	pwd, err := hashAndSalt(r.Password)
