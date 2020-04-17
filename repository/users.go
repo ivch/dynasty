@@ -16,7 +16,7 @@ func NewUsers(db *gorm.DB) *Users {
 }
 
 func (r *Users) CreateUser(user *entities.User) error {
-	return r.db.Debug().Create(user).Error
+	return r.db.Create(user).Error
 }
 
 func (r *Users) DeleteUser(u *entities.User) error {

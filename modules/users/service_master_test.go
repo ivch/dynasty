@@ -501,6 +501,28 @@ func TestService_familyMemberRegister(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "error member entered wrong address",
+			fields: fields{
+				verifyRegCode: false,
+				maxMembers:    0,
+				repo: &userRepositoryMock{
+					GetUserByPhoneFunc: func(_ string) (*entities.User, error) {
+						var id uint = 2
+						return &entities.User{ParentID: &id, Active: false, RegCode: "123"}, nil
+					},
+					GetUserByIDFunc: func(_ uint) (*entities.User, error) {
+						return &entities.User{Apartment: 5}, nil
+					},
+				},
+			},
+			args: &dto.UserRegisterRequest{
+				Code:      "123",
+				Phone:     "123",
+				Apartment: 1,
+			},
+			wantErr: true,
+		},
+		{
 			name: "error updating user",
 			fields: fields{
 				verifyRegCode: false,
