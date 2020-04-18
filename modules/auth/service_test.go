@@ -261,11 +261,28 @@ func TestService_Login(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "error on inactive user",
+			fields: fields{
+				usrv: &userServiceMock{
+					UserByPhoneAndPasswordFunc: func(_ context.Context, _ string, _ string) (*entities.User, error) {
+						return &entities.User{ID: 1, Active: false}, nil
+					},
+				},
+				repo: &authRepositoryMock{
+					CreateSessionFunc: func(_ uint) (string, error) {
+						return "", errTestError
+					},
+				},
+				req: &dto.AuthLoginRequest{Phone: "1", Password: "1"},
+			},
+			wantErr: true,
+		},
+		{
 			name: "error on create session",
 			fields: fields{
 				usrv: &userServiceMock{
 					UserByPhoneAndPasswordFunc: func(_ context.Context, _ string, _ string) (*entities.User, error) {
-						return &entities.User{ID: 1}, nil
+						return &entities.User{ID: 1, Active: true}, nil
 					},
 				},
 				repo: &authRepositoryMock{
@@ -282,7 +299,7 @@ func TestService_Login(t *testing.T) {
 			fields: fields{
 				usrv: &userServiceMock{
 					UserByPhoneAndPasswordFunc: func(_ context.Context, _ string, _ string) (*entities.User, error) {
-						return &entities.User{ID: 1, Role: 1, FirstName: "Jane", LastName: "Doe"}, nil
+						return &entities.User{ID: 1, Role: 1, FirstName: "Jane", LastName: "Doe", Active: true}, nil
 					},
 				},
 				repo: &authRepositoryMock{

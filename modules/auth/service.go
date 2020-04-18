@@ -116,6 +116,10 @@ func (s *service) Login(ctx context.Context, r *dto.AuthLoginRequest) (*dto.Auth
 		return nil, entities.ErrSessionNotFound
 	}
 
+	if !u.Active {
+		return nil, errUserIsInactive
+	}
+
 	// todo do not create session if user already has one
 	rt, err := s.repo.CreateSession(u.ID)
 	if err != nil {
