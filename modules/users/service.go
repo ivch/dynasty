@@ -130,6 +130,7 @@ func (s *service) Register(ctx context.Context, r *dto.UserRegisterRequest) (*dt
 		Phone:      r.Phone,
 		FirstName:  r.FirstName,
 		LastName:   r.LastName,
+		Active:     true,
 		Password:   pwd,
 		Role:       entities.DefaultUserRole,
 	}

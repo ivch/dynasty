@@ -105,9 +105,13 @@ func (s *service) registerFamilyMember(_ context.Context, r *dto.UserRegisterReq
 		return nil, errFamilyMemberAlreadyRegistered
 	}
 
-	_, err := s.repo.GetUserByID(*u.ParentID)
+	parent, err := s.repo.GetUserByID(*u.ParentID)
 	if err != nil {
 		return nil, err
+	}
+
+	if parent.BuildingID != r.BuildingID || parent.EntryID != r.EntryID || parent.Apartment != r.Apartment {
+		return nil, errFamilyMemberWrongAddress
 	}
 
 	pwd, err := hashAndSalt(r.Password)

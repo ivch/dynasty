@@ -22,10 +22,11 @@ var (
 	errBadUserID                     = errors.New("bad user id")
 	errBadRequest                    = errors.New("failed to decode request")
 	errInvalidRequest                = errors.New("request validation error")
-	errMasterAccountExists           = errors.New("master account for this apt already exists")
+	errMasterAccountExists           = errors.New("master account for this apartment already exists")
 	errFamilyMembersLimitExceeded    = errors.New("family members limit exceeded")
 	errProvidedWrongRegCode          = errors.New("provided wrong reg code")
 	errFamilyMemberAlreadyRegistered = errors.New("family member already registered")
+	errFamilyMemberWrongAddress      = errors.New("family member provided wrong address")
 )
 
 func New(repo userRepository, verifyRegCode bool, membersLimit int, log *zerolog.Logger, p *bluemonday.Policy) (http.Handler, Service) {
@@ -182,6 +183,12 @@ func encodeHTTPError(_ context.Context, err error, w http.ResponseWriter) {
 	case errors.Is(err, errProvidedWrongRegCode):
 		status = http.StatusBadRequest
 	case errors.Is(err, errMasterAccountExists):
+		fallthrough
+	case errors.Is(err, errFamilyMemberAlreadyRegistered):
+		fallthrough
+	case errors.Is(err, errFamilyMembersLimitExceeded):
+		fallthrough
+	case errors.Is(err, errFamilyMemberWrongAddress):
 		message = err.Error()
 		status = http.StatusConflict
 	default:
