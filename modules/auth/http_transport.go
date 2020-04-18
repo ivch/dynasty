@@ -19,6 +19,7 @@ import (
 var (
 	errBadRequest     = errors.New("failed to decode request")
 	errInvalidRequest = errors.New("failed to validate request")
+	errUserIsInactive = errors.New("user is inactive")
 )
 
 func New(log *zerolog.Logger, repo authRepository, usrv userService, jwtSecret string) (http.Handler, Service) {
@@ -134,6 +135,8 @@ func encodeHTTPError(_ context.Context, err error, w http.ResponseWriter) {
 		fallthrough
 	case errors.Is(err, errInvalidRequest):
 		status = http.StatusBadRequest
+	case errors.Is(err, errUserIsInactive):
+		status = http.StatusForbidden
 	default:
 		status = http.StatusInternalServerError
 	}

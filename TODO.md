@@ -20,7 +20,7 @@
 ## Family members
 - [x] cancel registration if there is a user for this building/app
 - [x] limit family members to 10
-- [ ] on login check if user is active
+- [x] on login check if user is active
 - [ ] on token validation check if user is active
 - [x] update schema on prod and cleanup db
 - [ ] set all master accs to true
