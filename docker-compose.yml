@@ -11,7 +11,7 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "./_traefik/traefik.yml:/etc/traefik/traefik.yml"
-      - "./_traefik/dev/services:/etc/traefik/services"
+      - "./_traefik/services:/etc/traefik/services"
       - "./letsencrypt:/letsencrypt/"
 
 
@@ -29,6 +29,9 @@ services:
       - DB_SSL=disable
       - AUTH_JWT_SECRET=!covabunga!
       - USER_VERIFY_REG_CODE=false
+      - UI_GUARD_API_HOST=https://localhost/requests
+      - UI_GUARD_PAGE_URI=/ui/guard
+      - UI_GUARD_PAGER_LIMIT=10
     expose:
       - 9001
     ports:

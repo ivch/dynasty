@@ -18,6 +18,7 @@ http:
         certResolver: le
       middlewares:
         - "cors"
+        - "basicauth"
       priority: 60
 
     user-register:
@@ -32,7 +33,7 @@ http:
       priority: 50
 
     need-auth:
-      rule: "PathPrefix(`/users`) || PathPrefix(`/requests`)"
+      rule: "PathPrefix(`/users`, `/requests`)"
       service: "dynasty"
       entryPoints:
         - "https"
@@ -44,7 +45,7 @@ http:
       priority: 10
 
     main:
-      rule: "PathPrefix(`/`)"
+      rule: "PathPrefix(`/auth`, `/dictionary`, `/ui`)"
       service: "dynasty"
       entryPoints:
         - "https"
