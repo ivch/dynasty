@@ -8,7 +8,7 @@ import (
 
 type UserRegisterRequest struct {
 	Password   string `json:"password,omitempty" validate:"required,min=6"`
-	Phone      string `json:"phone,omitempty" validate:"required,numeric"`
+	Phone      string `json:"phone,omitempty" validate:"required,numeric,min=12,max=13"`
 	FirstName  string `json:"first_name,omitempty" validate:"required"`
 	LastName   string `json:"last_name,omitempty" validate:"required"`
 	BuildingID uint   `json:"building_id,omitempty" validate:"required"`
@@ -34,6 +34,7 @@ type UserAuthResponse struct {
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	Role      uint   `json:"role"`
+	Active    bool   `json:"active"`
 }
 
 type UserByIDResponse struct {

@@ -5,6 +5,7 @@
 - [x] check building and entry id
 - [x] add master account
 - [x] add ability to create accounts under master account
+- [x] check phone number length (38 problem)
 
 ## Mobile client
 - [x] different error codes
@@ -23,7 +24,11 @@
 - [x] on login check if user is active
 - [ ] on token validation check if user is active
 - [x] update schema on prod and cleanup db
-- [ ] set all master accs to true
+- [x] set all master accs to true
+
+## Requests
+- [ ] add photo to requests
+- [ ] on guard ui remove minutes and second on view
 
 ## Errors
 - [ ] rethink entities.errors
