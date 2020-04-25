@@ -59,5 +59,6 @@ func (c *Client) UserByPhoneAndPassword(ctx context.Context, phone, password str
 		Role:      res.Role,
 		FirstName: res.FirstName,
 		LastName:  res.LastName,
+		Active:    res.Active,
 	}, nil
 }

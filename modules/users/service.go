@@ -86,6 +86,7 @@ func (s *service) UserByPhoneAndPassword(_ context.Context, phone, password stri
 		FirstName: u.FirstName,
 		LastName:  u.LastName,
 		Role:      u.Role,
+		Active:    u.Active,
 	}, nil
 }
 
