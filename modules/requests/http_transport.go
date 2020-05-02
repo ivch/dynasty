@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -25,10 +26,13 @@ var (
 	errBadRequest          = errors.New("failed to decode request")
 	errInvalidRequest      = errors.New("request validation error")
 	errInternalServerError = errors.New("request failed")
+	errNoFile              = errors.New("error retrieving the file")
+	errFileWrongType       = errors.New("wrong filetype")
+	errFileIsTooBig        = errors.New("too big file")
 )
 
-func New(log *zerolog.Logger, repo requestsRepository, p *bluemonday.Policy) (http.Handler, Service) {
-	svc := newService(log, repo)
+func New(log *zerolog.Logger, repo requestsRepository, p *bluemonday.Policy, s3Client s3Client, s3Space, cdnHost string) (http.Handler, Service) {
+	svc := newService(log, repo, s3Client, s3Space, cdnHost)
 	h := newHTTPHandler(log, svc, p)
 	return h, svc
 }
@@ -71,6 +75,18 @@ func newHTTPHandler(log *zerolog.Logger, svc Service, p *bluemonday.Policy) http
 		encodeHTTPResponse,
 		options...))
 
+	r.Method("POST", "/v1/request/{id}/file", httptransport.NewServer(
+		makeUploadImageEndpoint(svc),
+		decodeUploadImageRequest(log),
+		encodeHTTPResponse,
+		options...))
+
+	r.Method("DELETE", "/v1/request/{id}/file", httptransport.NewServer(
+		makeDeleteImageEndpoint(svc),
+		decodeDeleteImageRequest(log),
+		encodeHTTPResponse,
+		options...))
+
 	// guard
 	r.Method("GET", "/v1/guard/list", httptransport.NewServer(
 		makeGuardRequestListEndpoint(svc),
@@ -85,6 +101,94 @@ func newHTTPHandler(log *zerolog.Logger, svc Service, p *bluemonday.Policy) http
 		options...))
 
 	return r
+}
+
+func decodeDeleteImageRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
+	return func(ctx context.Context, r *http.Request) (interface{}, error) {
+		userID, err := getUserID(ctx)
+		if err != nil {
+			log.Error().Err(err).Msg("failed to get user id")
+			return nil, errBadUserID
+		}
+
+		idStr := chi.URLParam(r, "id")
+		if idStr == "" || idStr == "0" {
+			log.Error().Msg(errEmptyUserID.Error())
+			return nil, errEmptyID
+		}
+		id, err := strconv.ParseUint(idStr, 10, 64)
+		if err != nil {
+			log.Error().Err(err).Msg(errBadID.Error())
+			return nil, errBadID
+		}
+
+		req := dto.DeleteImageRequest{
+			UserID:    userID,
+			RequestID: uint(id),
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			log.Error().Err(err).Msg(errBadRequest.Error())
+			return nil, errBadRequest
+		}
+
+		if err := validator.New().Struct(&req); err != nil {
+			log.Error().Err(err).Msg("error validating request")
+			return nil, errInvalidRequest
+		}
+
+		return &req, nil
+	}
+}
+func decodeUploadImageRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
+	return func(ctx context.Context, r *http.Request) (interface{}, error) {
+		userID, err := getUserID(ctx)
+		if err != nil {
+			log.Error().Err(err).Msg("failed to get user id")
+			return nil, errBadUserID
+		}
+
+		idStr := chi.URLParam(r, "id")
+		if idStr == "" || idStr == "0" {
+			log.Error().Msg(errEmptyUserID.Error())
+			return nil, errEmptyID
+		}
+		id, err := strconv.ParseUint(idStr, 10, 64)
+		if err != nil {
+			log.Error().Err(err).Msg(errBadID.Error())
+			return nil, errBadID
+		}
+
+		if err := r.ParseMultipartForm(10 << 20); err != nil {
+			log.Error().Err(err).Msg(err.Error())
+			return nil, errInvalidRequest
+		}
+
+		file, header, err := r.FormFile("photo")
+		if err != nil {
+			log.Error().Err(err).Msg(err.Error())
+			return nil, errNoFile
+		}
+
+		if header.Size > (5 << 20) {
+			log.Error().Err(err).Msg(errFileIsTooBig.Error())
+			return nil, errFileIsTooBig
+		}
+		defer file.Close()
+
+		fileBytes, err := ioutil.ReadAll(file)
+		if err != nil {
+			log.Error().Err(err).Msg("failed reading file content")
+			return nil, errBadRequest
+		}
+
+		req := dto.UploadImageRequest{
+			UserID:    userID,
+			RequestID: uint(id),
+			File:      fileBytes,
+		}
+
+		return &req, nil
+	}
 }
 
 func decodeGuardUpdateRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc {
@@ -279,6 +383,12 @@ func encodeHTTPError(_ context.Context, err error, w http.ResponseWriter) {
 	case errors.Is(err, errBadUserID):
 		fallthrough
 	case errors.Is(err, errBadRequest):
+		fallthrough
+	case errors.Is(err, errNoFile):
+		fallthrough
+	case errors.Is(err, errFileIsTooBig):
+		fallthrough
+	case errors.Is(err, errFileWrongType):
 		fallthrough
 	case errors.Is(err, errInvalidRequest):
 		status = http.StatusBadRequest

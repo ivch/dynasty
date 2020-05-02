@@ -32,6 +32,12 @@ services:
       - UI_GUARD_API_HOST=https://localhost/requests
       - UI_GUARD_PAGE_URI=/ui/guard
       - UI_GUARD_PAGER_LIMIT=10
+      - S3_REGION=
+      - S3_KEY=
+      - S3_SECRET=
+      - S3_ENDPOINT=
+      - S3_SPACE_NAME=
+      - CDN_HOST=
     expose:
       - 9001
     ports:

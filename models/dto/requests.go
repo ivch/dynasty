@@ -2,8 +2,6 @@ package dto
 
 import (
 	"github.com/microcosm-cc/bluemonday"
-
-	"github.com/ivch/dynasty/models/entities"
 )
 
 type RequestByID struct {
@@ -12,12 +10,13 @@ type RequestByID struct {
 }
 
 type RequestByIDResponse struct {
-	ID          uint   `json:"id"`
-	Type        string `json:"type"`
-	UserID      uint   `json:"user_id" gorm:"user_id"`
-	Time        int64  `json:"time"`
-	Description string `json:"description"`
-	Status      string `json:"status"`
+	ID          uint     `json:"id"`
+	Type        string   `json:"type"`
+	UserID      uint     `json:"user_id" gorm:"user_id"`
+	Time        int64    `json:"time"`
+	Description string   `json:"description"`
+	Status      string   `json:"status"`
+	Images      []string `json:"images,omitempty"`
 }
 
 type RequestCreateRequest struct {
@@ -42,7 +41,7 @@ type RequestMyRequest struct {
 }
 
 type RequestMyResponse struct {
-	Data []*entities.Request `json:"data"`
+	Data []*RequestByIDResponse `json:"data"`
 }
 
 type RequestUpdateRequest struct {
@@ -79,19 +78,36 @@ type RequestGuardListResponse struct {
 }
 
 type RequestForGuard struct {
-	ID          uint   `json:"id"`
-	UserID      uint   `json:"user_id" gorm:"-"`
-	Type        string `json:"type"`
-	Time        int64  `json:"time"`
-	Description string `json:"description,omitempty"`
-	Status      string `json:"status"`
-	UserName    string `json:"user_name"`
-	Phone       string `json:"phone"`
-	Address     string `json:"address"`
-	Apartment   uint   `json:"apartment"`
+	ID          uint     `json:"id"`
+	UserID      uint     `json:"user_id" gorm:"-"`
+	Type        string   `json:"type"`
+	Time        int64    `json:"time"`
+	Description string   `json:"description,omitempty"`
+	Status      string   `json:"status"`
+	UserName    string   `json:"user_name"`
+	Phone       string   `json:"phone"`
+	Address     string   `json:"address"`
+	Apartment   uint     `json:"apartment"`
+	Images      []string `json:"images,omitempty"`
 }
 
 type GuardUpdateRequest struct {
 	ID     uint   `json:"id" validate:"required"`
 	Status string `json:"status" validate:"oneof=new closed"`
+}
+
+type UploadImageRequest struct {
+	UserID    uint
+	RequestID uint
+	File      []byte
+}
+
+type UploadImageResponse struct {
+	Path string `json:"path"`
+}
+
+type DeleteImageRequest struct {
+	UserID    uint
+	RequestID uint
+	Filepath  string `json:"filepath" validate:"required"`
 }

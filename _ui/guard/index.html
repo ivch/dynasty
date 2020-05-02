@@ -5,6 +5,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
+    <meta http-equiv="refresh" content="60"/>
+
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
           integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
@@ -38,6 +40,11 @@
 
         #itemsTableBody .btn-primary {
             background-color: #1A92B0 !important;
+        }
+
+        #modal-image {
+            max-width: 400px;
+            max-height: 600px;
         }
     </style>
 </head>
@@ -77,12 +84,24 @@
                     <th scope="col">Действия</th>
                 </tr>
                 </thead>
-                <tbody id="itemsTableBody"></tbody>
+                <tbody id="itemsTableBody">
+                </tbody>
             </table>
         </div>
         <nav id="itemsPager">
             <ul class="pagination pagination-lg"></ul>
         </nav>
+    </div>
+</div>
+
+<div class="modal" id="imageModalContainer" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <img id="modal-image" class="rounded mx-auto d-block" src=""/>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -194,9 +213,27 @@
         }).done(function (data) {
             renderItems(data);
             renderPager(data.count);
+
+            postRenderActions();
+
         }).fail(function () {
             // TODO
         });
+    }
+
+    function postRenderActions() {
+        $('.contacts-popover').popover({
+            container: 'body',
+            trigger: 'hover',
+        });
+
+        $('.imageButton').on('click', function (e) {
+            e.preventDefault();
+            let src = $(this).attr('src');
+
+            $('#modal-image').attr('src', src)
+            $('#imageModalContainer').modal('show');
+        })
     }
 
     function renderItems(items) {
@@ -209,15 +246,30 @@
             let date = new Date(item.time * 1000);
             table.append("<tr>" +
                 "<td>" + date.toLocaleString() + "</td>" +
-                "<td>" + item.address + ", кв " + item.apartment +
-                "<br/><a class='btn btn-primary btn-sm' data-toggle='collapse' href='#contacts" + item.id + "' role='button' aria-expanded='false'>контакты</a>" +
-                "<div class='collapse' id='contacts" + item.id + "'>" + item.user_name + "<br/>" + item.phone + "</div>" +
+                "<td><span>" + item.address + ", кв " + item.apartment + "</span>" +
+                "<div>" +
+                "</div>" +
+                "<button type='button' class='btn btn-sm btn-primary contacts-popover' data-container='body' data-toggle='popover' data-placement='top' data-content='" + item.user_name + ": " + item.phone + "'>контакты</button>" +
+                renderImages(item.images) +
                 "</td>" +
                 "<td>" + reqType[item.type] + "</td>" +
                 "<td>" + item.description + "</td>" +
                 "<td>" + actionButton(item.status, item.id) + "</td>" +
                 "</tr>");
         });
+    }
+
+    function renderImages(images) {
+        if (images.length === 0) {
+            return
+        }
+
+        imgBlock = "";
+        images.forEach(function (item) {
+            imgBlock += "<img src='" + item + "' class='rounded float-right img-thumbnail imageButton' width='64'>";
+        })
+
+        return imgBlock;
     }
 
     function actionButton(status, id) {

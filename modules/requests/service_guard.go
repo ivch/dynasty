@@ -19,18 +19,23 @@ func (s *service) GuardRequestList(_ context.Context, r *dto.RequestListFilterRe
 	}
 
 	data := make([]*dto.RequestForGuard, len(reqs))
-	for i, v := range reqs {
+	for i := range reqs {
 		data[i] = &dto.RequestForGuard{
-			ID:          v.ID,
-			UserID:      v.UserID,
-			Type:        v.Type,
-			Time:        v.Time,
-			Description: v.Description,
-			Status:      v.Status,
-			UserName:    fmt.Sprintf("%s %s", v.User.FirstName, v.User.LastName),
-			Phone:       v.User.Phone,
-			Address:     v.User.Building.Address,
-			Apartment:   v.User.Apartment,
+			ID:          reqs[i].ID,
+			UserID:      reqs[i].UserID,
+			Type:        reqs[i].Type,
+			Time:        reqs[i].Time,
+			Description: reqs[i].Description,
+			Status:      reqs[i].Status,
+			UserName:    fmt.Sprintf("%s %s", reqs[i].User.FirstName, reqs[i].User.LastName),
+			Phone:       reqs[i].User.Phone,
+			Address:     reqs[i].User.Building.Address,
+			Apartment:   reqs[i].User.Apartment,
+			Images:      make([]string, len(reqs[i].Images)),
+		}
+
+		for j := range reqs[i].Images {
+			data[i].Images[j] = fmt.Sprintf("%s/%d/%s", s.cdnHost, reqs[i].UserID, reqs[i].Images[j])
 		}
 	}
 

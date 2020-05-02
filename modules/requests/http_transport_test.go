@@ -1,15 +1,20 @@
 package requests
 
 import (
+	"bytes"
 	"context"
+	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/ivch/dynasty/models/dto"
-	"github.com/ivch/dynasty/models/entities"
 )
 
 func TestHTTP_Create(t *testing.T) {
@@ -281,7 +286,7 @@ func TestHTTP_My(t *testing.T) {
 			header: "1",
 			svc: &ServiceMock{
 				MyFunc: func(ctx context.Context, r *dto.RequestListFilterRequest) (response *dto.RequestMyResponse, err error) {
-					return &dto.RequestMyResponse{Data: []*entities.Request{
+					return &dto.RequestMyResponse{Data: []*dto.RequestByIDResponse{
 						{
 							ID:          1,
 							Type:        "1",
@@ -649,6 +654,7 @@ func TestHTTP_GuardList(t *testing.T) {
 								Time:        1,
 								Description: "1",
 								Status:      "1",
+								Images:      []string{"a"},
 							},
 						},
 						Count: 1,
@@ -657,7 +663,7 @@ func TestHTTP_GuardList(t *testing.T) {
 			},
 			wantErr:  false,
 			wantCode: http.StatusOK,
-			want:     `{"data":[{"id":1,"user_id":1,"type":"1","time":1,"description":"1","status":"1","user_name":"","phone":"","address":"","apartment":0}],"count":1}`,
+			want:     `{"data":[{"id":1,"user_id":1,"type":"1","time":1,"description":"1","status":"1","user_name":"","phone":"","address":"","apartment":0,"images":["a"]}],"count":1}`,
 		},
 	}
 
@@ -677,5 +683,221 @@ func TestHTTP_GuardList(t *testing.T) {
 			}
 		})
 
+	}
+}
+
+func TestHTTP_UploadImage(t *testing.T) {
+	tests := []struct {
+		name     string
+		want     string
+		header   string
+		req      string
+		filename string
+		svc      Service
+		wantErr  bool
+		wantCode int
+	}{
+		{
+			name:     "error no user",
+			req:      "",
+			header:   "0",
+			wantErr:  true,
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:     "error no id",
+			req:      "",
+			header:   "1",
+			wantErr:  true,
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:     "error bad id",
+			req:      "asd",
+			header:   "1",
+			wantErr:  true,
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:     "error parse multipart",
+			req:      "1",
+			header:   "1",
+			wantErr:  true,
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:     "error no file",
+			req:      "1",
+			header:   "1",
+			wantErr:  true,
+			filename: "errfile",
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:     "error service",
+			req:      "1",
+			header:   "1",
+			wantErr:  true,
+			filename: "ok",
+			svc: &ServiceMock{
+				UploadImageFunc: func(_ context.Context, _ *dto.UploadImageRequest) (*dto.UploadImageResponse, error) {
+					return nil, errTestError
+				},
+			},
+			wantCode: http.StatusInternalServerError,
+		},
+		{
+			name:     "ok",
+			req:      "1",
+			header:   "1",
+			wantErr:  false,
+			filename: "ok",
+			svc: &ServiceMock{
+				UploadImageFunc: func(_ context.Context, _ *dto.UploadImageRequest) (*dto.UploadImageResponse, error) {
+					return &dto.UploadImageResponse{
+						Path: "path",
+					}, nil
+				},
+			},
+			wantCode: http.StatusOK,
+			want:     `{"path":"path"}`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := tt.svc
+			h := newHTTPHandler(defaultLogger, svc, defaultPolicy)
+			rr := httptest.NewRecorder()
+
+			bb := &bytes.Buffer{}
+			contentHeader := "multipart/form-data"
+			if tt.filename != "" {
+				filename := "../../test_image.jpeg"
+				f, err := os.Open(filename)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				paramName := "photo"
+				if tt.filename == "errfile" {
+					paramName = "err"
+				}
+
+				writer := multipart.NewWriter(bb)
+				part, err := writer.CreateFormFile(paramName, filepath.Base(filename))
+				if err != nil {
+					t.Fatal(err)
+				}
+				_, err = io.Copy(part, f)
+				if err != nil {
+					t.Fatal(err)
+				}
+				contentHeader = writer.FormDataContentType()
+				writer.Close()
+			}
+
+			rq, _ := http.NewRequest("POST", fmt.Sprintf("/v1/request/%s/file", tt.req), bb)
+			rq.Header.Add("X-Auth-User", tt.header)
+			rq.Header.Add("Content-Type", contentHeader)
+			h.ServeHTTP(rr, rq)
+			if (rr.Code != tt.wantCode) && tt.wantErr {
+				t.Errorf("Request error. status = %d, expected %v", rr.Code, tt.wantCode)
+			}
+
+			if !tt.wantErr && tt.want != strings.TrimSpace(rr.Body.String()) {
+				t.Errorf("Response error, got = %s, want = %s", rr.Body.String(), tt.want)
+			}
+		})
+	}
+}
+
+func TestHTTP_DeleteImage(t *testing.T) {
+	tests := []struct {
+		name     string
+		svc      Service
+		id       string
+		request  string
+		header   string
+		wantErr  bool
+		wantCode int
+	}{
+		{
+			name:     "error no user",
+			id:       "1",
+			header:   "0",
+			wantErr:  true,
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:     "error no id",
+			id:       "0",
+			header:   "1",
+			wantErr:  true,
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:     "error wrong id",
+			id:       "asd",
+			header:   "1",
+			wantErr:  true,
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:     "error bad request",
+			id:       "1",
+			header:   "1",
+			request:  "}{",
+			wantErr:  true,
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:     "error empty request",
+			id:       "1",
+			header:   "1",
+			request:  "{}",
+			wantErr:  true,
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:    "error service",
+			id:      "1",
+			header:  "1",
+			request: `{"filepath":"somepath"}`,
+			svc: &ServiceMock{
+				DeleteImageFunc: func(ctx context.Context, r *dto.DeleteImageRequest) error {
+					return errTestError
+				},
+			},
+			wantErr:  true,
+			wantCode: http.StatusInternalServerError,
+		},
+		{
+			name:    "ok",
+			id:      "1",
+			header:  "1",
+			request: `{"filepath":"somepath"}`,
+			svc: &ServiceMock{
+				DeleteImageFunc: func(ctx context.Context, r *dto.DeleteImageRequest) error {
+					return nil
+				},
+			},
+			wantErr:  false,
+			wantCode: http.StatusOK,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := tt.svc
+			h := newHTTPHandler(defaultLogger, svc, defaultPolicy)
+			rr := httptest.NewRecorder()
+			rq, _ := http.NewRequest("DELETE", "/v1/request/"+tt.id+"/file", strings.NewReader(tt.request))
+			rq.Header.Add("X-Auth-User", tt.header)
+			h.ServeHTTP(rr, rq)
+			if (rr.Code != tt.wantCode) && tt.wantErr {
+				t.Errorf("Request error. status = %d, expected %v", rr.Code, tt.wantCode)
+			}
+		})
 	}
 }

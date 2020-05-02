@@ -67,6 +67,7 @@ func TestService_GuardRequestList(t *testing.T) {
 								FirstName: "1",
 								LastName:  "1",
 							},
+							Images: []string{"a"},
 						},
 					}, nil
 				},
@@ -93,6 +94,7 @@ func TestService_GuardRequestList(t *testing.T) {
 						Phone:       "1",
 						Address:     "1",
 						Apartment:   1,
+						Images:      []string{"/1/a"},
 					},
 				},
 				Count: 1,
@@ -102,7 +104,7 @@ func TestService_GuardRequestList(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := newService(defaultLogger, tt.repo)
+			s := newService(defaultLogger, tt.repo, nil, "", "")
 			got, err := s.GuardRequestList(context.Background(), tt.req)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GuardRequestList() error = %v, wantErr %v", err, tt.wantErr)
@@ -152,7 +154,7 @@ func TestService_GuardUpdateRequest(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := newService(defaultLogger, tt.repo)
+			s := newService(defaultLogger, tt.repo, nil, "", "")
 			err := s.GuardUpdateRequest(context.Background(), tt.req)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GuardUpdateRequest() error = %v, wantErr %v", err, tt.wantErr)

@@ -82,3 +82,21 @@ func (mw loggingMiddleware) GuardUpdateRequest(ctx context.Context, req *dto.Gua
 
 	return err
 }
+
+func (mw loggingMiddleware) UploadImage(ctx context.Context, req *dto.UploadImageRequest) (*dto.UploadImageResponse, error) {
+	res, err := mw.next.UploadImage(ctx, req)
+	if err != nil {
+		mw.log.Error().Msg(err.Error())
+	}
+
+	return res, err
+}
+
+func (mw loggingMiddleware) DeleteImage(ctx context.Context, req *dto.DeleteImageRequest) error {
+	err := mw.next.DeleteImage(ctx, req)
+	if err != nil {
+		mw.log.Error().Msg(err.Error())
+	}
+
+	return err
+}

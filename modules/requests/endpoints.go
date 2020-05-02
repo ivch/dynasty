@@ -48,3 +48,15 @@ func makeGuardUpdateRequest(svc Service) endpoint.Endpoint {
 		return nil, svc.GuardUpdateRequest(ctx, request.(*dto.GuardUpdateRequest))
 	}
 }
+
+func makeUploadImageEndpoint(svc Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		return svc.UploadImage(ctx, request.(*dto.UploadImageRequest))
+	}
+}
+
+func makeDeleteImageEndpoint(svc Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		return nil, svc.DeleteImage(ctx, request.(*dto.DeleteImageRequest))
+	}
+}
