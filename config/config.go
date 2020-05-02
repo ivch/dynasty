@@ -8,8 +8,10 @@ import (
 type Config struct {
 	AuthService
 	UserService
+	RequestService
 	DB
 	GuardUI
+	S3
 	HTTPPort   string `validate:"required"`
 	LogVerbose bool
 }
@@ -21,6 +23,11 @@ type UserService struct {
 
 type AuthService struct {
 	JWTSecret string `validate:"required"`
+}
+
+type RequestService struct {
+	S3SpaceName string `validate:"required"`
+	CDNHost     string `validate:"required"`
 }
 
 type GuardUI struct {
@@ -36,6 +43,13 @@ type DB struct {
 	Password string `validate:"required"`
 	Database string `validate:"required"`
 	SSL      string `validate:"required,oneof=enable disable require"`
+}
+
+type S3 struct {
+	Region   string `validate:"required"`
+	Key      string `validate:"required"`
+	Secret   string `validate:"required"`
+	Endpoint string `validate:"required"`
 }
 
 func New() (*Config, error) {
@@ -60,10 +74,20 @@ func New() (*Config, error) {
 			VerifyRegCode: v.GetBool("USER_VERIFY_REG_CODE"),
 			MembersLimit:  v.GetInt("FAMILY_MEMBERS_LIMIT"),
 		},
+		RequestService: RequestService{
+			S3SpaceName: v.GetString("S3_SPACE_NAME"),
+			CDNHost:     v.GetString("CDN_HOST"),
+		},
 		GuardUI: GuardUI{
 			APIHost:    v.GetString("UI_GUARD_API_HOST"),
 			PageURI:    v.GetString("UI_GUARD_PAGE_URI"),
 			PagerLimit: v.GetInt("UI_GUARD_PAGER_LIMIT"),
+		},
+		S3: S3{
+			Region:   v.GetString("S3_REGION"),
+			Key:      v.GetString("S3_KEY"),
+			Secret:   v.GetString("S3_SECRET"),
+			Endpoint: v.GetString("S3_ENDPOINT"),
 		},
 	}
 

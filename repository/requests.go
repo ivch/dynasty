@@ -23,16 +23,26 @@ func (r *Requests) Delete(id, userID uint) error {
 
 func (r *Requests) GetRequestByIDAndUser(id, userId uint) (*entities.Request, error) {
 	var req entities.Request
-
 	if err := r.db.Where("id = ? AND user_id = ?", id, userId).First(&req).Error; err != nil {
 		return nil, err
 	}
-
 	return &req, nil
 }
 
 func (r *Requests) Update(req *entities.Request) error {
 	return r.db.Table(entities.Request{}.TableName()).Save(req).Error
+}
+
+func (r *Requests) AddImage(userId, requestId uint, filename string) error {
+	return r.db.Table(entities.Request{}.TableName()).
+		Where("id = ? and user_id = ?", requestId, userId).
+		Update("images", gorm.Expr("array_append(images, ?)", filename)).Error
+}
+
+func (r *Requests) DeleteImage(userId, requestId uint, filename string) error {
+	return r.db.Table(entities.Request{}.TableName()).
+		Where("id = ? and user_id = ?", requestId, userId).
+		Update("images", gorm.Expr("array_remove(images, ?)", filename)).Error
 }
 
 func (r *Requests) Create(req *entities.Request) (uint, error) {

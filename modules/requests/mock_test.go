@@ -5,15 +5,18 @@ package requests
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/ivch/dynasty/models/dto"
 	"github.com/ivch/dynasty/models/entities"
 	"sync"
 )
 
 var (
+	lockrequestsRepositoryMockAddImage              sync.RWMutex
 	lockrequestsRepositoryMockCountForGuard         sync.RWMutex
 	lockrequestsRepositoryMockCreate                sync.RWMutex
 	lockrequestsRepositoryMockDelete                sync.RWMutex
+	lockrequestsRepositoryMockDeleteImage           sync.RWMutex
 	lockrequestsRepositoryMockGetRequestByIDAndUser sync.RWMutex
 	lockrequestsRepositoryMockListByUser            sync.RWMutex
 	lockrequestsRepositoryMockListForGuard          sync.RWMutex
@@ -31,6 +34,9 @@ var _ requestsRepository = &requestsRepositoryMock{}
 //
 //         // make and configure a mocked requestsRepository
 //         mockedrequestsRepository := &requestsRepositoryMock{
+//             AddImageFunc: func(userID uint, requestID uint, filename string) error {
+// 	               panic("mock out the AddImage method")
+//             },
 //             CountForGuardFunc: func(req *dto.RequestListFilterRequest) (int, error) {
 // 	               panic("mock out the CountForGuard method")
 //             },
@@ -39,6 +45,9 @@ var _ requestsRepository = &requestsRepositoryMock{}
 //             },
 //             DeleteFunc: func(id uint, userID uint) error {
 // 	               panic("mock out the Delete method")
+//             },
+//             DeleteImageFunc: func(userID uint, requestID uint, filename string) error {
+// 	               panic("mock out the DeleteImage method")
 //             },
 //             GetRequestByIDAndUserFunc: func(id uint, userId uint) (*entities.Request, error) {
 // 	               panic("mock out the GetRequestByIDAndUser method")
@@ -62,6 +71,9 @@ var _ requestsRepository = &requestsRepositoryMock{}
 //
 //     }
 type requestsRepositoryMock struct {
+	// AddImageFunc mocks the AddImage method.
+	AddImageFunc func(userID uint, requestID uint, filename string) error
+
 	// CountForGuardFunc mocks the CountForGuard method.
 	CountForGuardFunc func(req *dto.RequestListFilterRequest) (int, error)
 
@@ -70,6 +82,9 @@ type requestsRepositoryMock struct {
 
 	// DeleteFunc mocks the Delete method.
 	DeleteFunc func(id uint, userID uint) error
+
+	// DeleteImageFunc mocks the DeleteImage method.
+	DeleteImageFunc func(userID uint, requestID uint, filename string) error
 
 	// GetRequestByIDAndUserFunc mocks the GetRequestByIDAndUser method.
 	GetRequestByIDAndUserFunc func(id uint, userId uint) (*entities.Request, error)
@@ -88,6 +103,15 @@ type requestsRepositoryMock struct {
 
 	// calls tracks calls to the methods.
 	calls struct {
+		// AddImage holds details about calls to the AddImage method.
+		AddImage []struct {
+			// UserID is the userID argument value.
+			UserID uint
+			// RequestID is the requestID argument value.
+			RequestID uint
+			// Filename is the filename argument value.
+			Filename string
+		}
 		// CountForGuard holds details about calls to the CountForGuard method.
 		CountForGuard []struct {
 			// Req is the req argument value.
@@ -104,6 +128,15 @@ type requestsRepositoryMock struct {
 			ID uint
 			// UserID is the userID argument value.
 			UserID uint
+		}
+		// DeleteImage holds details about calls to the DeleteImage method.
+		DeleteImage []struct {
+			// UserID is the userID argument value.
+			UserID uint
+			// RequestID is the requestID argument value.
+			RequestID uint
+			// Filename is the filename argument value.
+			Filename string
 		}
 		// GetRequestByIDAndUser holds details about calls to the GetRequestByIDAndUser method.
 		GetRequestByIDAndUser []struct {
@@ -135,6 +168,45 @@ type requestsRepositoryMock struct {
 			Status string
 		}
 	}
+}
+
+// AddImage calls AddImageFunc.
+func (mock *requestsRepositoryMock) AddImage(userID uint, requestID uint, filename string) error {
+	if mock.AddImageFunc == nil {
+		panic("requestsRepositoryMock.AddImageFunc: method is nil but requestsRepository.AddImage was just called")
+	}
+	callInfo := struct {
+		UserID    uint
+		RequestID uint
+		Filename  string
+	}{
+		UserID:    userID,
+		RequestID: requestID,
+		Filename:  filename,
+	}
+	lockrequestsRepositoryMockAddImage.Lock()
+	mock.calls.AddImage = append(mock.calls.AddImage, callInfo)
+	lockrequestsRepositoryMockAddImage.Unlock()
+	return mock.AddImageFunc(userID, requestID, filename)
+}
+
+// AddImageCalls gets all the calls that were made to AddImage.
+// Check the length with:
+//     len(mockedrequestsRepository.AddImageCalls())
+func (mock *requestsRepositoryMock) AddImageCalls() []struct {
+	UserID    uint
+	RequestID uint
+	Filename  string
+} {
+	var calls []struct {
+		UserID    uint
+		RequestID uint
+		Filename  string
+	}
+	lockrequestsRepositoryMockAddImage.RLock()
+	calls = mock.calls.AddImage
+	lockrequestsRepositoryMockAddImage.RUnlock()
+	return calls
 }
 
 // CountForGuard calls CountForGuardFunc.
@@ -231,6 +303,45 @@ func (mock *requestsRepositoryMock) DeleteCalls() []struct {
 	lockrequestsRepositoryMockDelete.RLock()
 	calls = mock.calls.Delete
 	lockrequestsRepositoryMockDelete.RUnlock()
+	return calls
+}
+
+// DeleteImage calls DeleteImageFunc.
+func (mock *requestsRepositoryMock) DeleteImage(userID uint, requestID uint, filename string) error {
+	if mock.DeleteImageFunc == nil {
+		panic("requestsRepositoryMock.DeleteImageFunc: method is nil but requestsRepository.DeleteImage was just called")
+	}
+	callInfo := struct {
+		UserID    uint
+		RequestID uint
+		Filename  string
+	}{
+		UserID:    userID,
+		RequestID: requestID,
+		Filename:  filename,
+	}
+	lockrequestsRepositoryMockDeleteImage.Lock()
+	mock.calls.DeleteImage = append(mock.calls.DeleteImage, callInfo)
+	lockrequestsRepositoryMockDeleteImage.Unlock()
+	return mock.DeleteImageFunc(userID, requestID, filename)
+}
+
+// DeleteImageCalls gets all the calls that were made to DeleteImage.
+// Check the length with:
+//     len(mockedrequestsRepository.DeleteImageCalls())
+func (mock *requestsRepositoryMock) DeleteImageCalls() []struct {
+	UserID    uint
+	RequestID uint
+	Filename  string
+} {
+	var calls []struct {
+		UserID    uint
+		RequestID uint
+		Filename  string
+	}
+	lockrequestsRepositoryMockDeleteImage.RLock()
+	calls = mock.calls.DeleteImage
+	lockrequestsRepositoryMockDeleteImage.RUnlock()
 	return calls
 }
 
@@ -398,13 +509,126 @@ func (mock *requestsRepositoryMock) UpdateForGuardCalls() []struct {
 }
 
 var (
+	locks3ClientMockDeleteObject sync.RWMutex
+	locks3ClientMockPutObject    sync.RWMutex
+)
+
+// Ensure, that s3ClientMock does implement s3Client.
+// If this is not the case, regenerate this file with moq.
+var _ s3Client = &s3ClientMock{}
+
+// s3ClientMock is a mock implementation of s3Client.
+//
+//     func TestSomethingThatUsess3Client(t *testing.T) {
+//
+//         // make and configure a mocked s3Client
+//         mockeds3Client := &s3ClientMock{
+//             DeleteObjectFunc: func(input *s3.DeleteObjectInput) (*s3.DeleteObjectOutput, error) {
+// 	               panic("mock out the DeleteObject method")
+//             },
+//             PutObjectFunc: func(input *s3.PutObjectInput) (*s3.PutObjectOutput, error) {
+// 	               panic("mock out the PutObject method")
+//             },
+//         }
+//
+//         // use mockeds3Client in code that requires s3Client
+//         // and then make assertions.
+//
+//     }
+type s3ClientMock struct {
+	// DeleteObjectFunc mocks the DeleteObject method.
+	DeleteObjectFunc func(input *s3.DeleteObjectInput) (*s3.DeleteObjectOutput, error)
+
+	// PutObjectFunc mocks the PutObject method.
+	PutObjectFunc func(input *s3.PutObjectInput) (*s3.PutObjectOutput, error)
+
+	// calls tracks calls to the methods.
+	calls struct {
+		// DeleteObject holds details about calls to the DeleteObject method.
+		DeleteObject []struct {
+			// Input is the input argument value.
+			Input *s3.DeleteObjectInput
+		}
+		// PutObject holds details about calls to the PutObject method.
+		PutObject []struct {
+			// Input is the input argument value.
+			Input *s3.PutObjectInput
+		}
+	}
+}
+
+// DeleteObject calls DeleteObjectFunc.
+func (mock *s3ClientMock) DeleteObject(input *s3.DeleteObjectInput) (*s3.DeleteObjectOutput, error) {
+	if mock.DeleteObjectFunc == nil {
+		panic("s3ClientMock.DeleteObjectFunc: method is nil but s3Client.DeleteObject was just called")
+	}
+	callInfo := struct {
+		Input *s3.DeleteObjectInput
+	}{
+		Input: input,
+	}
+	locks3ClientMockDeleteObject.Lock()
+	mock.calls.DeleteObject = append(mock.calls.DeleteObject, callInfo)
+	locks3ClientMockDeleteObject.Unlock()
+	return mock.DeleteObjectFunc(input)
+}
+
+// DeleteObjectCalls gets all the calls that were made to DeleteObject.
+// Check the length with:
+//     len(mockeds3Client.DeleteObjectCalls())
+func (mock *s3ClientMock) DeleteObjectCalls() []struct {
+	Input *s3.DeleteObjectInput
+} {
+	var calls []struct {
+		Input *s3.DeleteObjectInput
+	}
+	locks3ClientMockDeleteObject.RLock()
+	calls = mock.calls.DeleteObject
+	locks3ClientMockDeleteObject.RUnlock()
+	return calls
+}
+
+// PutObject calls PutObjectFunc.
+func (mock *s3ClientMock) PutObject(input *s3.PutObjectInput) (*s3.PutObjectOutput, error) {
+	if mock.PutObjectFunc == nil {
+		panic("s3ClientMock.PutObjectFunc: method is nil but s3Client.PutObject was just called")
+	}
+	callInfo := struct {
+		Input *s3.PutObjectInput
+	}{
+		Input: input,
+	}
+	locks3ClientMockPutObject.Lock()
+	mock.calls.PutObject = append(mock.calls.PutObject, callInfo)
+	locks3ClientMockPutObject.Unlock()
+	return mock.PutObjectFunc(input)
+}
+
+// PutObjectCalls gets all the calls that were made to PutObject.
+// Check the length with:
+//     len(mockeds3Client.PutObjectCalls())
+func (mock *s3ClientMock) PutObjectCalls() []struct {
+	Input *s3.PutObjectInput
+} {
+	var calls []struct {
+		Input *s3.PutObjectInput
+	}
+	locks3ClientMockPutObject.RLock()
+	calls = mock.calls.PutObject
+	locks3ClientMockPutObject.RUnlock()
+	return calls
+}
+
+var (
 	lockServiceMockCreate             sync.RWMutex
 	lockServiceMockDelete             sync.RWMutex
+	lockServiceMockDeleteImage        sync.RWMutex
 	lockServiceMockGet                sync.RWMutex
 	lockServiceMockGuardRequestList   sync.RWMutex
 	lockServiceMockGuardUpdateRequest sync.RWMutex
 	lockServiceMockMy                 sync.RWMutex
 	lockServiceMockUpdate             sync.RWMutex
+	lockServiceMockUploadImage        sync.RWMutex
 )
 
 // Ensure, that ServiceMock does implement Service.
@@ -423,6 +647,9 @@ var _ Service = &ServiceMock{}
 //             DeleteFunc: func(ctx context.Context, r *dto.RequestByID) error {
 // 	               panic("mock out the Delete method")
 //             },
+//             DeleteImageFunc: func(ctx context.Context, r *dto.DeleteImageRequest) error {
+// 	               panic("mock out the DeleteImage method")
+//             },
 //             GetFunc: func(ctx context.Context, r *dto.RequestByID) (*dto.RequestByIDResponse, error) {
 // 	               panic("mock out the Get method")
 //             },
@@ -438,6 +665,9 @@ var _ Service = &ServiceMock{}
 //             UpdateFunc: func(ctx context.Context, r *dto.RequestUpdateRequest) error {
 // 	               panic("mock out the Update method")
 //             },
+//             UploadImageFunc: func(ctx context.Context, r *dto.UploadImageRequest) (*dto.UploadImageResponse, error) {
+// 	               panic("mock out the UploadImage method")
+//             },
 //         }
 //
 //         // use mockedService in code that requires Service
@@ -450,6 +680,9 @@ type ServiceMock struct {
 
 	// DeleteFunc mocks the Delete method.
 	DeleteFunc func(ctx context.Context, r *dto.RequestByID) error
+
+	// DeleteImageFunc mocks the DeleteImage method.
+	DeleteImageFunc func(ctx context.Context, r *dto.DeleteImageRequest) error
 
 	// GetFunc mocks the Get method.
 	GetFunc func(ctx context.Context, r *dto.RequestByID) (*dto.RequestByIDResponse, error)
@@ -466,6 +699,9 @@ type ServiceMock struct {
 	// UpdateFunc mocks the Update method.
 	UpdateFunc func(ctx context.Context, r *dto.RequestUpdateRequest) error
 
+	// UploadImageFunc mocks the UploadImage method.
+	UploadImageFunc func(ctx context.Context, r *dto.UploadImageRequest) (*dto.UploadImageResponse, error)
+
 	// calls tracks calls to the methods.
 	calls struct {
 		// Create holds details about calls to the Create method.
@@ -481,6 +717,13 @@ type ServiceMock struct {
 			Ctx context.Context
 			// R is the r argument value.
 			R *dto.RequestByID
+		}
+		// DeleteImage holds details about calls to the DeleteImage method.
+		DeleteImage []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// R is the r argument value.
+			R *dto.DeleteImageRequest
 		}
 		// Get holds details about calls to the Get method.
 		Get []struct {
@@ -516,6 +759,13 @@ type ServiceMock struct {
 			Ctx context.Context
 			// R is the r argument value.
 			R *dto.RequestUpdateRequest
+		}
+		// UploadImage holds details about calls to the UploadImage method.
+		UploadImage []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// R is the r argument value.
+			R *dto.UploadImageRequest
 		}
 	}
 }
@@ -587,6 +837,41 @@ func (mock *ServiceMock) DeleteCalls() []struct {
 	lockServiceMockDelete.RLock()
 	calls = mock.calls.Delete
 	lockServiceMockDelete.RUnlock()
+	return calls
+}
+
+// DeleteImage calls DeleteImageFunc.
+func (mock *ServiceMock) DeleteImage(ctx context.Context, r *dto.DeleteImageRequest) error {
+	if mock.DeleteImageFunc == nil {
+		panic("ServiceMock.DeleteImageFunc: method is nil but Service.DeleteImage was just called")
+	}
+	callInfo := struct {
+		Ctx context.Context
+		R   *dto.DeleteImageRequest
+	}{
+		Ctx: ctx,
+		R:   r,
+	}
+	lockServiceMockDeleteImage.Lock()
+	mock.calls.DeleteImage = append(mock.calls.DeleteImage, callInfo)
+	lockServiceMockDeleteImage.Unlock()
+	return mock.DeleteImageFunc(ctx, r)
+}
+
+// DeleteImageCalls gets all the calls that were made to DeleteImage.
+// Check the length with:
+//     len(mockedService.DeleteImageCalls())
+func (mock *ServiceMock) DeleteImageCalls() []struct {
+	Ctx context.Context
+	R   *dto.DeleteImageRequest
+} {
+	var calls []struct {
+		Ctx context.Context
+		R   *dto.DeleteImageRequest
+	}
+	lockServiceMockDeleteImage.RLock()
+	calls = mock.calls.DeleteImage
+	lockServiceMockDeleteImage.RUnlock()
 	return calls
 }
 
@@ -762,5 +1047,40 @@ func (mock *ServiceMock) UpdateCalls() []struct {
 	lockServiceMockUpdate.RLock()
 	calls = mock.calls.Update
 	lockServiceMockUpdate.RUnlock()
+	return calls
+}
+
+// UploadImage calls UploadImageFunc.
+func (mock *ServiceMock) UploadImage(ctx context.Context, r *dto.UploadImageRequest) (*dto.UploadImageResponse, error) {
+	if mock.UploadImageFunc == nil {
+		panic("ServiceMock.UploadImageFunc: method is nil but Service.UploadImage was just called")
+	}
+	callInfo := struct {
+		Ctx context.Context
+		R   *dto.UploadImageRequest
+	}{
+		Ctx: ctx,
+		R:   r,
+	}
+	lockServiceMockUploadImage.Lock()
+	mock.calls.UploadImage = append(mock.calls.UploadImage, callInfo)
+	lockServiceMockUploadImage.Unlock()
+	return mock.UploadImageFunc(ctx, r)
+}
+
+// UploadImageCalls gets all the calls that were made to UploadImage.
+// Check the length with:
+//     len(mockedService.UploadImageCalls())
+func (mock *ServiceMock) UploadImageCalls() []struct {
+	Ctx context.Context
+	R   *dto.UploadImageRequest
+} {
+	var calls []struct {
+		Ctx context.Context
+		R   *dto.UploadImageRequest
+	}
+	lockServiceMockUploadImage.RLock()
+	calls = mock.calls.UploadImage
+	lockServiceMockUploadImage.RUnlock()
 	return calls
 }

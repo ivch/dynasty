@@ -101,7 +101,8 @@ create table requests
             on delete cascade,
     time        int                       not null,
     description varchar(1000),
-    status      varchar(15) default 'new' not null
+    status      varchar(15) default 'new' not null,
+    images      text[]      default '{}'::text[]
 );
 
 alter table users

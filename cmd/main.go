@@ -10,6 +10,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/jinzhu/gorm"
@@ -47,10 +51,22 @@ func main() {
 		logger.Fatal().Err(err).Msg("cannot connect to db")
 	}
 
+	s3Config := &aws.Config{
+		Credentials: credentials.NewStaticCredentials(cfg.S3.Key, cfg.S3.Secret, ""),
+		Endpoint:    aws.String(cfg.S3.Endpoint),
+		Region:      aws.String(cfg.S3.Region),
+	}
+
+	newSession, err := session.NewSession(s3Config)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("cannot start do session")
+	}
+	s3Client := s3.New(newSession)
 	p := bluemonday.StrictPolicy()
+
 	usersModule, userService := users.New(repository.NewUsers(db), cfg.UserService.VerifyRegCode, cfg.UserService.MembersLimit, logger, p)
 	authModule, _ := auth.New(logger, repository.NewAuth(db), uCli.New(userService), cfg.AuthService.JWTSecret)
-	requestsModule, _ := requests.New(logger, repository.NewRequests(db), p)
+	requestsModule, _ := requests.New(logger, repository.NewRequests(db), p, s3Client, cfg.RequestService.S3SpaceName, cfg.RequestService.CDNHost)
 	dictionariesModule, _ := dictionaries.New(repository.NewDictionaries(db), logger)
 
 	r := chi.NewRouter()
