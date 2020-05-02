@@ -244,13 +244,19 @@
 
         items.data.forEach(function (item) {
             let date = new Date(item.time * 1000);
+            let images = "";
+
+            if (item.hasOwnProperty('images')) {
+                images = renderImages(item.images);
+            }
+
             table.append("<tr>" +
                 "<td>" + date.toLocaleString() + "</td>" +
                 "<td><span>" + item.address + ", кв " + item.apartment + "</span>" +
                 "<div>" +
                 "</div>" +
                 "<button type='button' class='btn btn-sm btn-primary contacts-popover' data-container='body' data-toggle='popover' data-placement='top' data-content='" + item.user_name + ": " + item.phone + "'>контакты</button>" +
-                renderImages(item.images) +
+                images +
                 "</td>" +
                 "<td>" + reqType[item.type] + "</td>" +
                 "<td>" + item.description + "</td>" +
