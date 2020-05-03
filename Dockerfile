@@ -4,7 +4,7 @@
 
 FROM golang:1.13.8-stretch as builder
 
-RUN apt update && apt install -y make gcc musl-dev git && mkdir -p /app
+RUN apt update && apt install -y make gcc musl-dev git ca-certificates && update-ca-certificates && mkdir -p /app
 
 WORKDIR /app
 
@@ -24,6 +24,7 @@ FROM scratch
 
 ADD zoneinfo.tar.gz /
 
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /app/cmd/app /app
 COPY /_ui /_ui
 
