@@ -10,13 +10,13 @@ type RequestByID struct {
 }
 
 type RequestByIDResponse struct {
-	ID          uint     `json:"id"`
-	Type        string   `json:"type"`
-	UserID      uint     `json:"user_id" gorm:"user_id"`
-	Time        int64    `json:"time"`
-	Description string   `json:"description"`
-	Status      string   `json:"status"`
-	Images      []string `json:"images,omitempty"`
+	ID          uint                `json:"id"`
+	Type        string              `json:"type"`
+	UserID      uint                `json:"user_id" gorm:"user_id"`
+	Time        int64               `json:"time"`
+	Description string              `json:"description"`
+	Status      string              `json:"status"`
+	Images      []map[string]string `json:"images,omitempty"`
 }
 
 type RequestCreateRequest struct {
@@ -78,17 +78,17 @@ type RequestGuardListResponse struct {
 }
 
 type RequestForGuard struct {
-	ID          uint     `json:"id"`
-	UserID      uint     `json:"user_id" gorm:"-"`
-	Type        string   `json:"type"`
-	Time        int64    `json:"time"`
-	Description string   `json:"description,omitempty"`
-	Status      string   `json:"status"`
-	UserName    string   `json:"user_name"`
-	Phone       string   `json:"phone"`
-	Address     string   `json:"address"`
-	Apartment   uint     `json:"apartment"`
-	Images      []string `json:"images,omitempty"`
+	ID          uint                `json:"id"`
+	UserID      uint                `json:"user_id" gorm:"-"`
+	Type        string              `json:"type"`
+	Time        int64               `json:"time"`
+	Description string              `json:"description,omitempty"`
+	Status      string              `json:"status"`
+	UserName    string              `json:"user_name"`
+	Phone       string              `json:"phone"`
+	Address     string              `json:"address"`
+	Apartment   uint                `json:"apartment"`
+	Images      []map[string]string `json:"images,omitempty"`
 }
 
 type GuardUpdateRequest struct {
@@ -103,7 +103,8 @@ type UploadImageRequest struct {
 }
 
 type UploadImageResponse struct {
-	Path string `json:"path"`
+	Img   string `json:"img"`
+	Thumb string `json:"thumb"`
 }
 
 type DeleteImageRequest struct {

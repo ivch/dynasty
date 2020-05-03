@@ -2,6 +2,7 @@ package requests
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -94,7 +95,12 @@ func TestService_GuardRequestList(t *testing.T) {
 						Phone:       "1",
 						Address:     "1",
 						Apartment:   1,
-						Images:      []string{"/1/a"},
+						Images: []map[string]string{
+							{
+								"img":   fmt.Sprintf("cdnHost/%s%s", imgPathPrefix, "a"),
+								"thumb": fmt.Sprintf("cdnHost/%s%s", thumbPathPrefix, "a"),
+							},
+						},
 					},
 				},
 				Count: 1,
@@ -104,7 +110,7 @@ func TestService_GuardRequestList(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := newService(defaultLogger, tt.repo, nil, "", "")
+			s := newService(defaultLogger, tt.repo, nil, "", "cdnHost")
 			got, err := s.GuardRequestList(context.Background(), tt.req)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GuardRequestList() error = %v, wantErr %v", err, tt.wantErr)

@@ -31,11 +31,11 @@ func (s *service) GuardRequestList(_ context.Context, r *dto.RequestListFilterRe
 			Phone:       reqs[i].User.Phone,
 			Address:     reqs[i].User.Building.Address,
 			Apartment:   reqs[i].User.Apartment,
-			Images:      make([]string, len(reqs[i].Images)),
+			Images:      make([]map[string]string, len(reqs[i].Images)),
 		}
 
 		for j := range reqs[i].Images {
-			data[i].Images[j] = fmt.Sprintf("%s/%d/%s", s.cdnHost, reqs[i].UserID, reqs[i].Images[j])
+			data[i].Images[j] = s.buildImageURL(reqs[i].Images[j])
 		}
 	}
 
