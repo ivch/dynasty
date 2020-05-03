@@ -1,3 +1,5 @@
+![Master](https://github.com/ivch/dynasty/workflows/Master/badge.svg?branch=master)
+
 ## Build
 `docker-compose build`
 
