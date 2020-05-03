@@ -29,6 +29,7 @@ var (
 	errNoFile              = errors.New("error retrieving the file")
 	errFileWrongType       = errors.New("wrong filetype")
 	errFileIsTooBig        = errors.New("too big file")
+	errTooMuchFiles        = errors.New("only allowed 3 images per request")
 )
 
 func New(log *zerolog.Logger, repo requestsRepository, p *bluemonday.Policy, s3Client s3Client, s3Space, cdnHost string) (http.Handler, Service) {

@@ -3,8 +3,8 @@ package requests
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"reflect"
 	"testing"
@@ -77,14 +77,19 @@ func TestService_Get(t *testing.T) {
 				Time:        1,
 				Description: "1",
 				Status:      "1",
-				Images:      []string{"/1/a"},
+				Images: []map[string]string{
+					{
+						"img":   fmt.Sprintf("cdnHost/%s%s", imgPathPrefix, "a"),
+						"thumb": fmt.Sprintf("cdnHost/%s%s", thumbPathPrefix, "a"),
+					},
+				},
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := newService(defaultLogger, tt.repo, nil, "", "")
+			s := newService(defaultLogger, tt.repo, nil, "", "cdnHost")
 			got, err := s.Get(context.Background(), tt.req)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Get() error = %v, wantErr %v", err, tt.wantErr)
@@ -290,7 +295,12 @@ func TestService_My(t *testing.T) {
 					Time:        1,
 					Description: "1",
 					Status:      "1",
-					Images:      []string{"/1/a"},
+					Images: []map[string]string{
+						{
+							"img":   fmt.Sprintf("cdnHost/%s%s", imgPathPrefix, "a"),
+							"thumb": fmt.Sprintf("cdnHost/%s%s", thumbPathPrefix, "a"),
+						},
+					},
 				},
 			}},
 		},
@@ -298,7 +308,7 @@ func TestService_My(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := newService(defaultLogger, tt.repo, nil, "", "")
+			s := newService(defaultLogger, tt.repo, nil, "", "cdnHost")
 			got, err := s.My(context.Background(), tt.req)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("My() error = %v, wantErr %v", err, tt.wantErr)
@@ -471,227 +481,6 @@ func TestService_Delete(t *testing.T) {
 			err := s.Delete(context.Background(), tt.req)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Delete() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-		})
-	}
-}
-
-func TestService_UploadImage(t *testing.T) {
-	loadFile := func(filename string) []byte {
-		f, err := os.Open(filename)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer f.Close()
-
-		fileBytes, err := ioutil.ReadAll(f)
-		if err != nil {
-			log.Fatal(err)
-		}
-		return fileBytes
-	}
-
-	tests := []struct {
-		name    string
-		repo    requestsRepository
-		s3cli   s3Client
-		req     *dto.UploadImageRequest
-		wantErr bool
-	}{
-		{
-			name: "error wrong file type",
-			req: &dto.UploadImageRequest{
-				UserID:    1,
-				RequestID: 1,
-				File:      loadFile("../../test_image.png"),
-			},
-			wantErr: true,
-		},
-		{
-			name: "error upload to s3",
-			req: &dto.UploadImageRequest{
-				UserID:    1,
-				RequestID: 1,
-				File:      loadFile("../../test_image.jpeg"),
-			},
-			s3cli: &s3ClientMock{
-				PutObjectFunc: func(_ *s3.PutObjectInput) (*s3.PutObjectOutput, error) {
-					return nil, errTestError
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "error add image to db + err delete from s3",
-			req: &dto.UploadImageRequest{
-				UserID:    1,
-				RequestID: 1,
-				File:      loadFile("../../test_image.jpeg"),
-			},
-			s3cli: &s3ClientMock{
-				PutObjectFunc: func(_ *s3.PutObjectInput) (*s3.PutObjectOutput, error) {
-					return nil, nil
-				},
-				DeleteObjectFunc: func(_ *s3.DeleteObjectInput) (*s3.DeleteObjectOutput, error) {
-					return nil, errTestError
-				},
-			},
-			repo: &requestsRepositoryMock{
-				AddImageFunc: func(_ uint, _ uint, _ string) error {
-					return errTestError
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "error add image to db",
-			req: &dto.UploadImageRequest{
-				UserID:    1,
-				RequestID: 1,
-				File:      loadFile("../../test_image.jpeg"),
-			},
-			s3cli: &s3ClientMock{
-				PutObjectFunc: func(_ *s3.PutObjectInput) (*s3.PutObjectOutput, error) {
-					return nil, nil
-				},
-				DeleteObjectFunc: func(_ *s3.DeleteObjectInput) (*s3.DeleteObjectOutput, error) {
-					return nil, nil
-				},
-			},
-			repo: &requestsRepositoryMock{
-				AddImageFunc: func(_ uint, _ uint, _ string) error {
-					return errTestError
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "ok",
-			req: &dto.UploadImageRequest{
-				UserID:    1,
-				RequestID: 1,
-				File:      loadFile("../../test_image.jpeg"),
-			},
-			s3cli: &s3ClientMock{
-				PutObjectFunc: func(_ *s3.PutObjectInput) (*s3.PutObjectOutput, error) {
-					return nil, nil
-				},
-			},
-			repo: &requestsRepositoryMock{
-				AddImageFunc: func(_ uint, _ uint, _ string) error {
-					return nil
-				},
-			},
-			wantErr: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := newService(defaultLogger, tt.repo, tt.s3cli, "", "")
-			_, err := s.UploadImage(context.Background(), tt.req)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("UploadImage() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-		})
-	}
-}
-
-func TestService_DeleteImage(t *testing.T) {
-	tests := []struct {
-		name    string
-		repo    requestsRepository
-		s3cli   s3Client
-		req     *dto.DeleteImageRequest
-		wantErr bool
-	}{
-		{
-			name: "error deleting from db",
-			req: &dto.DeleteImageRequest{
-				UserID:    1,
-				RequestID: 1,
-				Filepath:  "1",
-			},
-			repo: &requestsRepositoryMock{
-				DeleteImageFunc: func(_ uint, _ uint, _ string) error {
-					return errTestError
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "error deleting from s3 + err add to db",
-			req: &dto.DeleteImageRequest{
-				UserID:    1,
-				RequestID: 1,
-				Filepath:  "1",
-			},
-			repo: &requestsRepositoryMock{
-				DeleteImageFunc: func(_ uint, _ uint, _ string) error {
-					return nil
-				},
-				AddImageFunc: func(_ uint, _ uint, _ string) error {
-					return errTestError
-				},
-			},
-			s3cli: &s3ClientMock{
-				DeleteObjectFunc: func(_ *s3.DeleteObjectInput) (*s3.DeleteObjectOutput, error) {
-					return nil, errTestError
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "error deleting from s3",
-			req: &dto.DeleteImageRequest{
-				UserID:    1,
-				RequestID: 1,
-				Filepath:  "1",
-			},
-			repo: &requestsRepositoryMock{
-				DeleteImageFunc: func(_ uint, _ uint, _ string) error {
-					return nil
-				},
-				AddImageFunc: func(_ uint, _ uint, _ string) error {
-					return nil
-				},
-			},
-			s3cli: &s3ClientMock{
-				DeleteObjectFunc: func(_ *s3.DeleteObjectInput) (*s3.DeleteObjectOutput, error) {
-					return nil, errTestError
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "ok",
-			req: &dto.DeleteImageRequest{
-				UserID:    1,
-				RequestID: 1,
-				Filepath:  "1",
-			},
-			repo: &requestsRepositoryMock{
-				DeleteImageFunc: func(_ uint, _ uint, _ string) error {
-					return nil
-				},
-			},
-			s3cli: &s3ClientMock{
-				DeleteObjectFunc: func(_ *s3.DeleteObjectInput) (*s3.DeleteObjectOutput, error) {
-					return nil, nil
-				},
-			},
-			wantErr: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := newService(defaultLogger, tt.repo, tt.s3cli, "", "")
-			err := s.DeleteImage(context.Background(), tt.req)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("DeleteImage() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

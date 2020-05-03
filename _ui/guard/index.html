@@ -77,7 +77,7 @@
             <table class="shadow table table-hover">
                 <thead class="thead-dark">
                 <tr>
-                    <th scope="col">Время</th>
+                    <th scope="col">Дата</th>
                     <th scope="col">Адрес</th>
                     <th scope="col">Тип</th>
                     <th scope="col">Описание</th>
@@ -229,7 +229,7 @@
 
         $('.imageButton').on('click', function (e) {
             e.preventDefault();
-            let src = $(this).attr('src');
+            let src = $(this).attr('data-full-img');
 
             $('#modal-image').attr('src', src)
             $('#imageModalContainer').modal('show');
@@ -251,7 +251,7 @@
             }
 
             table.append("<tr>" +
-                "<td>" + date.toLocaleString() + "</td>" +
+                "<td>" + date.toLocaleDateString() + "</td>" +
                 "<td><span>" + item.address + ", кв " + item.apartment + "</span>" +
                 "<div>" +
                 "</div>" +
@@ -272,7 +272,7 @@
 
         imgBlock = "";
         images.forEach(function (item) {
-            imgBlock += "<img src='" + item + "' class='rounded float-right img-thumbnail imageButton' width='64'>";
+            imgBlock += "<img src='" + item.thumb + "' class='rounded float-right img-thumbnail imageButton' width='64' data-full-img='" + item.img + "'>";
         })
 
         return imgBlock;

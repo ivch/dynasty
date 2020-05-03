@@ -1,17 +1,11 @@
 package requests
 
 import (
-	"bytes"
 	"context"
-	"fmt"
-	"net/http"
-	"path/filepath"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/rs/zerolog"
 
-	"github.com/ivch/dynasty/common"
 	"github.com/ivch/dynasty/models/dto"
 	"github.com/ivch/dynasty/models/entities"
 )
@@ -55,64 +49,6 @@ type service struct {
 	cdnHost  string
 }
 
-func (s *service) UploadImage(_ context.Context, r *dto.UploadImageRequest) (*dto.UploadImageResponse, error) {
-	path := fmt.Sprintf("%d/", r.UserID)
-	filename := common.RandomString(15) + ".jpg"
-
-	fileType := http.DetectContentType(r.File)
-	if fileType != "image/jpeg" {
-		return nil, errFileWrongType
-	}
-
-	if _, err := s.s3Client.PutObject(&s3.PutObjectInput{
-		Bucket:      aws.String(s.s3Space),
-		Key:         aws.String(path + filename),
-		Body:        bytes.NewReader(r.File),
-		ACL:         aws.String("public-read"),
-		ContentType: aws.String(fileType),
-	}); err != nil {
-		return nil, err
-	}
-
-	if err := s.repo.AddImage(r.UserID, r.RequestID, filename); err != nil {
-		input := &s3.DeleteObjectInput{
-			Bucket: aws.String(s.s3Space),
-			Key:    aws.String(path + filename),
-		}
-
-		if _, s3err := s.s3Client.DeleteObject(input); s3err != nil {
-			return nil, s3err
-		}
-
-		return nil, err
-	}
-
-	return &dto.UploadImageResponse{
-		Path: fmt.Sprintf("%s/%s%s", s.cdnHost, path, filename),
-	}, nil
-}
-
-func (s *service) DeleteImage(_ context.Context, r *dto.DeleteImageRequest) error {
-	filename := filepath.Base(r.Filepath)
-
-	if err := s.repo.DeleteImage(r.UserID, r.RequestID, filename); err != nil {
-		return err
-	}
-
-	if _, err := s.s3Client.DeleteObject(&s3.DeleteObjectInput{
-		Bucket: aws.String(s.s3Space),
-		Key:    aws.String(fmt.Sprintf("%d/%s", r.UserID, filename)),
-	}); err != nil {
-		if err2 := s.repo.AddImage(r.UserID, r.RequestID, filename); err2 != nil {
-			return err2
-		}
-
-		return err
-	}
-
-	return nil
-}
-
 func (s *service) Get(_ context.Context, r *dto.RequestByID) (*dto.RequestByIDResponse, error) {
 	req, err := s.repo.GetRequestByIDAndUser(r.ID, r.UserID)
 	if err != nil {
@@ -126,11 +62,11 @@ func (s *service) Get(_ context.Context, r *dto.RequestByID) (*dto.RequestByIDRe
 		Time:        req.Time,
 		Description: req.Description,
 		Status:      req.Status,
-		Images:      make([]string, len(req.Images)),
+		Images:      make([]map[string]string, len(req.Images)),
 	}
 
 	for i := range req.Images {
-		resp.Images[i] = fmt.Sprintf("%s/%d/%s", s.cdnHost, r.UserID, req.Images[i])
+		resp.Images[i] = s.buildImageURL(req.Images[i])
 	}
 	return &resp, nil
 }
@@ -147,11 +83,8 @@ func (s *service) Delete(_ context.Context, r *dto.RequestByID) error {
 
 	for i := range req.Images {
 		// todo rework this code to handle errors correctly
-		//nolint: errcheck
-		s.s3Client.DeleteObject(&s3.DeleteObjectInput{
-			Bucket: aws.String(s.s3Space),
-			Key:    aws.String(fmt.Sprintf("%d/%s", r.UserID, req.Images[i])),
-		})
+		// nolint: errcheck
+		s.deleteImageFromS3(req.Images[i])
 	}
 
 	return s.repo.Delete(r.ID, r.UserID)
@@ -197,10 +130,10 @@ func (s *service) My(_ context.Context, r *dto.RequestListFilterRequest) (*dto.R
 			Time:        reqs[i].Time,
 			Description: reqs[i].Description,
 			Status:      reqs[i].Status,
-			Images:      make([]string, len(reqs[i].Images)),
+			Images:      make([]map[string]string, len(reqs[i].Images)),
 		}
 		for j := range reqs[i].Images {
-			data[i].Images[j] = fmt.Sprintf("%s/%d/%s", s.cdnHost, reqs[i].UserID, reqs[i].Images[j])
+			data[i].Images[j] = s.buildImageURL(reqs[i].Images[j])
 		}
 	}
 
