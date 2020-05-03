@@ -7,3 +7,4 @@ vendor/
 .data/
 cmd/.env
 .DS_Store
+docker-localhost.yml
