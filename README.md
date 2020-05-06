@@ -1,4 +1,5 @@
 ![Master](https://github.com/ivch/dynasty/workflows/Master/badge.svg?branch=master)
+[![codecov](https://codecov.io/gh/ivch/dynasty/branch/master/graph/badge.svg)](https://codecov.io/gh/ivch/dynasty)
 
 ## Build
 `docker-compose build`

@@ -30,7 +30,7 @@ jobs:
         run: ./bin/golangci-lint run
 
       - name: Test and Build image
-        run: make build
+        run: CODECOV_TOKEN=${{secrets.DYN_CODECOV_TOKEN}} make build
 
       - name: Tag and Push image
         run: |

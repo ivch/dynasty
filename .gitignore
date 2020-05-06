@@ -2,6 +2,7 @@
 bkp/.data
 letsencrypt
 coverage.html
+coverage.txt
 zoneinfo.tar.gz
 vendor/
 .data/

@@ -34,7 +34,7 @@ deps:
 .PHONY: build
 build:
 	tar cfz zoneinfo.tar.gz /usr/share/zoneinfo
-	docker build -t ${IMAGE_NAME}:${IMAGE_TAG}  .
+	docker build --build-arg CODECOV_TOKEN=${DYN_CODECOV_TOKEN} -t ${IMAGE_NAME}:${IMAGE_TAG}  .
 	rm zoneinfo.tar.gz
 
 .PHONY: cover
