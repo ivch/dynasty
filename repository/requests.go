@@ -79,7 +79,8 @@ func (r *Requests) UpdateForGuard(id uint, status string) error {
 
 func (r *Requests) ListByUser(req *dto.RequestListFilterRequest) ([]*entities.Request, error) {
 	var reqs []*entities.Request
-	if err := r.db.Limit(req.Limit).Offset(req.Offset).Where("user_id = ?", req.UserID).Find(&reqs).Error; err != nil {
+	if err := r.db.Limit(req.Limit).Offset(req.Offset).Where("user_id = ?", req.UserID).Find(&reqs).
+		Order("time desc").Error; err != nil {
 		return nil, err
 	}
 	return reqs, nil
