@@ -9,7 +9,9 @@
     <meta http-equiv="refresh" content="60"/>
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="/ui/assets/css/bootstrap.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
 
     <title>Система заявок | ЖК Династия</title>
     <style>
@@ -80,6 +82,22 @@
         <div class="col-12">
             <table class="shadow table table-hover">
                 <tbody id="itemsTableBody">
+                <tr>
+                    <td>
+                        <h4><span class='badge badge-info float-left'>такси</span></h4><br/>
+                        <b>149 # 37 - Б</b> | John Doe : 380676321508
+                        <br>
+                        Соображения высшего порядка, а также социально-экономическое развитие требует от нас системного
+                        анализа соответствующих условий активизации? Таким образом, повышение уровня гражданского
+                        сознания создаёт предпосылки качественно новых шагов для дальнейших направлений развитая системы
+                        массового участия.
+                    </td>
+                    <td>
+                        <button type='button' class='btn btn-success actionButton float-right' data-action='closed'
+                                data-id='1'>Закрыть
+                        </button>
+                    </td>
+                </tr>
                 </tbody>
             </table>
         </div>
@@ -101,9 +119,15 @@
 </div>
 
 
-<script type="application/javascript" src="/ui/assets/js/jquery.js"></script>
-<script type="application/javascript" src="/ui/assets/js/popper.js"></script>
-<script type="application/javascript" src="/ui/assets/js/bootstrap.js"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+        crossorigin="anonymous"></script>
 
 <script type="application/javascript">
     const getQueryParams = (hash) => {
@@ -254,12 +278,24 @@
 
             table.append("<tr>" +
                 "<td>" +
-                "<h4><span class='badge badge-info float-left'>" + reqType[item.type] + "</span></h4><br/>" +
-                "<b>" + item.address + " # " + item.apartment + "</b> | " + item.user_name + ": " + item.phone +
+                "<h3><span class='badge badge-info float-left'>" + reqType[item.type] + "</span></h3>" +
+                "<span class='float-left'>" + date.toLocaleDateString() + " <span>" + item.address + " # " + item.apartment + "</span>" +
+                "<br/>" + item.user_name + ": " + item.phone +
                 "<br/>" + item.description +
                 "<br/>" + images +
                 "</td>" +
-                "<td>" + actionButton(item.status, item.id) + "</td>" +
+                "<td class='float-right'>" + actionButton(item.status, item.id) + "</td>" +
+
+                // "<td>" + date.toLocaleDateString() + "</td>" +
+                // "<td><span>" + item.address + " # " + item.apartment + "</span>" +
+                // "<div>" +
+                // "</div>" +
+                // item.user_name + ": " + item.phone +
+                // images +
+                // "</td>" +
+                // "<td>" + reqType[item.type] + "</td>" +
+                // "<td>" + item.description + "</td>" +
+                //
                 "</tr>");
         });
     }
