@@ -29,7 +29,7 @@ func (s *service) GuardRequestList(_ context.Context, r *dto.RequestListFilterRe
 			Status:      reqs[i].Status,
 			UserName:    fmt.Sprintf("%s %s", reqs[i].User.FirstName, reqs[i].User.LastName),
 			Phone:       reqs[i].User.Phone,
-			Address:     reqs[i].User.Building.Address,
+			Address:     reqs[i].User.Building.Name,
 			Apartment:   reqs[i].User.Apartment,
 			Images:      make([]map[string]string, len(reqs[i].Images)),
 		}

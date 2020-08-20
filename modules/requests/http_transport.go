@@ -170,7 +170,7 @@ func decodeUploadImageRequest(log *zerolog.Logger) httptransport.DecodeRequestFu
 			return nil, errNoFile
 		}
 
-		if header.Size > (5 << 20) {
+		if header.Size > (5 << 20) { // 5Mb
 			log.Error().Err(err).Msg(errFileIsTooBig.Error())
 			return nil, errFileIsTooBig
 		}
@@ -236,14 +236,19 @@ func decodeGuardListRequest(log *zerolog.Logger) httptransport.DecodeRequestFunc
 			Type:      r.URL.Query().Get("type"),
 			Status:    r.URL.Query().Get("status"),
 			Apartment: r.URL.Query().Get("apartment"),
+			Place:     r.URL.Query().Get("place"),
 		}
 
 		if req.Type == "" {
-			req.Type = "all"
+			req.Type = "all" // nolint: goconst
+		}
+
+		if req.Place == "" {
+			req.Place = "all" // nolint: goconst
 		}
 
 		if req.Status == "" {
-			req.Status = "all"
+			req.Status = "all" // nolint: goconst
 		}
 
 		if err := validator.New().Struct(&req); err != nil {

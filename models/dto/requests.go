@@ -65,6 +65,7 @@ type RequestListFilterRequest struct {
 	// DateFrom   *time.Time `json:"date_from,omitepmpty"`
 	// DateTo     *time.Time `json:"date_to,omitempty"`
 	Type      string `json:"type,omitempty" validate:"oneof=all taxi guest delivery noise complain"`
+	Place     string `json:"place,omitempty" validate:"oneof=all kpp"`
 	Offset    uint   `json:"offset" validate:"min=0"`
 	Limit     uint   `json:"limit" validate:"required,min=1"`
 	UserID    uint   `json:"user_id,omitempty"`
