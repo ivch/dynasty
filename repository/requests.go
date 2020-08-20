@@ -97,6 +97,10 @@ func buildGuardFilterQuery(db *gorm.DB, req *dto.RequestListFilterRequest) *gorm
 		q = q.Where("type = ?", req.Type)
 	}
 
+	if req.Place == "kpp" {
+		q = q.Where("type IN (?)", []string{"taxi", "guest", "delivery"})
+	}
+
 	if req.Status != "all" {
 		q = q.Where("status = ?", req.Status)
 	}

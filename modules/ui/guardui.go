@@ -1,10 +1,12 @@
 package ui
 
 import (
+	"fmt"
 	"html/template"
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/go-chi/chi"
 )
@@ -32,12 +34,21 @@ func NewHTTPHandler(apiHost, pageURI string, pagerLimit int) http.Handler {
 		}
 	})
 
-	r.Get("/assets/img/logo.png", func(w http.ResponseWriter, r *http.Request) {
-		// fp, _ := os.Open("../ui/guard/img/" + chi.URLParam(r, "filename"))
-		fp, err := os.Open("../_ui/guard/img/logo.png")
+	r.Get("/assets/{folder:(img|css|js)}/{filename}", func(w http.ResponseWriter, r *http.Request) {
+		folder := chi.URLParam(r, "folder")
+		filename := chi.URLParam(r, "filename")
+		ext := filepath.Ext(filename)
+
+		fp, err := os.Open(fmt.Sprintf("../_ui/guard/%s/%s", folder, filename))
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusNotFound)
 			return
+		}
+		switch ext {
+		case ".js":
+			w.Header().Add("Content-Type", "text/javascript")
+		case ".css":
+			w.Header().Add("Content-Type", "text/css")
 		}
 		io.Copy(w, fp)
 	})

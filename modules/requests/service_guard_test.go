@@ -62,7 +62,7 @@ func TestService_GuardRequestList(t *testing.T) {
 							Description: "1",
 							Status:      "1",
 							User: &entities.User{
-								Building:  entities.Building{Address: "1"},
+								Building:  entities.Building{Name: "1"},
 								Apartment: 1,
 								Phone:     "1",
 								FirstName: "1",

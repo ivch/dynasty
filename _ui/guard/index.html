@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
+    <link rel="icon" type="image/x-icon" href="/ui/assets/img/favicon.ico"/>
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -8,8 +9,7 @@
     <meta http-equiv="refresh" content="60"/>
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
-          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="/ui/assets/css/bootstrap.css">
 
     <title>Система заявок | ЖК Династия</title>
     <style>
@@ -34,7 +34,11 @@
         /*    color: #434652;*/
         /*}*/
 
-        .itemsStatusFilter.active {
+        .itemsStatusFilter, .itemsTypeFilter {
+            width: 95%;
+        }
+
+        .itemsStatusFilter.active, .itemsTypeFilter.active {
             background-color: #1A92B0 !important;
         }
 
@@ -50,7 +54,7 @@
 </head>
 <body>
 <nav class="navbar navbar-light">
-    <a class="navbar-brand" href="/guard">
+    <a class="navbar-brand" href="/ui/guard">
         <img src="/ui/assets/img/logo.png" width="30" height="30" class="d-inline-block align-top" alt="">
         ЖК Династия
     </a>
@@ -58,10 +62,10 @@
 <div class="container mt-2">
     <ul class="nav nav-pills nav-fill justify-content-center">
         <li class="nav-item">
-            <a class="nav-link itemsStatusFilter" data-value="new" href="#">открытые</a>
+            <a class="nav-link itemsTypeFilter" data-value="kpp" href="#">только для КПП</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link itemsStatusFilter" href="#" data-value="all">все</a>
+            <a class="nav-link itemsStatusFilter" href="#" data-value="new">только открытые</a>
         </li>
         <li class="text-left w-auto">
             <div class="input-group input-group-sm text-left mt-2 ml-2">
@@ -106,15 +110,9 @@
 </div>
 
 
-<script src="https://code.jquery.com/jquery-3.4.1.min.js"
-        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
-        crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-        crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
-        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
-        crossorigin="anonymous"></script>
+<script type="application/javascript" src="/ui/assets/js/jquery.js"></script>
+<script type="application/javascript" src="/ui/assets/js/popper.js"></script>
+<script type="application/javascript" src="/ui/assets/js/bootstrap.js"></script>
 
 <script type="application/javascript">
     const getQueryParams = (hash) => {
@@ -134,10 +132,17 @@
     let queryParams = getQueryParams(window.location.hash.substr(1));
     let currPage = typeof queryParams["page"] === "undefined" ? 1 : parseInt(queryParams["page"]);
     let limit = {{.PagerLimit}};
-    let reqStatus = !localStorage.getItem('reqStatus') ? 'new' : localStorage.getItem('reqStatus');
+    let reqStatusFilter = !localStorage.getItem('reqStatus') ? 'new' : localStorage.getItem('reqStatus');
+    let reqTypeFilter = !localStorage.getItem('reqType') ? 'kpp' : localStorage.getItem('reqType');
 
     $(document).ready(function () {
-        $(`.itemsStatusFilter[data-value='${reqStatus}']`).addClass('active');
+        if (reqStatusFilter === 'new') {
+            $(`.itemsStatusFilter`).addClass('active');
+        }
+
+        if (reqTypeFilter === 'kpp') {
+            $(`.itemsTypeFilter`).addClass('active');
+        }
 
         $('#itemsTableBody').on('click', '.actionButton', function (e) {
             e.preventDefault();
@@ -165,9 +170,15 @@
 
         $('.itemsStatusFilter').on('click', function (e) {
             e.preventDefault();
-            $('.itemsStatusFilter').removeClass('active');
-            $(this).addClass('active');
-            localStorage.setItem('reqStatus', $(this).attr('data-value'));
+            newStatus = reqStatusFilter === 'new' ? 'all' : 'new';
+            localStorage.setItem('reqStatus', newStatus);
+            window.location = pageURI;
+        });
+
+        $('.itemsTypeFilter').on('click', function (e) {
+            e.preventDefault();
+            newTypeFilter = reqTypeFilter === 'kpp' ? 'all' : 'kpp';
+            localStorage.setItem('reqType', newTypeFilter);
             window.location = pageURI;
         });
 
@@ -202,12 +213,12 @@
     });
 
     function loadItems() {
-        reqStatus = !localStorage.getItem('reqStatus') ? 'new' : localStorage.getItem('reqStatus');
+        reqStatusFilter = !localStorage.getItem('reqStatus') ? 'new' : localStorage.getItem('reqStatus');
         currPage = typeof queryParams["page"] === "undefined" ? 1 : parseInt(queryParams["page"]);
 
         let offset = (parseInt(currPage) - 1) * limit;
         let apt = !localStorage.getItem('apt') ? '' : localStorage.getItem('apt');
-        let endpoint = `${apiHost}/v1/guard/list?offset=${offset}&limit=${limit}&status=${reqStatus}&apartment=${apt}`;
+        let endpoint = `${apiHost}/v1/guard/list?offset=${offset}&limit=${limit}&status=${reqStatusFilter}&place=${reqTypeFilter}&apartment=${apt}`;
 
         $.get(endpoint, function () {
         }).done(function (data) {
@@ -252,10 +263,10 @@
 
             table.append("<tr>" +
                 "<td>" + date.toLocaleDateString() + "</td>" +
-                "<td><span>" + item.address + ", кв " + item.apartment + "</span>" +
+                "<td><span>" + item.address + " # " + item.apartment + "</span>" +
                 "<div>" +
                 "</div>" +
-                "<button type='button' class='btn btn-sm btn-primary contacts-popover' data-container='body' data-toggle='popover' data-placement='top' data-content='" + item.user_name + ": " + item.phone + "'>контакты</button>" +
+                item.user_name + ": " + item.phone +
                 images +
                 "</td>" +
                 "<td>" + reqType[item.type] + "</td>" +
