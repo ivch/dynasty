@@ -63,6 +63,7 @@ func TestService_GuardRequestList(t *testing.T) {
 							Status:      "1",
 							User: &entities.User{
 								Building:  entities.Building{Name: "1"},
+								Entry:     entities.Entry{Name: "2"},
 								Apartment: 1,
 								Phone:     "1",
 								FirstName: "1",
@@ -93,7 +94,7 @@ func TestService_GuardRequestList(t *testing.T) {
 						Status:      "1",
 						UserName:    "1 1",
 						Phone:       "1",
-						Address:     "1",
+						Address:     "1, 2",
 						Apartment:   1,
 						Images: []map[string]string{
 							{
