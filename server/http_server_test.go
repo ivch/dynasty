@@ -13,21 +13,13 @@ func TestNew(t *testing.T) {
 	health := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
-	settings := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
-
+	hh := map[string]http.Handler{"/health": health}
 	t.Run("tt.name", func(t *testing.T) {
-		got, err := New(":8080", log, health, settings)
+		got, err := New(":8080", log, hh)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if reflect.DeepEqual(got.health, health) {
-			t.Errorf("expected health handler: %v, but got: %v", got.health, health)
-		}
-		if reflect.DeepEqual(got.svc, settings) {
-			t.Errorf("expected svc handler: %v, but got: %v", got.health, health)
-		}
+
 		if got.server.Addr != ":8080" {
 			t.Errorf("expected :8080 server addres, but got: %s", got.server.Addr)
 		}
@@ -41,7 +33,8 @@ func TestServer_Serve(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
-	srv, err := New(":3000", &testLogger{}, handler, handler)
+	hh := map[string]http.Handler{"/handle": handler}
+	srv, err := New(":3000", &testLogger{}, hh)
 	if err != nil {
 		t.Fatal(err)
 	}

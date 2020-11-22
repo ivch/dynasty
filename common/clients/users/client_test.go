@@ -88,7 +88,7 @@ func TestClient_UserByPhoneAndPassword(t *testing.T) {
 		phone    string
 		password string
 		wantErr  bool
-		want     *users.User
+		want     *transport.UserByIDResponse
 	}{
 		{
 			name:    "error empty phone",
@@ -123,11 +123,13 @@ func TestClient_UserByPhoneAndPassword(t *testing.T) {
 				},
 			},
 			wantErr: false,
-			want: &users.User{
+			want: &transport.UserByIDResponse{
 				ID:        1,
 				FirstName: "1",
 				LastName:  "1",
 				Role:      1,
+				Building:  &users.Building{},
+				Entry:     &users.Entry{},
 			},
 		},
 	}
