@@ -409,7 +409,7 @@ func (h *HTTPTransport) GuardList(w http.ResponseWriter, r *http.Request) {
 			Status:      res[i].Status,
 			UserName:    res[i].User.FirstName + " " + res[i].User.LastName,
 			Phone:       res[i].User.Phone,
-			Address:     res[i].User.Building.Name,
+			Address:     res[i].User.Building.Name + ", " + res[i].User.Entry.Name,
 			Apartment:   res[i].User.Apartment,
 			Images:      res[i].ImagesURL,
 		}

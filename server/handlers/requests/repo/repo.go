@@ -74,7 +74,7 @@ func buildGuardFilterQuery(db *gorm.DB, req *requests.RequestListFilter) *gorm.D
 	from := time.Now().Add(-12 * time.Hour).Unix()
 	to := time.Now().Add(12 * time.Hour).Unix()
 
-	q := db.Preload("User.Building").
+	q := db.Preload("User.Building").Preload("User.Entry").
 		Where("time >= ? AND time <= ?", from, to)
 
 	if req.Type != "all" {

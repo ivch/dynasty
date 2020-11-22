@@ -721,7 +721,7 @@ func TestHTTP_GuardList(t *testing.T) {
 			},
 			wantErr:  false,
 			wantCode: http.StatusOK,
-			want:     `{"data":[{"id":1,"user_id":1,"type":"1","time":1,"description":"1","status":"1","user_name":" ","phone":"","address":"","apartment":0}],"count":1}`,
+			want:     `{"data":[{"id":1,"user_id":1,"type":"1","time":1,"description":"1","status":"1","user_name":" ","phone":"","address":", ","apartment":0}],"count":1}`,
 		},
 		{
 			name:  "ok w images",
@@ -749,7 +749,7 @@ func TestHTTP_GuardList(t *testing.T) {
 			},
 			wantErr:  false,
 			wantCode: http.StatusOK,
-			want:     `{"data":[{"id":1,"user_id":1,"type":"1","time":1,"description":"1","status":"1","user_name":" ","phone":"","address":"","apartment":0,"images":[{"img":"a","thumb":"b"}]}],"count":1}`,
+			want:     `{"data":[{"id":1,"user_id":1,"type":"1","time":1,"description":"1","status":"1","user_name":" ","phone":"","address":", ","apartment":0,"images":[{"img":"a","thumb":"b"}]}],"count":1}`,
 		},
 	}
 	for _, tt := range tests {
