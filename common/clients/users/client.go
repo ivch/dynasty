@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ivch/dynasty/models/dto"
-	"github.com/ivch/dynasty/models/entities"
+	"github.com/ivch/dynasty/server/handlers/users"
+	"github.com/ivch/dynasty/server/handlers/users/transport"
 )
 
 type Client struct {
@@ -20,12 +20,11 @@ func New(svc userService) *Client {
 }
 
 type userService interface {
-	Register(ctx context.Context, req *dto.UserRegisterRequest) (*dto.UserRegisterResponse, error)
-	UserByPhoneAndPassword(ctx context.Context, phone, password string) (*dto.UserAuthResponse, error)
-	UserByID(ctx context.Context, id uint) (*dto.UserByIDResponse, error)
+	UserByPhoneAndPassword(ctx context.Context, phone, password string) (*users.User, error)
+	UserByID(ctx context.Context, id uint) (*users.User, error)
 }
 
-func (c *Client) UserByID(ctx context.Context, id uint) (*entities.User, error) {
+func (c *Client) UserByID(ctx context.Context, id uint) (*transport.UserByIDResponse, error) {
 	if id == 0 {
 		return nil, errors.New("empty id")
 	}
@@ -35,30 +34,41 @@ func (c *Client) UserByID(ctx context.Context, id uint) (*entities.User, error) 
 		return nil, fmt.Errorf("create request: %w", err)
 	}
 
-	return &entities.User{
+	return &transport.UserByIDResponse{
 		ID:        res.ID,
 		Role:      res.Role,
 		FirstName: res.FirstName,
 		LastName:  res.LastName,
 		Phone:     res.Phone,
 		Email:     res.Email,
+		Active:    res.Active,
 	}, nil
 }
 
-func (c *Client) UserByPhoneAndPassword(ctx context.Context, phone, password string) (*entities.User, error) {
+func (c *Client) UserByPhoneAndPassword(ctx context.Context, phone, password string) (*transport.UserByIDResponse, error) {
 	if phone == "" {
+		return nil, errors.New("empty phone")
+	}
+
+	if password == "" {
 		return nil, errors.New("empty phone")
 	}
 
 	res, err := c.svc.UserByPhoneAndPassword(ctx, phone, password)
 	if err != nil {
-		return nil, errors.New("user with give credentials not found")
+		return nil, errors.New("user with given credentials not found")
 	}
-	return &entities.User{
+
+	return &transport.UserByIDResponse{
 		ID:        res.ID,
-		Role:      res.Role,
+		Apartment: res.Apartment,
 		FirstName: res.FirstName,
 		LastName:  res.LastName,
+		Phone:     res.Phone,
+		Email:     res.Email,
+		Role:      res.Role,
+		Building:  &res.Building,
+		Entry:     &res.Entry,
 		Active:    res.Active,
 	}, nil
 }

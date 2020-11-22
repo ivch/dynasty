@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/ivch/dynasty/models/dto"
-	"github.com/ivch/dynasty/models/entities"
+	"github.com/ivch/dynasty/server/handlers/users"
+	"github.com/ivch/dynasty/server/handlers/users/transport"
 )
 
 var errTestError = errors.New("some err")
@@ -18,7 +18,7 @@ func TestClient_UserByID(t *testing.T) {
 		usrv    userService
 		id      uint
 		wantErr bool
-		want    *entities.User
+		want    *transport.UserByIDResponse
 	}{
 		{
 			name:    "error wrong id",
@@ -29,7 +29,7 @@ func TestClient_UserByID(t *testing.T) {
 			name: "error from service",
 			id:   1,
 			usrv: &userServiceMock{
-				UserByIDFunc: func(_ context.Context, _ uint) (*dto.UserByIDResponse, error) {
+				UserByIDFunc: func(_ context.Context, _ uint) (*users.User, error) {
 					return nil, errTestError
 				},
 			},
@@ -39,11 +39,11 @@ func TestClient_UserByID(t *testing.T) {
 			name: "ok",
 			id:   1,
 			usrv: &userServiceMock{
-				UserByIDFunc: func(_ context.Context, id uint) (*dto.UserByIDResponse, error) {
+				UserByIDFunc: func(_ context.Context, id uint) (*users.User, error) {
 					if id != 1 {
 						return nil, errTestError
 					}
-					return &dto.UserByIDResponse{
+					return &users.User{
 						ID:        1,
 						FirstName: "1",
 						LastName:  "1",
@@ -54,7 +54,7 @@ func TestClient_UserByID(t *testing.T) {
 				},
 			},
 			wantErr: false,
-			want: &entities.User{
+			want: &transport.UserByIDResponse{
 				ID:        1,
 				Email:     "1",
 				Phone:     "1",
@@ -88,7 +88,7 @@ func TestClient_UserByPhoneAndPassword(t *testing.T) {
 		phone    string
 		password string
 		wantErr  bool
-		want     *entities.User
+		want     *users.User
 	}{
 		{
 			name:    "error empty phone",
@@ -99,7 +99,7 @@ func TestClient_UserByPhoneAndPassword(t *testing.T) {
 			name:  "error from service",
 			phone: "1",
 			usrv: &userServiceMock{
-				UserByPhoneAndPasswordFunc: func(_ context.Context, _ string, _ string) (*dto.UserAuthResponse, error) {
+				UserByPhoneAndPasswordFunc: func(_ context.Context, _ string, _ string) (*users.User, error) {
 					return nil, errTestError
 				},
 			},
@@ -110,11 +110,11 @@ func TestClient_UserByPhoneAndPassword(t *testing.T) {
 			phone:    "1",
 			password: "1",
 			usrv: &userServiceMock{
-				UserByPhoneAndPasswordFunc: func(_ context.Context, phone string, password string) (*dto.UserAuthResponse, error) {
+				UserByPhoneAndPasswordFunc: func(_ context.Context, phone string, password string) (*users.User, error) {
 					if phone != "1" || password != "1" {
 						return nil, errTestError
 					}
-					return &dto.UserAuthResponse{
+					return &users.User{
 						ID:        1,
 						FirstName: "1",
 						LastName:  "1",
@@ -123,7 +123,7 @@ func TestClient_UserByPhoneAndPassword(t *testing.T) {
 				},
 			},
 			wantErr: false,
-			want: &entities.User{
+			want: &users.User{
 				ID:        1,
 				FirstName: "1",
 				LastName:  "1",

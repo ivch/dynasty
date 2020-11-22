@@ -6,16 +6,17 @@ import (
 	"github.com/ivch/dynasty/server/handlers/users"
 )
 
-type userByIDResponse struct {
+type UserByIDResponse struct {
 	ID        uint            `json:"id"`
 	Apartment uint            `json:"apartment"`
 	FirstName string          `json:"first_name"`
 	LastName  string          `json:"last_name"`
 	Phone     string          `json:"phone"`
 	Email     string          `json:"email"`
-	Role      uint            `json:"role"`
+	Role      uint            `json:"role,omitempty"`
 	Building  *users.Building `json:"building"`
 	Entry     *users.Entry    `json:"entry,omitempty"`
+	Active    bool            `json:"active" gorm:"active"`
 }
 
 type errorResponse struct {
@@ -65,9 +66,4 @@ type familyMember struct {
 	Phone  string `json:"phone"`
 	Code   string `json:"code"`
 	Active bool   `json:"active"`
-}
-
-type deleteFamilyMemberRequest struct {
-	OwnerID  uint
-	MemberID uint
 }

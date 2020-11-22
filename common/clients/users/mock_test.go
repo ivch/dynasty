@@ -5,13 +5,11 @@ package users
 
 import (
 	"context"
+	"github.com/ivch/dynasty/server/handlers/users"
 	"sync"
-
-	"github.com/ivch/dynasty/models/dto"
 )
 
 var (
-	lockuserServiceMockRegister               sync.RWMutex
 	lockuserServiceMockUserByID               sync.RWMutex
 	lockuserServiceMockUserByPhoneAndPassword sync.RWMutex
 )
@@ -26,13 +24,10 @@ var _ userService = &userServiceMock{}
 //
 //         // make and configure a mocked userService
 //         mockeduserService := &userServiceMock{
-//             RegisterFunc: func(ctx context.Context, req *dto.UserRegisterRequest) (*dto.UserRegisterResponse, error) {
-// 	               panic("mock out the Register method")
-//             },
-//             UserByIDFunc: func(ctx context.Context, id uint) (*dto.UserByIDResponse, error) {
+//             UserByIDFunc: func(ctx context.Context, id uint) (*users.User, error) {
 // 	               panic("mock out the UserByID method")
 //             },
-//             UserByPhoneAndPasswordFunc: func(ctx context.Context, phone string, password string) (*dto.UserAuthResponse, error) {
+//             UserByPhoneAndPasswordFunc: func(ctx context.Context, phone string, password string) (*users.User, error) {
 // 	               panic("mock out the UserByPhoneAndPassword method")
 //             },
 //         }
@@ -42,24 +37,14 @@ var _ userService = &userServiceMock{}
 //
 //     }
 type userServiceMock struct {
-	// RegisterFunc mocks the Register method.
-	RegisterFunc func(ctx context.Context, req *dto.UserRegisterRequest) (*dto.UserRegisterResponse, error)
-
 	// UserByIDFunc mocks the UserByID method.
-	UserByIDFunc func(ctx context.Context, id uint) (*dto.UserByIDResponse, error)
+	UserByIDFunc func(ctx context.Context, id uint) (*users.User, error)
 
 	// UserByPhoneAndPasswordFunc mocks the UserByPhoneAndPassword method.
-	UserByPhoneAndPasswordFunc func(ctx context.Context, phone string, password string) (*dto.UserAuthResponse, error)
+	UserByPhoneAndPasswordFunc func(ctx context.Context, phone string, password string) (*users.User, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
-		// Register holds details about calls to the Register method.
-		Register []struct {
-			// Ctx is the ctx argument value.
-			Ctx context.Context
-			// Req is the req argument value.
-			Req *dto.UserRegisterRequest
-		}
 		// UserByID holds details about calls to the UserByID method.
 		UserByID []struct {
 			// Ctx is the ctx argument value.
@@ -79,43 +64,8 @@ type userServiceMock struct {
 	}
 }
 
-// Register calls RegisterFunc.
-func (mock *userServiceMock) Register(ctx context.Context, req *dto.UserRegisterRequest) (*dto.UserRegisterResponse, error) {
-	if mock.RegisterFunc == nil {
-		panic("userServiceMock.RegisterFunc: method is nil but userService.Register was just called")
-	}
-	callInfo := struct {
-		Ctx context.Context
-		Req *dto.UserRegisterRequest
-	}{
-		Ctx: ctx,
-		Req: req,
-	}
-	lockuserServiceMockRegister.Lock()
-	mock.calls.Register = append(mock.calls.Register, callInfo)
-	lockuserServiceMockRegister.Unlock()
-	return mock.RegisterFunc(ctx, req)
-}
-
-// RegisterCalls gets all the calls that were made to Register.
-// Check the length with:
-//     len(mockeduserService.RegisterCalls())
-func (mock *userServiceMock) RegisterCalls() []struct {
-	Ctx context.Context
-	Req *dto.UserRegisterRequest
-} {
-	var calls []struct {
-		Ctx context.Context
-		Req *dto.UserRegisterRequest
-	}
-	lockuserServiceMockRegister.RLock()
-	calls = mock.calls.Register
-	lockuserServiceMockRegister.RUnlock()
-	return calls
-}
-
 // UserByID calls UserByIDFunc.
-func (mock *userServiceMock) UserByID(ctx context.Context, id uint) (*dto.UserByIDResponse, error) {
+func (mock *userServiceMock) UserByID(ctx context.Context, id uint) (*users.User, error) {
 	if mock.UserByIDFunc == nil {
 		panic("userServiceMock.UserByIDFunc: method is nil but userService.UserByID was just called")
 	}
@@ -150,7 +100,7 @@ func (mock *userServiceMock) UserByIDCalls() []struct {
 }
 
 // UserByPhoneAndPassword calls UserByPhoneAndPasswordFunc.
-func (mock *userServiceMock) UserByPhoneAndPassword(ctx context.Context, phone string, password string) (*dto.UserAuthResponse, error) {
+func (mock *userServiceMock) UserByPhoneAndPassword(ctx context.Context, phone string, password string) (*users.User, error) {
 	if mock.UserByPhoneAndPasswordFunc == nil {
 		panic("userServiceMock.UserByPhoneAndPasswordFunc: method is nil but userService.UserByPhoneAndPassword was just called")
 	}

@@ -5,18 +5,9 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/ivch/dynasty/common/errs"
 	"github.com/ivch/dynasty/common/logger"
-	"github.com/ivch/dynasty/server/handlers/users/errs"
 )
-
-type Service interface {
-	Register(ctx context.Context, u *User) (*User, error)
-	// UserByPhoneAndPassword(ctx context.Context, phone, password string) (*User, error)
-	UserByID(ctx context.Context, id uint) (*User, error)
-	// AddFamilyMember(ctx context.Context, r *dto.AddFamilyMemberRequest) (*dto.AddFamilyMemberResponse, error)
-	// ListFamilyMembers(ctx context.Context, id uint) (*dto.ListFamilyMembersResponse, error)
-	// DeleteFamilyMember(ctx context.Context, r *dto.DeleteFamilyMemberRequest) error
-}
 
 type userRepository interface {
 	GetUserByID(id uint) (*User, error)
@@ -26,62 +17,63 @@ type userRepository interface {
 	DeleteUser(u *User) error
 	ValidateRegCode(code string) error
 	UseRegCode(code string) error
-	// GetRegCode() (string, error)
-	// GetFamilyMembers(ownerID uint) ([]*entities.User, error)
+	GetRegCode() (string, error)
+	GetFamilyMembers(ownerID uint) ([]*User, error)
 	FindUserByApartment(building uint, apt uint) (*User, error)
 }
 
-type service struct {
+type Service struct {
 	repo          userRepository
 	membersLimit  int
 	verifyRegCode bool
 	log           logger.Logger
 }
 
-func New(log logger.Logger, repo userRepository, verifyRegCode bool, membersLimit int) Service {
-	s := &service{
+func New(log logger.Logger, repo userRepository, verifyRegCode bool, membersLimit int) *Service {
+	s := Service{
 		repo:          repo,
 		membersLimit:  membersLimit,
 		verifyRegCode: verifyRegCode,
 		log:           log,
 	}
 
-	return s
+	return &s
 }
 
-func (s *service) UserByID(_ context.Context, id uint) (*User, error) {
+func (s *Service) UserByID(_ context.Context, id uint) (*User, error) {
 	u, err := s.repo.GetUserByID(id)
 	if err != nil {
 		s.log.Error("error getting user from db: %w", err)
+		return nil, err
+	}
+	return u, nil
+}
+
+func (s *Service) UserByPhoneAndPassword(_ context.Context, phone, password string) (*User, error) {
+	u, err := s.repo.GetUserByPhone(phone)
+	if err != nil {
+		s.log.Error("error getting user from db: %w", err)
+		return nil, err
+	}
+
+	if u == nil {
+		return nil, errs.UserNotFound
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password)); err != nil {
+		if err == bcrypt.ErrMismatchedHashAndPassword {
+			return nil, errs.InvalidCredentials
+		}
+		s.log.Error("error comparing hash: %w", err)
 		return nil, err
 	}
 
 	return u, nil
 }
 
-// func (s *service) UserByPhoneAndPassword(_ context.Context, phone, password string) (*entities.User, error) {
-// 	u, err := s.repo.GetUserByPhone(phone)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-//
-// 	if u == nil {
-// 		return nil, errs.UserNotFound
-// 	}
-//
-// 	if err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password)); err != nil {
-// 		if err == bcrypt.ErrMismatchedHashAndPassword {
-// 			return nil, entities.ErrInvalidCredentials
-// 		}
-// 		return nil, err
-// 	}
-//
-// 	return u, nil
-// }
-
-func (s *service) Register(ctx context.Context, r *User) (*User, error) {
+func (s *Service) Register(ctx context.Context, r *User) (*User, error) {
 	user, err := s.repo.GetUserByPhone(r.Phone)
-	if err != nil && user != nil {
+	if err != nil {
 		s.log.Error("error getting user by phone: %w", err)
 		return nil, err
 	}
@@ -90,7 +82,7 @@ func (s *service) Register(ctx context.Context, r *User) (*User, error) {
 		if r.ParentID != nil {
 			return s.registerFamilyMember(ctx, r, user)
 		}
-		// return nil, entities.ErrUserPhoneExists
+		return nil, errs.FamilyMemberPhoneExists
 	}
 
 	if s.verifyRegCode {
