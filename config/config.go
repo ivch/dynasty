@@ -12,8 +12,8 @@ type Config struct {
 	DB
 	GuardUI
 	S3
-	HTTPPort   string `validate:"required"`
-	LogVerbose bool
+	HTTPPort string `validate:"required"`
+	LogLevel string
 }
 
 type UserService struct {
@@ -57,8 +57,8 @@ func New() (*Config, error) {
 	v.AutomaticEnv()
 
 	c := Config{
-		LogVerbose: v.GetBool("LOG_VERBOSE"),
-		HTTPPort:   v.GetString("HTTP_PORT"),
+		LogLevel: v.GetString("LOG_LEVEL"),
+		HTTPPort: v.GetString("HTTP_PORT"),
 		DB: DB{
 			Host:     v.GetString("DB_HOST"),
 			Port:     v.GetString("DB_PORT"),
