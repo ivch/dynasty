@@ -14,9 +14,9 @@ RUN go mod download && go mod vendor && go mod tidy
 
 COPY . .
 
-RUN CGO_ENABLED=1 GOOS=linux go test -mod=vendor -cover -race -coverprofile=coverage.txt -covermode=atomic ./...
+RUN CGO_ENABLED=1 GOOS=linux go test -mod=mod -cover -race -coverprofile=coverage.txt -covermode=atomic ./...
 RUN if [ "$CODECOV_TOKEN" != "" ] ; then curl -s https://codecov.io/bash > .codecov && chmod +x .codecov && ./.codecov -t $CODECOV_TOKEN ; fi
-RUN cd cmd && CGO_ENABLED=0 GOOS=linux go build -a -o app
+RUN cd cmd && CGO_ENABLED=0 GOOS=linux go build -mod=mod -a -o app
 
 ############################
 # STEP 2 build a small image
