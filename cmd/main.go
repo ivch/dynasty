@@ -39,6 +39,7 @@ import (
 	transportUsers "github.com/ivch/dynasty/server/handlers/users/transport"
 )
 
+// nolint: funlen
 func main() {
 	if _, err := os.Stat(".env"); !os.IsNotExist(err) {
 		if err := godotenv.Load(".env"); err != nil {
@@ -71,7 +72,7 @@ func main() {
 
 	newSession, err := session.NewSession(s3Config)
 	if err != nil {
-		stdLog.Fatalf("cannot start DO session: %w", err)
+		stdLog.Fatalf("cannot start DO session: %s", err)
 	}
 	s3Client := s3.New(newSession)
 	p := bluemonday.StrictPolicy()

@@ -19,8 +19,6 @@ type Server struct {
 	server *http.Server
 	log    logger.Logger
 	router chi.Router
-	health http.Handler
-	svc    http.Handler
 }
 
 // New returns a new instance of Server struct.
