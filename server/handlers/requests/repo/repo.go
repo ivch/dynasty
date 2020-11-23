@@ -63,6 +63,7 @@ func (r *Requests) UpdateForGuard(id uint, status string) error {
 
 func (r *Requests) ListByUser(req *requests.RequestListFilter) ([]*requests.Request, error) {
 	var reqs []*requests.Request
+	// to get soft deleted records db.Unscoped().Where().Find()
 	if err := r.db.Order("time desc").Limit(req.Limit).Offset(req.Offset).Where("user_id = ?", req.UserID).
 		Find(&reqs).Error; err != nil {
 		return nil, err

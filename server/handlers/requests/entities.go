@@ -1,6 +1,8 @@
 package requests
 
 import (
+	"time"
+
 	"github.com/lib/pq"
 
 	"github.com/ivch/dynasty/server/handlers/users"
@@ -16,6 +18,8 @@ type Request struct {
 	Images      pq.StringArray      `json:"-" gorm:"type:text[]"`
 	ImagesURL   []map[string]string `json:"images" gorm:"-"`
 	User        *users.User         `json:"user,omitempty"`
+	CreatedAt   *time.Time
+	DeletedAt   *time.Time
 }
 
 func (Request) TableName() string { return "requests" }
@@ -39,3 +43,9 @@ type Image struct {
 	URL       string
 	Thumb     string
 }
+
+// alter table requests
+// add created_at timestamp default CURRENT_TIMESTAMP not null;
+//
+// alter table requests
+// add deleted_at timestamp default null;
