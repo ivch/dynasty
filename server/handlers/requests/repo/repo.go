@@ -64,7 +64,7 @@ func (r *Requests) Update(req *requests.UpdateRequest) error {
 		}); err != nil {
 			return err
 		}
-		return tx.Table(requests.Request{}.TableName()).Debug().Where("id = ?", req.ID).Updates(update).Error // .Save(req).Error
+		return tx.Table(requests.Request{}.TableName()).Where("id = ?", req.ID).Updates(update).Error
 	})
 }
 
@@ -93,8 +93,16 @@ func (r *Requests) CountForGuard(req *requests.RequestListFilter) (int, error) {
 }
 
 func (r *Requests) UpdateForGuard(id uint, status string) error {
-	// todo save who modified the request
-	return r.db.Model(&requests.Request{}).Where("id = ?", id).Update("status", status).Error
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := r.updateRequestHistory(tx, id, &requests.HistoryRecord{
+			Time:   time.Now(),
+			UserID: 0,
+			Action: fmt.Sprintf("guard changed status: %s", status),
+		}); err != nil {
+			return err
+		}
+		return tx.Model(&requests.Request{}).Where("id = ?", id).Update("status", status).Error
+	})
 }
 
 func (r *Requests) ListByUser(req *requests.RequestListFilter) ([]*requests.Request, error) {
@@ -135,19 +143,37 @@ func buildGuardFilterQuery(db *gorm.DB, req *requests.RequestListFilter) *gorm.D
 }
 
 func (r *Requests) AddImage(userID, requestID uint, filename string) error {
-	return r.db.Table(requests.Request{}.TableName()).
-		Where("id = ? and user_id = ?", requestID, userID).
-		Update("images", gorm.Expr("array_append(images, ?)", filename)).Error
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := r.updateRequestHistory(tx, requestID, &requests.HistoryRecord{
+			Time:   time.Now(),
+			UserID: userID,
+			Action: fmt.Sprintf("uploaded image: %s", filename),
+		}); err != nil {
+			return err
+		}
+		return tx.Table(requests.Request{}.TableName()).
+			Where("id = ? and user_id = ?", requestID, userID).
+			Update("images", gorm.Expr("array_append(images, ?)", filename)).Error
+	})
 }
 
 func (r *Requests) DeleteImage(userID, requestID uint, filename string) error {
-	return r.db.Table(requests.Request{}.TableName()).
-		Where("id = ? and user_id = ?", requestID, userID).
-		Update("images", gorm.Expr("array_remove(images, ?)", filename)).Error
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := r.updateRequestHistory(tx, requestID, &requests.HistoryRecord{
+			Time:   time.Now(),
+			UserID: userID,
+			Action: fmt.Sprintf("deleted image: %s", filename),
+		}); err != nil {
+			return err
+		}
+		return tx.Table(requests.Request{}.TableName()).
+			Where("id = ? and user_id = ?", requestID, userID).
+			Update("images", gorm.Expr("array_remove(images, ?)", filename)).Error
+	})
 }
 
 func (r *Requests) updateRequestHistory(tx *gorm.DB, requestID uint, rec fmt.Stringer) error {
-	return tx.Table(requests.Request{}.TableName()).Debug().
+	return tx.Table(requests.Request{}.TableName()).
 		Where("id = ?", requestID).
 		Update("history", gorm.Expr("array_append(history, ?)", rec.String())).Error
 }

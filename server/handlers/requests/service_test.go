@@ -138,7 +138,7 @@ func TestService_Update(t *testing.T) {
 			req: &UpdateRequest{
 				ID:     1,
 				UserID: 1,
-				Type:   new(string),
+				Type:   func(s string) *string { return &s }("1"),
 			},
 			wantErr: true,
 		},
@@ -160,7 +160,7 @@ func TestService_Update(t *testing.T) {
 			req: &UpdateRequest{
 				ID:          1,
 				UserID:      1,
-				Description: nil,
+				Description: func(s string) *string { return &s }("1"),
 			},
 			wantErr: true,
 		},
@@ -179,10 +179,10 @@ func TestService_Update(t *testing.T) {
 					return nil
 				},
 			},
-			req: &Request{
+			req: &UpdateRequest{
 				ID:     1,
 				UserID: 1,
-				Status: "",
+				Status: func(s string) *string { return &s }("1"),
 			},
 			wantErr: true,
 		},
@@ -201,10 +201,10 @@ func TestService_Update(t *testing.T) {
 					return nil
 				},
 			},
-			req: &Request{
+			req: &UpdateRequest{
 				ID:     1,
 				UserID: 1,
-				Time:   1,
+				Time:   func(s int64) *int64 { return &s }(1),
 			},
 			wantErr: true,
 		},
@@ -220,7 +220,7 @@ func TestService_Update(t *testing.T) {
 					return nil
 				},
 			},
-			req: &Request{
+			req: &UpdateRequest{
 				ID:     1,
 				UserID: 1,
 			},
