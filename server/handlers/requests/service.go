@@ -3,15 +3,18 @@ package requests
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/aws/aws-sdk-go/service/s3"
 
+	"github.com/ivch/dynasty/common/errs"
 	"github.com/ivch/dynasty/common/logger"
 )
 
 const (
 	defaultRequestStatus = "new"
 	allowedFileType      = "image/jpeg"
+	requestsPerDay       = 20
 	filesPerRequest      = 3
 	imgPathPrefix        = "req/i/"
 	thumbPathPrefix      = "req/t/"
@@ -109,6 +112,21 @@ func (s *Service) My(_ context.Context, r *RequestListFilter) ([]*Request, error
 }
 
 func (s *Service) Create(_ context.Context, r *Request) (*Request, error) {
+	dateFrom := time.Now().Add(-24 * time.Hour)
+	list, err := s.repo.ListByUser(&RequestListFilter{
+		DateFrom: &dateFrom,
+		Offset:   0,
+		Limit:    25,
+		UserID:   r.UserID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(list) >= requestsPerDay {
+		return nil, errs.RequestPerDayLimitExceeded
+	}
+
 	r.Status = defaultRequestStatus
 
 	if err := s.repo.Create(r); err != nil {

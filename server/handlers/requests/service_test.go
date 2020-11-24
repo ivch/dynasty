@@ -329,8 +329,28 @@ func TestService_Create(t *testing.T) {
 		want    *Request
 	}{
 		{
+			name: "error req limit exceeded",
+			repo: &requestsRepositoryMock{
+				ListByUserFunc: func(r *RequestListFilter) ([]*Request, error) {
+					res := make([]*Request, 22)
+					return res, nil
+				},
+			},
+			req: &Request{
+				Type:        "",
+				Time:        0,
+				UserID:      0,
+				Description: "",
+			},
+			wantErr: true,
+		},
+		{
 			name: "error from db",
 			repo: &requestsRepositoryMock{
+				ListByUserFunc: func(r *RequestListFilter) ([]*Request, error) {
+					res := make([]*Request, 1)
+					return res, nil
+				},
 				CreateFunc: func(_ *Request) error {
 					return errTestError
 				},
@@ -346,6 +366,10 @@ func TestService_Create(t *testing.T) {
 		{
 			name: "ok",
 			repo: &requestsRepositoryMock{
+				ListByUserFunc: func(r *RequestListFilter) ([]*Request, error) {
+					res := make([]*Request, 1)
+					return res, nil
+				},
 				CreateFunc: func(req *Request) error {
 					req.ID = 1
 					req.Status = "new"
