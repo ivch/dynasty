@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -17,19 +18,54 @@ func New(db *gorm.DB) *Requests {
 }
 
 func (r *Requests) Delete(id, userID uint) error {
-	return r.db.Where("id = ? AND user_id = ?", id, userID).Delete(&requests.Request{}).Error
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := r.updateRequestHistory(tx, id, &requests.HistoryRecord{
+			Time:   time.Now(),
+			UserID: userID,
+			Action: "record deleted",
+		}); err != nil {
+			return err
+		}
+		return tx.Where("id = ? AND user_id = ?", id, userID).Delete(&requests.Request{}).Error
+	})
 }
 
-func (r *Requests) GetRequestByIDAndUser(id, userId uint) (*requests.Request, error) {
+func (r *Requests) GetRequestByIDAndUser(id, userID uint) (*requests.Request, error) {
 	var req requests.Request
-	if err := r.db.Where("id = ? AND user_id = ?", id, userId).First(&req).Error; err != nil {
+	if err := r.db.Where("id = ? AND user_id = ?", id, userID).First(&req).Error; err != nil {
 		return nil, err
 	}
 	return &req, nil
 }
 
-func (r *Requests) Update(req *requests.Request) error {
-	return r.db.Table(requests.Request{}.TableName()).Save(req).Error
+func (r *Requests) Update(req *requests.UpdateRequest) error {
+	update := make(map[string]interface{})
+	if req.Type != nil {
+		update["type"] = *req.Type
+	}
+
+	if req.Description != nil {
+		update["description"] = *req.Description
+	}
+
+	if req.Status != nil {
+		update["status"] = *req.Status
+	}
+
+	if req.Time != nil {
+		update["time"] = *req.Time
+	}
+
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := r.updateRequestHistory(tx, req.ID, &requests.HistoryRecord{
+			Time:   time.Now(),
+			UserID: req.UserID,
+			Action: fmt.Sprintf("record updated:%v", update),
+		}); err != nil {
+			return err
+		}
+		return tx.Table(requests.Request{}.TableName()).Debug().Where("id = ?", req.ID).Updates(update).Error // .Save(req).Error
+	})
 }
 
 func (r *Requests) Create(req *requests.Request) error {
@@ -98,14 +134,20 @@ func buildGuardFilterQuery(db *gorm.DB, req *requests.RequestListFilter) *gorm.D
 	return q
 }
 
-func (r *Requests) AddImage(userId, requestId uint, filename string) error {
+func (r *Requests) AddImage(userID, requestID uint, filename string) error {
 	return r.db.Table(requests.Request{}.TableName()).
-		Where("id = ? and user_id = ?", requestId, userId).
+		Where("id = ? and user_id = ?", requestID, userID).
 		Update("images", gorm.Expr("array_append(images, ?)", filename)).Error
 }
 
-func (r *Requests) DeleteImage(userId, requestId uint, filename string) error {
+func (r *Requests) DeleteImage(userID, requestID uint, filename string) error {
 	return r.db.Table(requests.Request{}.TableName()).
-		Where("id = ? and user_id = ?", requestId, userId).
+		Where("id = ? and user_id = ?", requestID, userID).
 		Update("images", gorm.Expr("array_remove(images, ?)", filename)).Error
+}
+
+func (r *Requests) updateRequestHistory(tx *gorm.DB, requestID uint, rec fmt.Stringer) error {
+	return tx.Table(requests.Request{}.TableName()).Debug().
+		Where("id = ?", requestID).
+		Update("history", gorm.Expr("array_append(history, ?)", rec.String())).Error
 }

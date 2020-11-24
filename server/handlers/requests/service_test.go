@@ -104,7 +104,7 @@ func TestService_Update(t *testing.T) {
 	tests := []struct {
 		name    string
 		repo    requestsRepository
-		req     *Request
+		req     *UpdateRequest
 		wantErr bool
 	}{
 		{
@@ -114,7 +114,7 @@ func TestService_Update(t *testing.T) {
 					return nil, errTestError
 				},
 			},
-			req: &Request{
+			req: &UpdateRequest{
 				ID:     1,
 				UserID: 1,
 			},
@@ -128,17 +128,17 @@ func TestService_Update(t *testing.T) {
 						Type: "1",
 					}, nil
 				},
-				UpdateFunc: func(req *Request) error {
-					if req.Type != "2" {
+				UpdateFunc: func(req *UpdateRequest) error {
+					if *req.Type != "2" {
 						return errTestError
 					}
 					return nil
 				},
 			},
-			req: &Request{
+			req: &UpdateRequest{
 				ID:     1,
 				UserID: 1,
-				Type:   "",
+				Type:   new(string),
 			},
 			wantErr: true,
 		},
@@ -150,17 +150,17 @@ func TestService_Update(t *testing.T) {
 						Description: "1",
 					}, nil
 				},
-				UpdateFunc: func(req *Request) error {
-					if req.Description != "2" {
+				UpdateFunc: func(req *UpdateRequest) error {
+					if *req.Description != "2" {
 						return errTestError
 					}
 					return nil
 				},
 			},
-			req: &Request{
+			req: &UpdateRequest{
 				ID:          1,
 				UserID:      1,
-				Description: "",
+				Description: nil,
 			},
 			wantErr: true,
 		},
@@ -172,8 +172,8 @@ func TestService_Update(t *testing.T) {
 						Status: "1",
 					}, nil
 				},
-				UpdateFunc: func(req *Request) error {
-					if req.Status != "2" {
+				UpdateFunc: func(req *UpdateRequest) error {
+					if *req.Status != "2" {
 						return errTestError
 					}
 					return nil
@@ -194,8 +194,8 @@ func TestService_Update(t *testing.T) {
 						Time: 1,
 					}, nil
 				},
-				UpdateFunc: func(req *Request) error {
-					if req.Time != 2 {
+				UpdateFunc: func(req *UpdateRequest) error {
+					if *req.Time != 2 {
 						return errTestError
 					}
 					return nil
@@ -216,7 +216,7 @@ func TestService_Update(t *testing.T) {
 						Type: "1",
 					}, nil
 				},
-				UpdateFunc: func(req *Request) error {
+				UpdateFunc: func(req *UpdateRequest) error {
 					return nil
 				},
 			},

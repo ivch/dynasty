@@ -46,7 +46,7 @@ var _ requestsRepository = &requestsRepositoryMock{}
 //             DeleteImageFunc: func(userID uint, requestID uint, filename string) error {
 // 	               panic("mock out the DeleteImage method")
 //             },
-//             GetRequestByIDAndUserFunc: func(id uint, userId uint) (*Request, error) {
+//             GetRequestByIDAndUserFunc: func(id uint, userID uint) (*Request, error) {
 // 	               panic("mock out the GetRequestByIDAndUser method")
 //             },
 //             ListByUserFunc: func(r *RequestListFilter) ([]*Request, error) {
@@ -55,7 +55,7 @@ var _ requestsRepository = &requestsRepositoryMock{}
 //             ListForGuardFunc: func(req *RequestListFilter) ([]*Request, error) {
 // 	               panic("mock out the ListForGuard method")
 //             },
-//             UpdateFunc: func(req *Request) error {
+//             UpdateFunc: func(update *UpdateRequest) error {
 // 	               panic("mock out the Update method")
 //             },
 //             UpdateForGuardFunc: func(id uint, status string) error {
@@ -84,7 +84,7 @@ type requestsRepositoryMock struct {
 	DeleteImageFunc func(userID uint, requestID uint, filename string) error
 
 	// GetRequestByIDAndUserFunc mocks the GetRequestByIDAndUser method.
-	GetRequestByIDAndUserFunc func(id uint, userId uint) (*Request, error)
+	GetRequestByIDAndUserFunc func(id uint, userID uint) (*Request, error)
 
 	// ListByUserFunc mocks the ListByUser method.
 	ListByUserFunc func(r *RequestListFilter) ([]*Request, error)
@@ -93,7 +93,7 @@ type requestsRepositoryMock struct {
 	ListForGuardFunc func(req *RequestListFilter) ([]*Request, error)
 
 	// UpdateFunc mocks the Update method.
-	UpdateFunc func(req *Request) error
+	UpdateFunc func(update *UpdateRequest) error
 
 	// UpdateForGuardFunc mocks the UpdateForGuard method.
 	UpdateForGuardFunc func(id uint, status string) error
@@ -139,8 +139,8 @@ type requestsRepositoryMock struct {
 		GetRequestByIDAndUser []struct {
 			// ID is the id argument value.
 			ID uint
-			// UserId is the userId argument value.
-			UserId uint
+			// UserID is the userID argument value.
+			UserID uint
 		}
 		// ListByUser holds details about calls to the ListByUser method.
 		ListByUser []struct {
@@ -154,8 +154,8 @@ type requestsRepositoryMock struct {
 		}
 		// Update holds details about calls to the Update method.
 		Update []struct {
-			// Req is the req argument value.
-			Req *Request
+			// Update is the update argument value.
+			Update *UpdateRequest
 		}
 		// UpdateForGuard holds details about calls to the UpdateForGuard method.
 		UpdateForGuard []struct {
@@ -343,21 +343,21 @@ func (mock *requestsRepositoryMock) DeleteImageCalls() []struct {
 }
 
 // GetRequestByIDAndUser calls GetRequestByIDAndUserFunc.
-func (mock *requestsRepositoryMock) GetRequestByIDAndUser(id uint, userId uint) (*Request, error) {
+func (mock *requestsRepositoryMock) GetRequestByIDAndUser(id uint, userID uint) (*Request, error) {
 	if mock.GetRequestByIDAndUserFunc == nil {
 		panic("requestsRepositoryMock.GetRequestByIDAndUserFunc: method is nil but requestsRepository.GetRequestByIDAndUser was just called")
 	}
 	callInfo := struct {
 		ID     uint
-		UserId uint
+		UserID uint
 	}{
 		ID:     id,
-		UserId: userId,
+		UserID: userID,
 	}
 	lockrequestsRepositoryMockGetRequestByIDAndUser.Lock()
 	mock.calls.GetRequestByIDAndUser = append(mock.calls.GetRequestByIDAndUser, callInfo)
 	lockrequestsRepositoryMockGetRequestByIDAndUser.Unlock()
-	return mock.GetRequestByIDAndUserFunc(id, userId)
+	return mock.GetRequestByIDAndUserFunc(id, userID)
 }
 
 // GetRequestByIDAndUserCalls gets all the calls that were made to GetRequestByIDAndUser.
@@ -365,11 +365,11 @@ func (mock *requestsRepositoryMock) GetRequestByIDAndUser(id uint, userId uint) 
 //     len(mockedrequestsRepository.GetRequestByIDAndUserCalls())
 func (mock *requestsRepositoryMock) GetRequestByIDAndUserCalls() []struct {
 	ID     uint
-	UserId uint
+	UserID uint
 } {
 	var calls []struct {
 		ID     uint
-		UserId uint
+		UserID uint
 	}
 	lockrequestsRepositoryMockGetRequestByIDAndUser.RLock()
 	calls = mock.calls.GetRequestByIDAndUser
@@ -440,29 +440,29 @@ func (mock *requestsRepositoryMock) ListForGuardCalls() []struct {
 }
 
 // Update calls UpdateFunc.
-func (mock *requestsRepositoryMock) Update(req *Request) error {
+func (mock *requestsRepositoryMock) Update(update *UpdateRequest) error {
 	if mock.UpdateFunc == nil {
 		panic("requestsRepositoryMock.UpdateFunc: method is nil but requestsRepository.Update was just called")
 	}
 	callInfo := struct {
-		Req *Request
+		Update *UpdateRequest
 	}{
-		Req: req,
+		Update: update,
 	}
 	lockrequestsRepositoryMockUpdate.Lock()
 	mock.calls.Update = append(mock.calls.Update, callInfo)
 	lockrequestsRepositoryMockUpdate.Unlock()
-	return mock.UpdateFunc(req)
+	return mock.UpdateFunc(update)
 }
 
 // UpdateCalls gets all the calls that were made to Update.
 // Check the length with:
 //     len(mockedrequestsRepository.UpdateCalls())
 func (mock *requestsRepositoryMock) UpdateCalls() []struct {
-	Req *Request
+	Update *UpdateRequest
 } {
 	var calls []struct {
-		Req *Request
+		Update *UpdateRequest
 	}
 	lockrequestsRepositoryMockUpdate.RLock()
 	calls = mock.calls.Update
