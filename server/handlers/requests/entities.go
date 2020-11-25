@@ -36,7 +36,7 @@ type UpdateRequest struct {
 func (Request) TableName() string { return "requests" }
 
 type RequestListFilter struct {
-	DateFrom  *time.Time `json:"date_from,omitepmpty"`
+	DateFrom  *time.Time `json:"date_from,omitempty"`
 	DateTo    *time.Time `json:"date_to,omitempty"`
 	Type      string     `json:"type,omitempty" validate:"oneof=all taxi guest delivery noise complain"`
 	Place     string     `json:"place,omitempty" validate:"oneof=all kpp"`
