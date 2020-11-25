@@ -19,7 +19,7 @@ import (
 type RequestsService interface {
 	Create(ctx context.Context, r *requests.Request) (*requests.Request, error)
 	Get(ctx context.Context, r *requests.Request) (*requests.Request, error)
-	Update(ctx context.Context, r *requests.Request) error
+	Update(ctx context.Context, r *requests.UpdateRequest) error
 	Delete(ctx context.Context, r *requests.Request) error
 	My(ctx context.Context, r *requests.RequestListFilter) ([]*requests.Request, error)
 
@@ -121,25 +121,25 @@ func (h *HTTPTransport) Update(w http.ResponseWriter, r *http.Request) {
 
 	req.Sanitize(h.sanitizer)
 
-	data := requests.Request{
+	data := requests.UpdateRequest{
 		ID:     id,
 		UserID: userID,
 	}
 
 	if req.Type != nil {
-		data.Type = *req.Type
+		data.Type = req.Type
 	}
 
 	if req.Description != nil {
-		data.Description = *req.Description
+		data.Description = req.Description
 	}
 
 	if req.Status != nil {
-		data.Status = *req.Status
+		data.Status = req.Status
 	}
 
 	if req.Time != nil {
-		data.Time = *req.Time
+		data.Time = req.Time
 	}
 
 	if err := h.svc.Update(r.Context(), &data); err != nil {

@@ -166,7 +166,7 @@ func TestHTTP_Update(t *testing.T) {
 			id:      "1",
 			header:  "1",
 			svc: &RequestsServiceMock{
-				UpdateFunc: func(_ context.Context, _ *requests.Request) error {
+				UpdateFunc: func(_ context.Context, _ *requests.UpdateRequest) error {
 					return errTestError
 				},
 			},
@@ -179,7 +179,7 @@ func TestHTTP_Update(t *testing.T) {
 			id:      "1",
 			header:  "1",
 			svc: &RequestsServiceMock{
-				UpdateFunc: func(_ context.Context, r *requests.Request) error {
+				UpdateFunc: func(_ context.Context, r *requests.UpdateRequest) error {
 					expected := &requests.Request{
 						ID:          1,
 						UserID:      1,

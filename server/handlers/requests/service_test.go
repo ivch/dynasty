@@ -104,7 +104,7 @@ func TestService_Update(t *testing.T) {
 	tests := []struct {
 		name    string
 		repo    requestsRepository
-		req     *Request
+		req     *UpdateRequest
 		wantErr bool
 	}{
 		{
@@ -114,7 +114,7 @@ func TestService_Update(t *testing.T) {
 					return nil, errTestError
 				},
 			},
-			req: &Request{
+			req: &UpdateRequest{
 				ID:     1,
 				UserID: 1,
 			},
@@ -128,17 +128,17 @@ func TestService_Update(t *testing.T) {
 						Type: "1",
 					}, nil
 				},
-				UpdateFunc: func(req *Request) error {
-					if req.Type != "2" {
+				UpdateFunc: func(req *UpdateRequest) error {
+					if *req.Type != "2" {
 						return errTestError
 					}
 					return nil
 				},
 			},
-			req: &Request{
+			req: &UpdateRequest{
 				ID:     1,
 				UserID: 1,
-				Type:   "",
+				Type:   func(s string) *string { return &s }("1"),
 			},
 			wantErr: true,
 		},
@@ -150,17 +150,17 @@ func TestService_Update(t *testing.T) {
 						Description: "1",
 					}, nil
 				},
-				UpdateFunc: func(req *Request) error {
-					if req.Description != "2" {
+				UpdateFunc: func(req *UpdateRequest) error {
+					if *req.Description != "2" {
 						return errTestError
 					}
 					return nil
 				},
 			},
-			req: &Request{
+			req: &UpdateRequest{
 				ID:          1,
 				UserID:      1,
-				Description: "",
+				Description: func(s string) *string { return &s }("1"),
 			},
 			wantErr: true,
 		},
@@ -172,17 +172,17 @@ func TestService_Update(t *testing.T) {
 						Status: "1",
 					}, nil
 				},
-				UpdateFunc: func(req *Request) error {
-					if req.Status != "2" {
+				UpdateFunc: func(req *UpdateRequest) error {
+					if *req.Status != "2" {
 						return errTestError
 					}
 					return nil
 				},
 			},
-			req: &Request{
+			req: &UpdateRequest{
 				ID:     1,
 				UserID: 1,
-				Status: "",
+				Status: func(s string) *string { return &s }("1"),
 			},
 			wantErr: true,
 		},
@@ -194,17 +194,17 @@ func TestService_Update(t *testing.T) {
 						Time: 1,
 					}, nil
 				},
-				UpdateFunc: func(req *Request) error {
-					if req.Time != 2 {
+				UpdateFunc: func(req *UpdateRequest) error {
+					if *req.Time != 2 {
 						return errTestError
 					}
 					return nil
 				},
 			},
-			req: &Request{
+			req: &UpdateRequest{
 				ID:     1,
 				UserID: 1,
-				Time:   1,
+				Time:   func(s int64) *int64 { return &s }(1),
 			},
 			wantErr: true,
 		},
@@ -216,11 +216,11 @@ func TestService_Update(t *testing.T) {
 						Type: "1",
 					}, nil
 				},
-				UpdateFunc: func(req *Request) error {
+				UpdateFunc: func(req *UpdateRequest) error {
 					return nil
 				},
 			},
-			req: &Request{
+			req: &UpdateRequest{
 				ID:     1,
 				UserID: 1,
 			},
@@ -329,8 +329,28 @@ func TestService_Create(t *testing.T) {
 		want    *Request
 	}{
 		{
+			name: "error req limit exceeded",
+			repo: &requestsRepositoryMock{
+				ListByUserFunc: func(r *RequestListFilter) ([]*Request, error) {
+					res := make([]*Request, 22)
+					return res, nil
+				},
+			},
+			req: &Request{
+				Type:        "",
+				Time:        0,
+				UserID:      0,
+				Description: "",
+			},
+			wantErr: true,
+		},
+		{
 			name: "error from db",
 			repo: &requestsRepositoryMock{
+				ListByUserFunc: func(r *RequestListFilter) ([]*Request, error) {
+					res := make([]*Request, 1)
+					return res, nil
+				},
 				CreateFunc: func(_ *Request) error {
 					return errTestError
 				},
@@ -346,6 +366,10 @@ func TestService_Create(t *testing.T) {
 		{
 			name: "ok",
 			repo: &requestsRepositoryMock{
+				ListByUserFunc: func(r *RequestListFilter) ([]*Request, error) {
+					res := make([]*Request, 1)
+					return res, nil
+				},
 				CreateFunc: func(req *Request) error {
 					req.ID = 1
 					req.Status = "new"

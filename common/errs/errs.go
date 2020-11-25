@@ -55,6 +55,7 @@ const (
 	fileWrongTypeCode
 	fileIsTooBigCode
 	tooMuchFilesCode
+	requestPerDayLimitExceededCode
 )
 
 var (
@@ -108,6 +109,7 @@ var (
 	FileWrongType                 = errors.New("wrong filetype")
 	FileIsTooBig                  = errors.New("too big file")
 	TooMuchFiles                  = errors.New("only allowed 3 images per request")
+	RequestPerDayLimitExceeded    = errors.New("request per day limit exceeded")
 
 	codes = map[error]uint{
 		Generic:                       genericCode,
@@ -160,6 +162,7 @@ var (
 		FileIsTooBig:                  fileIsTooBigCode,
 		TooMuchFiles:                  tooMuchFilesCode,
 		WrongApartment:                wrongApartmentCode,
+		RequestPerDayLimitExceeded:    requestPerDayLimitExceededCode,
 	}
 )
 

@@ -3,15 +3,18 @@ package requests
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/aws/aws-sdk-go/service/s3"
 
+	"github.com/ivch/dynasty/common/errs"
 	"github.com/ivch/dynasty/common/logger"
 )
 
 const (
 	defaultRequestStatus = "new"
 	allowedFileType      = "image/jpeg"
+	requestsPerDay       = 20
 	filesPerRequest      = 3
 	imgPathPrefix        = "req/i/"
 	thumbPathPrefix      = "req/t/"
@@ -20,8 +23,8 @@ const (
 
 type requestsRepository interface {
 	Create(req *Request) error
-	GetRequestByIDAndUser(id, userId uint) (*Request, error)
-	Update(req *Request) error
+	GetRequestByIDAndUser(id, userID uint) (*Request, error)
+	Update(update *UpdateRequest) error
 	Delete(id, userID uint) error
 	ListByUser(r *RequestListFilter) ([]*Request, error)
 	ListForGuard(req *RequestListFilter) ([]*Request, error)
@@ -82,19 +85,14 @@ func (s *Service) Delete(_ context.Context, r *Request) error {
 	return s.repo.Delete(r.ID, r.UserID)
 }
 
-func (s *Service) Update(_ context.Context, r *Request) error {
-	req, err := s.repo.GetRequestByIDAndUser(r.ID, r.UserID)
+func (s *Service) Update(_ context.Context, r *UpdateRequest) error {
+	_, err := s.repo.GetRequestByIDAndUser(r.ID, r.UserID)
 	if err != nil {
 		s.log.Error("error finding request: %w", err)
 		return err
 	}
 
-	if err := s.repo.Update(req); err != nil {
-		s.log.Error("error updating request: %w", err)
-		return err
-	}
-
-	return nil
+	return s.repo.Update(r)
 }
 
 func (s *Service) My(_ context.Context, r *RequestListFilter) ([]*Request, error) {
@@ -114,6 +112,21 @@ func (s *Service) My(_ context.Context, r *RequestListFilter) ([]*Request, error
 }
 
 func (s *Service) Create(_ context.Context, r *Request) (*Request, error) {
+	dateFrom := time.Now().Add(-24 * time.Hour)
+	list, err := s.repo.ListByUser(&RequestListFilter{
+		DateFrom: &dateFrom,
+		Offset:   0,
+		Limit:    25,
+		UserID:   r.UserID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(list) >= requestsPerDay {
+		return nil, errs.RequestPerDayLimitExceeded
+	}
+
 	r.Status = defaultRequestStatus
 
 	if err := s.repo.Create(r); err != nil {

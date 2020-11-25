@@ -52,7 +52,7 @@ var _ RequestsService = &RequestsServiceMock{}
 //             MyFunc: func(ctx context.Context, r *requests.RequestListFilter) ([]*requests.Request, error) {
 // 	               panic("mock out the My method")
 //             },
-//             UpdateFunc: func(ctx context.Context, r *requests.Request) error {
+//             UpdateFunc: func(ctx context.Context, r *requests.UpdateRequest) error {
 // 	               panic("mock out the Update method")
 //             },
 //             UploadImageFunc: func(ctx context.Context, r *requests.Image) (*requests.Image, error) {
@@ -87,7 +87,7 @@ type RequestsServiceMock struct {
 	MyFunc func(ctx context.Context, r *requests.RequestListFilter) ([]*requests.Request, error)
 
 	// UpdateFunc mocks the Update method.
-	UpdateFunc func(ctx context.Context, r *requests.Request) error
+	UpdateFunc func(ctx context.Context, r *requests.UpdateRequest) error
 
 	// UploadImageFunc mocks the UploadImage method.
 	UploadImageFunc func(ctx context.Context, r *requests.Image) (*requests.Image, error)
@@ -148,7 +148,7 @@ type RequestsServiceMock struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
 			// R is the r argument value.
-			R *requests.Request
+			R *requests.UpdateRequest
 		}
 		// UploadImage holds details about calls to the UploadImage method.
 		UploadImage []struct {
@@ -406,13 +406,13 @@ func (mock *RequestsServiceMock) MyCalls() []struct {
 }
 
 // Update calls UpdateFunc.
-func (mock *RequestsServiceMock) Update(ctx context.Context, r *requests.Request) error {
+func (mock *RequestsServiceMock) Update(ctx context.Context, r *requests.UpdateRequest) error {
 	if mock.UpdateFunc == nil {
 		panic("RequestsServiceMock.UpdateFunc: method is nil but RequestsService.Update was just called")
 	}
 	callInfo := struct {
 		Ctx context.Context
-		R   *requests.Request
+		R   *requests.UpdateRequest
 	}{
 		Ctx: ctx,
 		R:   r,
@@ -428,11 +428,11 @@ func (mock *RequestsServiceMock) Update(ctx context.Context, r *requests.Request
 //     len(mockedRequestsService.UpdateCalls())
 func (mock *RequestsServiceMock) UpdateCalls() []struct {
 	Ctx context.Context
-	R   *requests.Request
+	R   *requests.UpdateRequest
 } {
 	var calls []struct {
 		Ctx context.Context
-		R   *requests.Request
+		R   *requests.UpdateRequest
 	}
 	lockRequestsServiceMockUpdate.RLock()
 	calls = mock.calls.Update

@@ -24,7 +24,6 @@ type RequestCreateResponse struct {
 
 type RequestUpdateRequest struct {
 	ID          uint
-	UserID      uint    `gorm:"-"`
 	Type        *string `json:"type,omitempty"`
 	Time        *int64  `json:"time,omitempty"`
 	Description *string `json:"description,omitempty"`
