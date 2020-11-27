@@ -421,3 +421,157 @@ func TestService_UserByID(t *testing.T) {
 		})
 	}
 }
+
+func Test_ServiceUpdate(t *testing.T) {
+	type params struct {
+		verifyRegCode bool
+		maxMembers    int
+		repo          userRepository
+	}
+
+	tests := []struct {
+		name    string
+		params  params
+		input   *UserUpdate
+		wantErr bool
+	}{
+		{
+			name: "error finding user",
+			params: params{
+				repo: &userRepositoryMock{
+					GetUserByIDFunc: func(_ uint) (*User, error) {
+						return nil, errTestError
+					},
+				},
+			},
+			input: &UserUpdate{
+				ID: 1,
+			},
+			wantErr: true,
+		},
+		{
+			name: "error if empty password",
+			params: params{
+				repo: &userRepositoryMock{
+					GetUserByIDFunc: func(_ uint) (*User, error) {
+						return nil, nil
+					},
+				},
+			},
+			input: &UserUpdate{
+				ID:          1,
+				Password:    nil,
+				NewPassword: func(s string) *string { return &s }("2"),
+			},
+			wantErr: true,
+		},
+		{
+			name: "error old password mismatch",
+			params: params{
+				repo: &userRepositoryMock{
+					GetUserByIDFunc: func(_ uint) (*User, error) {
+						return &User{
+							Password: "1",
+						}, nil
+					},
+				},
+			},
+			input: &UserUpdate{
+				ID:          1,
+				Password:    func(s string) *string { return &s }("2"),
+				NewPassword: func(s string) *string { return &s }("2"),
+			},
+			wantErr: true,
+		},
+		{
+			name: "error if pwd not changed",
+			params: params{
+				repo: &userRepositoryMock{
+					GetUserByIDFunc: func(_ uint) (*User, error) {
+						return &User{
+							Password: "1",
+						}, nil
+					},
+					UpdateUserFunc: func(u *UserUpdate) error {
+						if u.NewPassword != nil {
+							if u.Password == u.NewPassword {
+								return errTestError
+							}
+
+							if *u.NewPassword == "2" {
+								return errTestError
+							}
+						}
+
+						return nil
+					},
+				},
+			},
+			input: &UserUpdate{
+				ID:          1,
+				Password:    func(s string) *string { return &s }("1"),
+				NewPassword: func(s string) *string { return &s }("2"),
+			},
+			wantErr: true,
+		},
+		{
+			name: "ok w/o password change",
+			params: params{
+				repo: &userRepositoryMock{
+					GetUserByIDFunc: func(_ uint) (*User, error) {
+						return nil, nil
+					},
+					UpdateUserFunc: func(u *UserUpdate) error {
+						return nil
+					},
+				},
+			},
+			input: &UserUpdate{
+				ID: 1,
+			},
+			wantErr: false,
+		},
+		{
+			name: "ok w/ password change",
+			params: params{
+				repo: &userRepositoryMock{
+					GetUserByIDFunc: func(_ uint) (*User, error) {
+						testPass, _ := hashAndSalt("1")
+						return &User{
+							Password: testPass,
+						}, nil
+					},
+					UpdateUserFunc: func(u *UserUpdate) error {
+						if u.NewPassword != nil {
+							if u.Password == u.NewPassword {
+								return errTestError
+							}
+
+							if *u.NewPassword == "2" {
+								return errTestError
+							}
+						}
+
+						return nil
+					},
+				},
+			},
+			input: &UserUpdate{
+				ID:          1,
+				Password:    func(s string) *string { return &s }("1"),
+				NewPassword: func(s string) *string { return &s }("3"),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := New(defaultLogger, tt.params.repo, tt.params.verifyRegCode, tt.params.maxMembers)
+			err := s.Update(context.Background(), tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

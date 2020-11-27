@@ -56,6 +56,7 @@ const (
 	fileIsTooBigCode
 	tooMuchFilesCode
 	requestPerDayLimitExceededCode
+	passwordConfirmMismatchCode
 )
 
 var (
@@ -86,7 +87,7 @@ var (
 	FamilyMemberWrongOwner        = errors.New("provided family member has incorrect parent id")
 	FamilyMemberBadID             = errors.New("family member bad id")
 	FamilyMemberParentMismatch    = errors.New("family member parent mismatch")
-	InvalidCredentials            = errors.New("invalid login credentials")
+	InvalidCredentials            = errors.New("invalid credentials")
 	UserIsInactive                = errors.New("users is inactive")
 	NoSessionToRefresh            = errors.New("no session to refresh")
 	TokenExpired                  = errors.New("token expired")
@@ -110,6 +111,7 @@ var (
 	FileIsTooBig                  = errors.New("too big file")
 	TooMuchFiles                  = errors.New("only allowed 3 images per request")
 	RequestPerDayLimitExceeded    = errors.New("request per day limit exceeded")
+	PasswordConfirmMismatch       = errors.New("password confirmation mismatch")
 
 	codes = map[error]uint{
 		Generic:                       genericCode,
@@ -163,6 +165,7 @@ var (
 		TooMuchFiles:                  tooMuchFilesCode,
 		WrongApartment:                wrongApartmentCode,
 		RequestPerDayLimitExceeded:    requestPerDayLimitExceededCode,
+		PasswordConfirmMismatch:       passwordConfirmMismatchCode,
 	}
 )
 

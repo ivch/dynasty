@@ -82,40 +82,45 @@ func (s *Service) DeleteFamilyMember(_ context.Context, ownerID, memberID uint) 
 	return s.repo.DeleteUser(member)
 }
 
-func (s *Service) registerFamilyMember(_ context.Context, r *User, u *User) (*User, error) {
-	if r.RegCode != u.RegCode {
+func (s *Service) registerFamilyMember(_ context.Context, request *User, member *User) (*User, error) {
+	if request.RegCode != member.RegCode {
 		return nil, errs.RegCodeWrong
 	}
 
-	if u.Active {
+	if member.Active {
 		return nil, errs.FamilyMemberAlreadyRegistered
 	}
 
-	parent, err := s.repo.GetUserByID(*u.ParentID)
+	parent, err := s.repo.GetUserByID(*member.ParentID)
 	if err != nil {
 		s.log.Error("error getting parent user: %w", err)
 		return nil, err
 	}
 
-	if parent.BuildingID != r.BuildingID || parent.EntryID != r.EntryID || parent.Apartment != r.Apartment {
+	if parent.BuildingID != request.BuildingID || parent.EntryID != request.EntryID || parent.Apartment != request.Apartment {
 		return nil, errs.FamilyMemberWrongAddress
 	}
 
-	pwd, err := hashAndSalt(r.Password)
+	pwd, err := hashAndSalt(request.Password)
 	if err != nil {
 		s.log.Error("error hashing password: %w", err)
 		return nil, err
 	}
 
-	u.FirstName = r.FirstName
-	u.LastName = r.LastName
-	u.Email = r.Email
-	u.Active = true
-	u.Password = pwd
+	member.Active = true
 
-	if err := s.repo.UpdateUser(u); err != nil {
+	update := UserUpdate{
+		ID:        member.ID,
+		Email:     &request.Email,
+		Password:  &pwd,
+		FirstName: &request.FirstName,
+		LastName:  &request.LastName,
+		Active:    &member.Active,
+	}
+
+	if err := s.repo.UpdateUser(&update); err != nil {
 		return nil, err
 	}
 
-	return u, nil
+	return member, nil
 }

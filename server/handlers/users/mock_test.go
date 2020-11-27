@@ -51,7 +51,7 @@ var _ userRepository = &userRepositoryMock{}
 //             GetUserByPhoneFunc: func(phone string) (*User, error) {
 // 	               panic("mock out the GetUserByPhone method")
 //             },
-//             UpdateUserFunc: func(u *User) error {
+//             UpdateUserFunc: func(u *UserUpdate) error {
 // 	               panic("mock out the UpdateUser method")
 //             },
 //             UseRegCodeFunc: func(code string) error {
@@ -89,7 +89,7 @@ type userRepositoryMock struct {
 	GetUserByPhoneFunc func(phone string) (*User, error)
 
 	// UpdateUserFunc mocks the UpdateUser method.
-	UpdateUserFunc func(u *User) error
+	UpdateUserFunc func(u *UserUpdate) error
 
 	// UseRegCodeFunc mocks the UseRegCode method.
 	UseRegCodeFunc func(code string) error
@@ -137,7 +137,7 @@ type userRepositoryMock struct {
 		// UpdateUser holds details about calls to the UpdateUser method.
 		UpdateUser []struct {
 			// U is the u argument value.
-			U *User
+			U *UserUpdate
 		}
 		// UseRegCode holds details about calls to the UseRegCode method.
 		UseRegCode []struct {
@@ -369,12 +369,12 @@ func (mock *userRepositoryMock) GetUserByPhoneCalls() []struct {
 }
 
 // UpdateUser calls UpdateUserFunc.
-func (mock *userRepositoryMock) UpdateUser(u *User) error {
+func (mock *userRepositoryMock) UpdateUser(u *UserUpdate) error {
 	if mock.UpdateUserFunc == nil {
 		panic("userRepositoryMock.UpdateUserFunc: method is nil but userRepository.UpdateUser was just called")
 	}
 	callInfo := struct {
-		U *User
+		U *UserUpdate
 	}{
 		U: u,
 	}
@@ -388,10 +388,10 @@ func (mock *userRepositoryMock) UpdateUser(u *User) error {
 // Check the length with:
 //     len(mockeduserRepository.UpdateUserCalls())
 func (mock *userRepositoryMock) UpdateUserCalls() []struct {
-	U *User
+	U *UserUpdate
 } {
 	var calls []struct {
-		U *User
+		U *UserUpdate
 	}
 	lockuserRepositoryMockUpdateUser.RLock()
 	calls = mock.calls.UpdateUser

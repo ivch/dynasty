@@ -22,6 +22,7 @@ var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z
 
 type UsersService interface {
 	Register(ctx context.Context, req *users.User) (*users.User, error)
+	Update(ctx context.Context, req *users.UserUpdate) error
 	// UserByPhoneAndPassword(ctx context.Context, phone, password string) (*entities.User, error)
 	UserByID(ctx context.Context, id uint) (*users.User, error)
 	AddFamilyMember(ctx context.Context, r *users.User) (*users.User, error)
@@ -49,6 +50,7 @@ func NewHTTPTransport(log logger.Logger, svc UsersService, p *bluemonday.Policy,
 
 func (h *HTTPTransport) attachRoutes() {
 	h.router.Get("/v1/user", h.UserByID)
+	h.router.Put("/v1/user", h.Update)
 	h.router.Post("/v1/register", h.Register)
 	h.router.Post("/v1/member", h.AddFamilyMember)
 	h.router.Get("/v1/members", h.FamilyMembersList)
@@ -93,6 +95,74 @@ func (h *HTTPTransport) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.sendHTTPResponse(r.Context(), w, result)
+}
+
+func (h *HTTPTransport) Update(w http.ResponseWriter, r *http.Request) {
+	userID, err := getUserID(r.Context())
+	if err != nil {
+		h.sendError(w, http.StatusUnauthorized, errs.Unauthorized)
+		return
+	}
+
+	var req UserUpdateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.sendError(w, http.StatusBadRequest, errs.BadRequest)
+		return
+	}
+
+	req.Sanitize(h.sanitizer)
+
+	data := users.UserUpdate{
+		ID: userID,
+	}
+
+	if req.Email != nil {
+		if !isEmailValid(*req.Email) {
+			h.sendError(w, http.StatusBadRequest, errs.EmailInvalid)
+			return
+		}
+		data.Email = req.Email
+	}
+
+	if req.FirstName != nil {
+		data.FirstName = req.FirstName
+	}
+
+	if req.LastName != nil {
+		data.LastName = req.LastName
+	}
+
+	if req.NewPassword != nil {
+		if req.Password == nil {
+			h.sendError(w, http.StatusBadRequest, errs.InvalidCredentials)
+			return
+		}
+
+		if req.NewPasswordConfirm == nil {
+			h.sendError(w, http.StatusBadRequest, errs.PasswordConfirmMismatch)
+			return
+		}
+
+		if *req.NewPasswordConfirm != *req.NewPassword {
+			h.sendError(w, http.StatusBadRequest, errs.PasswordConfirmMismatch)
+			return
+		}
+
+		if err := validatePassword(*req.NewPassword); err != nil {
+			h.sendError(w, http.StatusBadRequest, err)
+			return
+		}
+
+		data.Password = req.Password
+		data.NewPassword = req.NewPassword
+	}
+
+	if err := h.svc.Update(r.Context(), &data); err != nil {
+		h.sendError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	h.sendHTTPResponse(r.Context(), w, nil)
 }
 
 func (h *HTTPTransport) UserByID(w http.ResponseWriter, r *http.Request) {
@@ -273,9 +343,16 @@ func (h *HTTPTransport) sendError(w http.ResponseWriter, httpCode int, error err
 	}
 }
 
-func validateRegisterRequest(r *userRegisterRequest) error {
-	if len(r.Password) < 6 {
+func validatePassword(p string) error {
+	if len(p) < 6 {
 		return errs.PasswordTooShort
+	}
+	return nil
+}
+
+func validateRegisterRequest(r *userRegisterRequest) error {
+	if err := validatePassword(r.Password); err != nil {
+		return err
 	}
 
 	if len(r.Phone) < 12 || len(r.Phone) > 13 {

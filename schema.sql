@@ -128,3 +128,8 @@ values ('Секцiя 1', 1),
        ('Секцiя 2', 2),
        ('Секцiя 3', 2),
        ('Секцiя 4', 2);
+
+
+alter table requests add history text[] default '{}'::text[];
+alter table requests add created_at timestamp default CURRENT_TIMESTAMP not null;
+alter table requests add deleted_at timestamp default null;

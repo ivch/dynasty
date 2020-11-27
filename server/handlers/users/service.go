@@ -13,7 +13,7 @@ type userRepository interface {
 	GetUserByID(id uint) (*User, error)
 	GetUserByPhone(phone string) (*User, error)
 	CreateUser(user *User) error
-	UpdateUser(u *User) error
+	UpdateUser(u *UserUpdate) error
 	DeleteUser(u *User) error
 	ValidateRegCode(code string) error
 	UseRegCode(code string) error
@@ -60,10 +60,7 @@ func (s *Service) UserByPhoneAndPassword(_ context.Context, phone, password stri
 		return nil, errs.UserNotFound
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password)); err != nil {
-		if err == bcrypt.ErrMismatchedHashAndPassword {
-			return nil, errs.InvalidCredentials
-		}
+	if err := comparePasswords(u.Password, password); err != nil {
 		s.log.Error("error comparing hash: %w", err)
 		return nil, err
 	}
@@ -79,7 +76,7 @@ func (s *Service) Register(ctx context.Context, r *User) (*User, error) {
 	}
 
 	if user != nil {
-		if r.ParentID != nil {
+		if user.ParentID != nil {
 			return s.registerFamilyMember(ctx, r, user)
 		}
 		return nil, errs.FamilyMemberPhoneExists
@@ -138,10 +135,50 @@ func (s *Service) Register(ctx context.Context, r *User) (*User, error) {
 	return &u, nil
 }
 
+func (s *Service) Update(ctx context.Context, r *UserUpdate) error {
+	u, err := s.UserByID(ctx, r.ID)
+	if err != nil {
+		return err
+	}
+
+	if r.NewPassword == nil {
+		return s.repo.UpdateUser(r)
+	}
+
+	if r.Password == nil {
+		return errs.InvalidCredentials
+	}
+
+	if err := comparePasswords(u.Password, *r.Password); err != nil {
+		return errs.InvalidCredentials
+	}
+
+	// todo in case of password change delete current user session and invalidate refresh token
+	pwd, err := hashAndSalt(*r.NewPassword)
+	if err != nil {
+		s.log.Error("error hashing password: %w", err)
+		return err
+	}
+
+	r.Password = &pwd
+
+	return s.repo.UpdateUser(r)
+}
+
 func hashAndSalt(pwd string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.MinCost)
 	if err != nil {
 		return "", err
 	}
 	return string(hash), nil
+}
+
+func comparePasswords(p1, p2 string) error {
+	if err := bcrypt.CompareHashAndPassword([]byte(p1), []byte(p2)); err != nil {
+		if err == bcrypt.ErrMismatchedHashAndPassword {
+			return errs.InvalidCredentials
+		}
+		return err
+	}
+	return nil
 }
