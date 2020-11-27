@@ -20,6 +20,16 @@ type User struct {
 	ParentID   *uint  `json:"-"`
 }
 
+type UserUpdate struct {
+	ID          uint    `gorm:"primary_key"`
+	Email       *string `json:"email,omitempty"`
+	Password    *string `json:"password,omitempty"`
+	NewPassword *string `json:"new_password,omitempty"`
+	FirstName   *string `json:"first_name,omitempty"`
+	LastName    *string `json:"last_name,omitempty"`
+	Active      *bool   `json:"active" gorm:"active"`
+}
+
 func (User) TableName() string { return "users" }
 
 type Building struct {

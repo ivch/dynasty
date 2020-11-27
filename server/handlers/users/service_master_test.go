@@ -542,7 +542,7 @@ func TestService_familyMemberRegister(t *testing.T) {
 					GetUserByIDFunc: func(_ uint) (*User, error) {
 						return &User{}, nil
 					},
-					UpdateUserFunc: func(_ *User) error {
+					UpdateUserFunc: func(_ *UserUpdate) error {
 						return errTestError
 					},
 				},
@@ -566,7 +566,7 @@ func TestService_familyMemberRegister(t *testing.T) {
 					GetUserByIDFunc: func(_ uint) (*User, error) {
 						return &User{}, nil
 					},
-					UpdateUserFunc: func(u *User) error {
+					UpdateUserFunc: func(u *UserUpdate) error {
 						return nil
 					},
 				},

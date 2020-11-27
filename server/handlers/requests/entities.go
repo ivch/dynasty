@@ -64,12 +64,3 @@ type HistoryRecord struct {
 func (h *HistoryRecord) String() string {
 	return fmt.Sprintf("%s@%s@%d", h.Time.Format("2006-01-02 15:04"), h.Action, h.UserID)
 }
-
-// alter table requests
-// add history text[] default '{}'::text[];
-//
-// alter table requests
-// add created_at timestamp default CURRENT_TIMESTAMP not null;
-//
-// alter table requests
-// add deleted_at timestamp default null;

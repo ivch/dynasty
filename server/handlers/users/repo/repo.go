@@ -26,8 +26,29 @@ func (r *Users) DeleteUser(u *users.User) error {
 	return r.db.Delete(u).Error
 }
 
-func (r *Users) UpdateUser(u *users.User) error {
-	return r.db.Save(u).Error
+func (r *Users) UpdateUser(req *users.UserUpdate) error {
+	update := make(map[string]interface{})
+	if req.Email != nil {
+		update["email"] = *req.Email
+	}
+
+	if req.Password != nil {
+		update["password"] = *req.Password
+	}
+
+	if req.FirstName != nil {
+		update["first_name"] = *req.FirstName
+	}
+
+	if req.LastName != nil {
+		update["last_name"] = *req.LastName
+	}
+
+	if req.Active != nil {
+		update["active"] = *req.Active
+	}
+
+	return r.db.Table(users.User{}.TableName()).Where("id = ?", req.ID).Updates(update).Error
 }
 
 func (r *Users) GetUserByID(id uint) (*users.User, error) {

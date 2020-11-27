@@ -474,3 +474,204 @@ func TestHTTP_DeleteFamilyMember(t *testing.T) {
 		})
 	}
 }
+
+func TestHTTP_UpdateUser(t *testing.T) {
+	tests := []struct {
+		name    string
+		svc     UsersService
+		header  string
+		request string
+		wantErr bool
+	}{
+		{
+			name:    "error no user",
+			svc:     nil,
+			header:  "",
+			request: "1",
+			wantErr: true,
+		},
+		{
+			name:    "error bad request",
+			svc:     nil,
+			header:  "1",
+			request: "asd",
+			wantErr: true,
+		},
+		{
+			name: "email invalid",
+			svc: &UsersServiceMock{
+				UpdateFunc: func(_ context.Context, req *users.UserUpdate) error {
+					if *req.Email != "email" {
+						return errTestError
+					}
+					return nil
+				},
+			},
+			header:  "1",
+			request: `{"email":"asd"}`,
+			wantErr: true,
+		},
+		{
+			name: "email not updated",
+			svc: &UsersServiceMock{
+				UpdateFunc: func(_ context.Context, req *users.UserUpdate) error {
+					if *req.Email != "email@mail.com" {
+						return errTestError
+					}
+					return nil
+				},
+			},
+			header:  "1",
+			request: `{"email":"test@mail.com"}`,
+			wantErr: true,
+		},
+		{
+			name: "email updated",
+			svc: &UsersServiceMock{
+				UpdateFunc: func(_ context.Context, req *users.UserUpdate) error {
+					if *req.Email != "email@mail.com" {
+						return errTestError
+					}
+					return nil
+				},
+			},
+			header:  "1",
+			request: `{"email":"email@mail.com"}`,
+			wantErr: false,
+		},
+		{
+			name: "first name not updated",
+			svc: &UsersServiceMock{
+				UpdateFunc: func(_ context.Context, req *users.UserUpdate) error {
+					if *req.FirstName != "a" {
+						return errTestError
+					}
+					return nil
+				},
+			},
+			header:  "1",
+			request: `{"first_name":"b"}`,
+			wantErr: true,
+		},
+		{
+			name: "first name updated",
+			svc: &UsersServiceMock{
+				UpdateFunc: func(_ context.Context, req *users.UserUpdate) error {
+					if *req.FirstName != "a" {
+						return errTestError
+					}
+					return nil
+				},
+			},
+			header:  "1",
+			request: `{"first_name":"a"}`,
+			wantErr: false,
+		},
+		{
+			name: "last name not updated",
+			svc: &UsersServiceMock{
+				UpdateFunc: func(_ context.Context, req *users.UserUpdate) error {
+					if *req.LastName != "a" {
+						return errTestError
+					}
+					return nil
+				},
+			},
+			header:  "1",
+			request: `{"last_name":"b"}`,
+			wantErr: true,
+		},
+		{
+			name: "last name updated",
+			svc: &UsersServiceMock{
+				UpdateFunc: func(_ context.Context, req *users.UserUpdate) error {
+					if *req.LastName != "a" {
+						return errTestError
+					}
+					return nil
+				},
+			},
+			header:  "1",
+			request: `{"last_name":"a"}`,
+			wantErr: false,
+		},
+		{
+			name:    "error bad password",
+			svc:     nil,
+			header:  "1",
+			request: `{"new_password":"a"}`,
+			wantErr: true,
+		},
+		{
+			name:    "error no password confirm",
+			svc:     nil,
+			header:  "1",
+			request: `{"new_password":"a", "password":"1"}`,
+			wantErr: true,
+		},
+		{
+			name:    "error password mismatch",
+			svc:     nil,
+			header:  "1",
+			request: `{"new_password":"a", "password":"1", "new_password_confirm":"b"}`,
+			wantErr: true,
+		},
+		{
+			name:    "error invalid password",
+			svc:     nil,
+			header:  "1",
+			request: `{"new_password":"a", "password":"1", "new_password_confirm":"a"}`,
+			wantErr: true,
+		},
+		{
+			name: "error password not updated",
+			svc: &UsersServiceMock{
+				UpdateFunc: func(_ context.Context, req *users.UserUpdate) error {
+					if *req.NewPassword != "1234567" {
+						return errTestError
+					}
+					return nil
+				},
+			},
+			header:  "1",
+			request: `{"new_password":"1234567", "password":"1", "new_password_confirm":"1234567"}`,
+			wantErr: false,
+		},
+		{
+			name:    "error service",
+			header:  "1",
+			request: "{}",
+			svc: &UsersServiceMock{
+				UpdateFunc: func(_ context.Context, _ *users.UserUpdate) error {
+					return errTestError
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name:    "ok",
+			header:  "1",
+			request: "{}",
+			svc: &UsersServiceMock{
+				UpdateFunc: func(_ context.Context, _ *users.UserUpdate) error {
+					return nil
+				},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := tt.svc
+			h := NewHTTPTransport(defaultLogger, svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
+			rr := httptest.NewRecorder()
+			rq, _ := http.NewRequest("PUT", "/v1/user", strings.NewReader(tt.request))
+			rq.Header.Add("X-Auth-User", tt.header)
+			h.ServeHTTP(rr, rq)
+			if (rr.Code != http.StatusOK) != tt.wantErr {
+				t.Errorf("Request error. status = %d, wantErr %v", rr.Code, tt.wantErr)
+			}
+		})
+	}
+}

@@ -67,3 +67,24 @@ type familyMember struct {
 	Code   string `json:"code"`
 	Active bool   `json:"active"`
 }
+
+type UserUpdateRequest struct {
+	ID                 uint    `gorm:"primary_key"`
+	Email              *string `json:"email,omitempty"`
+	Password           *string `json:"password,omitempty"`
+	NewPassword        *string `json:"new_password,omitempty"`
+	NewPasswordConfirm *string `json:"new_password_confirm,omitempty"`
+	FirstName          *string `json:"first_name,omitempty"`
+	LastName           *string `json:"last_name,omitempty"`
+}
+
+func (r *UserUpdateRequest) Sanitize(p *bluemonday.Policy) {
+	if r.FirstName != nil {
+		fname := p.Sanitize(*r.FirstName)
+		r.FirstName = &fname
+	}
+	if r.LastName != nil {
+		lname := p.Sanitize(*r.LastName)
+		r.LastName = &lname
+	}
+}
