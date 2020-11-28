@@ -675,3 +675,76 @@ func TestHTTP_UpdateUser(t *testing.T) {
 		})
 	}
 }
+
+func TestHTTPTransport_PasswordRecoveryRequest(t *testing.T) {
+	tests := []struct {
+		name    string
+		svc     UsersService
+		request string
+		wantErr bool
+	}{
+		{
+			name:    "error bad json",
+			svc:     nil,
+			request: "}{",
+			wantErr: true,
+		},
+		{
+			name:    "error empty phone",
+			svc:     nil,
+			request: `{"phone":""}`,
+			wantErr: true,
+		},
+		{
+			name:    "error bad phone",
+			svc:     nil,
+			request: `{"phone":"123asd123asd"}`,
+			wantErr: true,
+		},
+		{
+			name:    "email invalid",
+			svc:     nil,
+			request: `{"email":"12", "phone":"123456789012"}`,
+			wantErr: true,
+		},
+		{
+			name:    "email invalid",
+			svc:     nil,
+			request: `{"email":"test@test.com", "phone":"123456789012"}`,
+			wantErr: true,
+		},
+		{
+			name:    "error service",
+			request: `{"email":"test@mail.com", "phone":"123456789012"}`,
+			svc: &UsersServiceMock{
+				RecoveryFunc: func(_ context.Context, _ *users.User) error {
+					return errTestError
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name:    "ok",
+			request: `{"email":"test@mail.com", "phone":"123456789012"}`,
+			svc: &UsersServiceMock{
+				RecoveryFunc: func(_ context.Context, _ *users.User) error {
+					return nil
+				},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := tt.svc
+			h := NewHTTPTransport(defaultLogger, svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
+			rr := httptest.NewRecorder()
+			rq, _ := http.NewRequest("POST", "/v1/password-recovery", strings.NewReader(tt.request))
+			h.ServeHTTP(rr, rq)
+			if (rr.Code != http.StatusOK) != tt.wantErr {
+				t.Errorf("Request error. status = %d, wantErr %v", rr.Code, tt.wantErr)
+			}
+		})
+	}
+}

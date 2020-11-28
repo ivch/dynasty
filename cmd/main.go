@@ -20,6 +20,7 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 
 	clientUsers "github.com/ivch/dynasty/common/clients/users"
+	"github.com/ivch/dynasty/common/email"
 	"github.com/ivch/dynasty/common/logger"
 	"github.com/ivch/dynasty/config"
 	"github.com/ivch/dynasty/server"
@@ -77,10 +78,12 @@ func main() {
 	s3Client := s3.New(newSession)
 	p := bluemonday.StrictPolicy()
 
+	mailSender := email.New(cfg.SMTP.Host, cfg.SMTP.Port, cfg.SMTP.Pass, cfg.SMTP.From)
+
 	healthChecker := health.NewMultiChecker()
 	healthTransport := health.NewHTTPTransport(healthChecker)
 
-	userService := svcUsers.New(log, repoUsers.New(db), cfg.UserService.VerifyRegCode, cfg.UserService.MembersLimit)
+	userService := svcUsers.New(log, repoUsers.New(db), cfg.UserService.VerifyRegCode, cfg.UserService.MembersLimit, mailSender)
 	usersTransport := transportUsers.NewHTTPTransport(log, userService, p)
 	authService := svcAuth.New(log, repoAuth.New(db), clientUsers.New(userService), cfg.AuthService.JWTSecret)
 	authTransport := transportAuth.NewHTTPTransport(log, authService)

@@ -68,7 +68,7 @@ type familyMember struct {
 	Active bool   `json:"active"`
 }
 
-type UserUpdateRequest struct {
+type userUpdateRequest struct {
 	ID                 uint    `gorm:"primary_key"`
 	Email              *string `json:"email,omitempty"`
 	Password           *string `json:"password,omitempty"`
@@ -78,7 +78,7 @@ type UserUpdateRequest struct {
 	LastName           *string `json:"last_name,omitempty"`
 }
 
-func (r *UserUpdateRequest) Sanitize(p *bluemonday.Policy) {
+func (r *userUpdateRequest) Sanitize(p *bluemonday.Policy) {
 	if r.FirstName != nil {
 		fname := p.Sanitize(*r.FirstName)
 		r.FirstName = &fname
@@ -87,4 +87,9 @@ func (r *UserUpdateRequest) Sanitize(p *bluemonday.Policy) {
 		lname := p.Sanitize(*r.LastName)
 		r.LastName = &lname
 	}
+}
+
+type passwordRecoveryRequest struct {
+	Email string `json:"email,omitempty"`
+	Phone string `json:"phone,omitempty"`
 }

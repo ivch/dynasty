@@ -2,9 +2,12 @@ package users
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/ivch/dynasty/common"
 	"github.com/ivch/dynasty/common/errs"
 	"github.com/ivch/dynasty/common/logger"
 )
@@ -20,21 +23,29 @@ type userRepository interface {
 	GetRegCode() (string, error)
 	GetFamilyMembers(ownerID uint) ([]*User, error)
 	FindUserByApartment(building uint, apt uint) (*User, error)
+	CreateRecoverCode(c *PasswordRecovery) error
+	CountRecoveryCodesByUserIn24h(userID uint) (int, error)
+}
+
+type mailSender interface {
+	SendRecoveryCodeEmail(to, username, code string) error
 }
 
 type Service struct {
 	repo          userRepository
 	membersLimit  int
 	verifyRegCode bool
+	email         mailSender
 	log           logger.Logger
 }
 
-func New(log logger.Logger, repo userRepository, verifyRegCode bool, membersLimit int) *Service {
+func New(log logger.Logger, repo userRepository, verifyRegCode bool, membersLimit int, email mailSender) *Service {
 	s := Service{
 		repo:          repo,
 		membersLimit:  membersLimit,
 		verifyRegCode: verifyRegCode,
 		log:           log,
+		email:         email,
 	}
 
 	return &s
@@ -163,6 +174,44 @@ func (s *Service) Update(ctx context.Context, r *UserUpdate) error {
 	r.Password = &pwd
 
 	return s.repo.UpdateUser(r)
+}
+
+func (s *Service) Recovery(_ context.Context, r *User) error {
+	u, err := s.repo.GetUserByPhone(r.Phone)
+	if err != nil {
+		return err
+	}
+
+	cnt, err := s.repo.CountRecoveryCodesByUserIn24h(u.ID)
+	if err != nil {
+		s.log.Error("error counting codes: %w", err)
+		return err
+	}
+
+	if cnt >= 3 {
+		return errs.PasswordRecoveryLimit
+	}
+
+	if u.Email != r.Email {
+		return errs.EmailInvalid
+	}
+
+	code := PasswordRecovery{
+		UserID: u.ID,
+		Code:   strings.ToUpper(common.RandomString(10)),
+		Active: true,
+	}
+
+	if err := s.repo.CreateRecoverCode(&code); err != nil {
+		return err
+	}
+
+	if err := s.email.SendRecoveryCodeEmail(u.Email, fmt.Sprintf("%s %s", u.FirstName, u.LastName), code.Code); err != nil {
+		s.log.Error("error sending recovery email: %w", err)
+		return err
+	}
+
+	return nil
 }
 
 func hashAndSalt(pwd string) (string, error) {

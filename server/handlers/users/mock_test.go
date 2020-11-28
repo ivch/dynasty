@@ -8,16 +8,18 @@ import (
 )
 
 var (
-	lockuserRepositoryMockCreateUser          sync.RWMutex
-	lockuserRepositoryMockDeleteUser          sync.RWMutex
-	lockuserRepositoryMockFindUserByApartment sync.RWMutex
-	lockuserRepositoryMockGetFamilyMembers    sync.RWMutex
-	lockuserRepositoryMockGetRegCode          sync.RWMutex
-	lockuserRepositoryMockGetUserByID         sync.RWMutex
-	lockuserRepositoryMockGetUserByPhone      sync.RWMutex
-	lockuserRepositoryMockUpdateUser          sync.RWMutex
-	lockuserRepositoryMockUseRegCode          sync.RWMutex
-	lockuserRepositoryMockValidateRegCode     sync.RWMutex
+	lockuserRepositoryMockCountRecoveryCodesByUserIn24h sync.RWMutex
+	lockuserRepositoryMockCreateRecoverCode             sync.RWMutex
+	lockuserRepositoryMockCreateUser                    sync.RWMutex
+	lockuserRepositoryMockDeleteUser                    sync.RWMutex
+	lockuserRepositoryMockFindUserByApartment           sync.RWMutex
+	lockuserRepositoryMockGetFamilyMembers              sync.RWMutex
+	lockuserRepositoryMockGetRegCode                    sync.RWMutex
+	lockuserRepositoryMockGetUserByID                   sync.RWMutex
+	lockuserRepositoryMockGetUserByPhone                sync.RWMutex
+	lockuserRepositoryMockUpdateUser                    sync.RWMutex
+	lockuserRepositoryMockUseRegCode                    sync.RWMutex
+	lockuserRepositoryMockValidateRegCode               sync.RWMutex
 )
 
 // Ensure, that userRepositoryMock does implement userRepository.
@@ -30,6 +32,12 @@ var _ userRepository = &userRepositoryMock{}
 //
 //         // make and configure a mocked userRepository
 //         mockeduserRepository := &userRepositoryMock{
+//             CountRecoveryCodesByUserIn24hFunc: func(userID uint) (int, error) {
+// 	               panic("mock out the CountRecoveryCodesByUserIn24h method")
+//             },
+//             CreateRecoverCodeFunc: func(c *PasswordRecovery) error {
+// 	               panic("mock out the CreateRecoverCode method")
+//             },
 //             CreateUserFunc: func(user *User) error {
 // 	               panic("mock out the CreateUser method")
 //             },
@@ -67,6 +75,12 @@ var _ userRepository = &userRepositoryMock{}
 //
 //     }
 type userRepositoryMock struct {
+	// CountRecoveryCodesByUserIn24hFunc mocks the CountRecoveryCodesByUserIn24h method.
+	CountRecoveryCodesByUserIn24hFunc func(userID uint) (int, error)
+
+	// CreateRecoverCodeFunc mocks the CreateRecoverCode method.
+	CreateRecoverCodeFunc func(c *PasswordRecovery) error
+
 	// CreateUserFunc mocks the CreateUser method.
 	CreateUserFunc func(user *User) error
 
@@ -99,6 +113,16 @@ type userRepositoryMock struct {
 
 	// calls tracks calls to the methods.
 	calls struct {
+		// CountRecoveryCodesByUserIn24h holds details about calls to the CountRecoveryCodesByUserIn24h method.
+		CountRecoveryCodesByUserIn24h []struct {
+			// UserID is the userID argument value.
+			UserID uint
+		}
+		// CreateRecoverCode holds details about calls to the CreateRecoverCode method.
+		CreateRecoverCode []struct {
+			// C is the c argument value.
+			C *PasswordRecovery
+		}
 		// CreateUser holds details about calls to the CreateUser method.
 		CreateUser []struct {
 			// User is the user argument value.
@@ -150,6 +174,68 @@ type userRepositoryMock struct {
 			Code string
 		}
 	}
+}
+
+// CountRecoveryCodesByUserIn24h calls CountRecoveryCodesByUserIn24hFunc.
+func (mock *userRepositoryMock) CountRecoveryCodesByUserIn24h(userID uint) (int, error) {
+	if mock.CountRecoveryCodesByUserIn24hFunc == nil {
+		panic("userRepositoryMock.CountRecoveryCodesByUserIn24hFunc: method is nil but userRepository.CountRecoveryCodesByUserIn24h was just called")
+	}
+	callInfo := struct {
+		UserID uint
+	}{
+		UserID: userID,
+	}
+	lockuserRepositoryMockCountRecoveryCodesByUserIn24h.Lock()
+	mock.calls.CountRecoveryCodesByUserIn24h = append(mock.calls.CountRecoveryCodesByUserIn24h, callInfo)
+	lockuserRepositoryMockCountRecoveryCodesByUserIn24h.Unlock()
+	return mock.CountRecoveryCodesByUserIn24hFunc(userID)
+}
+
+// CountRecoveryCodesByUserIn24hCalls gets all the calls that were made to CountRecoveryCodesByUserIn24h.
+// Check the length with:
+//     len(mockeduserRepository.CountRecoveryCodesByUserIn24hCalls())
+func (mock *userRepositoryMock) CountRecoveryCodesByUserIn24hCalls() []struct {
+	UserID uint
+} {
+	var calls []struct {
+		UserID uint
+	}
+	lockuserRepositoryMockCountRecoveryCodesByUserIn24h.RLock()
+	calls = mock.calls.CountRecoveryCodesByUserIn24h
+	lockuserRepositoryMockCountRecoveryCodesByUserIn24h.RUnlock()
+	return calls
+}
+
+// CreateRecoverCode calls CreateRecoverCodeFunc.
+func (mock *userRepositoryMock) CreateRecoverCode(c *PasswordRecovery) error {
+	if mock.CreateRecoverCodeFunc == nil {
+		panic("userRepositoryMock.CreateRecoverCodeFunc: method is nil but userRepository.CreateRecoverCode was just called")
+	}
+	callInfo := struct {
+		C *PasswordRecovery
+	}{
+		C: c,
+	}
+	lockuserRepositoryMockCreateRecoverCode.Lock()
+	mock.calls.CreateRecoverCode = append(mock.calls.CreateRecoverCode, callInfo)
+	lockuserRepositoryMockCreateRecoverCode.Unlock()
+	return mock.CreateRecoverCodeFunc(c)
+}
+
+// CreateRecoverCodeCalls gets all the calls that were made to CreateRecoverCode.
+// Check the length with:
+//     len(mockeduserRepository.CreateRecoverCodeCalls())
+func (mock *userRepositoryMock) CreateRecoverCodeCalls() []struct {
+	C *PasswordRecovery
+} {
+	var calls []struct {
+		C *PasswordRecovery
+	}
+	lockuserRepositoryMockCreateRecoverCode.RLock()
+	calls = mock.calls.CreateRecoverCode
+	lockuserRepositoryMockCreateRecoverCode.RUnlock()
+	return calls
 }
 
 // CreateUser calls CreateUserFunc.
@@ -458,5 +544,85 @@ func (mock *userRepositoryMock) ValidateRegCodeCalls() []struct {
 	lockuserRepositoryMockValidateRegCode.RLock()
 	calls = mock.calls.ValidateRegCode
 	lockuserRepositoryMockValidateRegCode.RUnlock()
+	return calls
+}
+
+var (
+	lockmailSenderMockSendRecoveryCodeEmail sync.RWMutex
+)
+
+// Ensure, that mailSenderMock does implement mailSender.
+// If this is not the case, regenerate this file with moq.
+var _ mailSender = &mailSenderMock{}
+
+// mailSenderMock is a mock implementation of mailSender.
+//
+//     func TestSomethingThatUsesmailSender(t *testing.T) {
+//
+//         // make and configure a mocked mailSender
+//         mockedmailSender := &mailSenderMock{
+//             SendRecoveryCodeEmailFunc: func(to string, username string, code string) error {
+// 	               panic("mock out the SendRecoveryCodeEmail method")
+//             },
+//         }
+//
+//         // use mockedmailSender in code that requires mailSender
+//         // and then make assertions.
+//
+//     }
+type mailSenderMock struct {
+	// SendRecoveryCodeEmailFunc mocks the SendRecoveryCodeEmail method.
+	SendRecoveryCodeEmailFunc func(to string, username string, code string) error
+
+	// calls tracks calls to the methods.
+	calls struct {
+		// SendRecoveryCodeEmail holds details about calls to the SendRecoveryCodeEmail method.
+		SendRecoveryCodeEmail []struct {
+			// To is the to argument value.
+			To string
+			// Username is the username argument value.
+			Username string
+			// Code is the code argument value.
+			Code string
+		}
+	}
+}
+
+// SendRecoveryCodeEmail calls SendRecoveryCodeEmailFunc.
+func (mock *mailSenderMock) SendRecoveryCodeEmail(to string, username string, code string) error {
+	if mock.SendRecoveryCodeEmailFunc == nil {
+		panic("mailSenderMock.SendRecoveryCodeEmailFunc: method is nil but mailSender.SendRecoveryCodeEmail was just called")
+	}
+	callInfo := struct {
+		To       string
+		Username string
+		Code     string
+	}{
+		To:       to,
+		Username: username,
+		Code:     code,
+	}
+	lockmailSenderMockSendRecoveryCodeEmail.Lock()
+	mock.calls.SendRecoveryCodeEmail = append(mock.calls.SendRecoveryCodeEmail, callInfo)
+	lockmailSenderMockSendRecoveryCodeEmail.Unlock()
+	return mock.SendRecoveryCodeEmailFunc(to, username, code)
+}
+
+// SendRecoveryCodeEmailCalls gets all the calls that were made to SendRecoveryCodeEmail.
+// Check the length with:
+//     len(mockedmailSender.SendRecoveryCodeEmailCalls())
+func (mock *mailSenderMock) SendRecoveryCodeEmailCalls() []struct {
+	To       string
+	Username string
+	Code     string
+} {
+	var calls []struct {
+		To       string
+		Username string
+		Code     string
+	}
+	lockmailSenderMockSendRecoveryCodeEmail.RLock()
+	calls = mock.calls.SendRecoveryCodeEmail
+	lockmailSenderMockSendRecoveryCodeEmail.RUnlock()
 	return calls
 }

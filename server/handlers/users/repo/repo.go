@@ -2,6 +2,7 @@ package repo
 
 import (
 	"errors"
+	"time"
 
 	"github.com/jinzhu/gorm"
 
@@ -9,24 +10,24 @@ import (
 	"github.com/ivch/dynasty/server/handlers/users"
 )
 
-type Users struct {
+type Repo struct {
 	db *gorm.DB
 }
 
-func New(db *gorm.DB) *Users {
+func New(db *gorm.DB) *Repo {
 	db.AutoMigrate(&users.User{})
-	return &Users{db: db}
+	return &Repo{db: db}
 }
 
-func (r *Users) CreateUser(user *users.User) error {
+func (r *Repo) CreateUser(user *users.User) error {
 	return r.db.Create(user).Error
 }
 
-func (r *Users) DeleteUser(u *users.User) error {
+func (r *Repo) DeleteUser(u *users.User) error {
 	return r.db.Delete(u).Error
 }
 
-func (r *Users) UpdateUser(req *users.UserUpdate) error {
+func (r *Repo) UpdateUser(req *users.UserUpdate) error {
 	update := make(map[string]interface{})
 	if req.Email != nil {
 		update["email"] = *req.Email
@@ -51,7 +52,7 @@ func (r *Users) UpdateUser(req *users.UserUpdate) error {
 	return r.db.Table(users.User{}.TableName()).Where("id = ?", req.ID).Updates(update).Error
 }
 
-func (r *Users) GetUserByID(id uint) (*users.User, error) {
+func (r *Repo) GetUserByID(id uint) (*users.User, error) {
 	var u users.User
 	if err := r.db.Preload("Building").Preload("Entry").
 		Where("id = ?", id).First(&u).Error; err != nil {
@@ -60,7 +61,7 @@ func (r *Users) GetUserByID(id uint) (*users.User, error) {
 	return &u, nil
 }
 
-func (r *Users) GetUserByPhone(phone string) (*users.User, error) {
+func (r *Repo) GetUserByPhone(phone string) (*users.User, error) {
 	var u users.User
 	if err := r.db.Where("phone = ?", phone).First(&u).Error; err != nil {
 		if gorm.IsRecordNotFoundError(err) {
@@ -71,7 +72,7 @@ func (r *Users) GetUserByPhone(phone string) (*users.User, error) {
 	return &u, nil
 }
 
-func (r *Users) ValidateRegCode(code string) error {
+func (r *Repo) ValidateRegCode(code string) error {
 	var c struct{ Exists bool }
 	if err := r.db.Raw("select exists(select id from reg_codes where code = ? and not used)", c).Scan(&code).Error; err != nil {
 		return err
@@ -84,11 +85,11 @@ func (r *Users) ValidateRegCode(code string) error {
 	return nil
 }
 
-func (r *Users) UseRegCode(code string) error {
+func (r *Repo) UseRegCode(code string) error {
 	return r.db.Exec("update reg_codes set used = true where code = ?", code).Error
 }
 
-func (r *Users) GetRegCode() (string, error) {
+func (r *Repo) GetRegCode() (string, error) {
 	var code []string
 	if err := r.db.Table("reg_codes").Where("used = ?", false).Pluck("code", &code).Error; err != nil {
 		return "", err
@@ -101,7 +102,7 @@ func (r *Users) GetRegCode() (string, error) {
 	return code[0], nil
 }
 
-func (r *Users) GetFamilyMembers(ownerID uint) ([]*users.User, error) {
+func (r *Repo) GetFamilyMembers(ownerID uint) ([]*users.User, error) {
 	var res []*users.User
 	if err := r.db.Where("parent_id = ?", ownerID).Find(&res).Error; err != nil {
 		return nil, err
@@ -109,7 +110,7 @@ func (r *Users) GetFamilyMembers(ownerID uint) ([]*users.User, error) {
 	return res, nil
 }
 
-func (r *Users) FindUserByApartment(building uint, apt uint) (*users.User, error) {
+func (r *Repo) FindUserByApartment(building uint, apt uint) (*users.User, error) {
 	var u users.User
 	if err := r.db.Where("building_id = ? AND apartment = ? AND parent_id IS NULL", building, apt).First(&u).Error; err != nil {
 		if gorm.IsRecordNotFoundError(err) {
@@ -119,4 +120,20 @@ func (r *Users) FindUserByApartment(building uint, apt uint) (*users.User, error
 	}
 
 	return &u, nil
+}
+
+func (r *Repo) CreateRecoverCode(c *users.PasswordRecovery) error {
+	return r.db.Create(c).Error
+}
+
+func (r *Repo) CountRecoveryCodesByUserIn24h(userID uint) (int, error) {
+	var count int
+	from := time.Now().Add(-24 * time.Hour).Unix()
+	to := time.Now().Unix()
+	if err := r.db.Model(&users.PasswordRecovery{}).
+		Where("created_at >= ? AND created_at <= ?", from, to).
+		Where("user_id = ?", userID).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
 }

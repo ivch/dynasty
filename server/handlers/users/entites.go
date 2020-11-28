@@ -1,5 +1,7 @@
 package users
 
+import "time"
+
 const defaultUserRole = 4
 
 type User struct {
@@ -47,3 +49,13 @@ type Entry struct {
 }
 
 func (Entry) TableName() string { return "entries" }
+
+type PasswordRecovery struct {
+	ID        uint `gorm:"primary_key"`
+	UserID    uint `gorm:"user_id"`
+	Code      string
+	CreatedAt *time.Time
+	Active    bool
+}
+
+func (PasswordRecovery) TableName() string { return "password_recovery" }
