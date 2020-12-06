@@ -93,7 +93,7 @@ func TestService_DeleteFamilyMember(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.fields.repo, tt.fields.verifyRegCode, tt.fields.maxMembers)
+			s := New(defaultLogger, tt.fields.repo, tt.fields.verifyRegCode, tt.fields.maxMembers, nil)
 			err := s.DeleteFamilyMember(context.Background(), tt.input.ownerID, tt.input.memberID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DeleteFamilyMember() error = %v, wantErr %v", err, tt.wantErr)
@@ -183,7 +183,7 @@ func TestService_ListFamilyMembers(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.fields.repo, tt.fields.verifyRegCode, tt.fields.maxMembers)
+			s := New(defaultLogger, tt.fields.repo, tt.fields.verifyRegCode, tt.fields.maxMembers, nil)
 			got, err := s.ListFamilyMembers(context.Background(), tt.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ListFamilyMembers() error = %v, wantErr %v", err, tt.wantErr)
@@ -418,7 +418,7 @@ func TestService_AddFamilyMember(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.fields.repo, tt.fields.verifyRegCode, tt.fields.maxMembers)
+			s := New(defaultLogger, tt.fields.repo, tt.fields.verifyRegCode, tt.fields.maxMembers, nil)
 			got, err := s.AddFamilyMember(context.Background(), tt.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AddFamilyMember() error = %v, wantErr %v", err, tt.wantErr)
@@ -589,7 +589,7 @@ func TestService_familyMemberRegister(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.fields.repo, tt.fields.verifyRegCode, tt.fields.maxMembers)
+			s := New(defaultLogger, tt.fields.repo, tt.fields.verifyRegCode, tt.fields.maxMembers, nil)
 			got, err := s.Register(context.Background(), tt.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RegisterFamilyMember() error = %v, wantErr %v", err, tt.wantErr)

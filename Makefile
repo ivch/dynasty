@@ -47,7 +47,7 @@ cover:
 .PHONY: gen
 gen:
 	GO111MODULE=off go get github.com/matryer/moq
-	${GOPATH}/bin/moq -out server/handlers/users/mock_test.go server/handlers/users userRepository
+	${GOPATH}/bin/moq -out server/handlers/users/mock_test.go server/handlers/users userRepository mailSender
 	${GOPATH}/bin/moq -out server/handlers/users/transport/mock_test.go server/handlers/users/transport UsersService
 	${GOPATH}/bin/moq -out common/clients/users/mock_test.go common/clients/users userService
 	${GOPATH}/bin/moq -out server/handlers/auth/transport/mock_test.go server/handlers/auth/transport AuthService

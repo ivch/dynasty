@@ -12,6 +12,7 @@ type Config struct {
 	DB
 	GuardUI
 	S3
+	SMTP
 	HTTPPort string `validate:"required"`
 	LogLevel string
 }
@@ -52,6 +53,13 @@ type S3 struct {
 	Endpoint string `validate:"required"`
 }
 
+type SMTP struct {
+	Host string `validate:"required"`
+	Port string `validate:"required"`
+	From string `validate:"required"`
+	Pass string `validate:"required"`
+}
+
 func New() (*Config, error) {
 	v := viper.New()
 	v.AutomaticEnv()
@@ -88,6 +96,12 @@ func New() (*Config, error) {
 			Key:      v.GetString("S3_KEY"),
 			Secret:   v.GetString("S3_SECRET"),
 			Endpoint: v.GetString("S3_ENDPOINT"),
+		},
+		SMTP: SMTP{
+			Host: v.GetString("SMTP_HOST"),
+			Port: v.GetString("SMTP_PORT"),
+			From: v.GetString("SMTP_FROM"),
+			Pass: v.GetString("SMTP_PASS"),
 		},
 	}
 

@@ -2,9 +2,13 @@ package users
 
 import (
 	"context"
+	"fmt"
+	"strings"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/ivch/dynasty/common"
 	"github.com/ivch/dynasty/common/errs"
 	"github.com/ivch/dynasty/common/logger"
 )
@@ -20,21 +24,31 @@ type userRepository interface {
 	GetRegCode() (string, error)
 	GetFamilyMembers(ownerID uint) ([]*User, error)
 	FindUserByApartment(building uint, apt uint) (*User, error)
+	CreateRecoverCode(c *PasswordRecovery) error
+	CountRecoveryCodesByUserIn24h(userID uint) (int, error)
+	GetRecoveryCode(c *PasswordRecovery) (*PasswordRecovery, error)
+	ResetPassword(codeID uint, req *UserUpdate) error
+}
+
+type mailSender interface {
+	SendRecoveryCodeEmail(to, username, code string) error
 }
 
 type Service struct {
 	repo          userRepository
 	membersLimit  int
 	verifyRegCode bool
+	email         mailSender
 	log           logger.Logger
 }
 
-func New(log logger.Logger, repo userRepository, verifyRegCode bool, membersLimit int) *Service {
+func New(log logger.Logger, repo userRepository, verifyRegCode bool, membersLimit int, email mailSender) *Service {
 	s := Service{
 		repo:          repo,
 		membersLimit:  membersLimit,
 		verifyRegCode: verifyRegCode,
 		log:           log,
+		email:         email,
 	}
 
 	return &s
@@ -163,6 +177,75 @@ func (s *Service) Update(ctx context.Context, r *UserUpdate) error {
 	r.Password = &pwd
 
 	return s.repo.UpdateUser(r)
+}
+
+func (s *Service) RecoveryCode(_ context.Context, r *User) error {
+	u, err := s.repo.GetUserByPhone(r.Phone)
+	if err != nil {
+		return err
+	}
+
+	cnt, err := s.repo.CountRecoveryCodesByUserIn24h(u.ID)
+	if err != nil {
+		s.log.Error("error counting codes: %w", err)
+		return err
+	}
+
+	if cnt >= 3 {
+		return errs.PasswordRecoveryLimit
+	}
+
+	if u.Email != r.Email {
+		return errs.EmailInvalid
+	}
+
+	code := PasswordRecovery{
+		UserID: u.ID,
+		Code:   strings.ToUpper(common.RandomString(10)),
+		Active: true,
+	}
+
+	if err := s.repo.CreateRecoverCode(&code); err != nil {
+		return err
+	}
+
+	if err := s.email.SendRecoveryCodeEmail(u.Email, fmt.Sprintf("%s %s", u.FirstName, u.LastName), code.Code); err != nil {
+		s.log.Error("error sending recovery email: %w", err)
+		return err
+	}
+
+	return nil
+}
+
+func (s *Service) ResetPassword(ctx context.Context, code string, r *UserUpdate) error {
+	c, err := s.repo.GetRecoveryCode(&PasswordRecovery{
+		Code:   code,
+		Active: true,
+	})
+	if err != nil {
+		return errs.BadRecoveryCode
+	}
+
+	if time.Now().After(c.CreatedAt.Add(3 * time.Hour)) {
+		return errs.RecoveryCodeOutdated
+	}
+
+	r.ID = c.UserID
+
+	if _, err := s.repo.GetUserByID(r.ID); err != nil {
+		return err
+	}
+
+	// todo in case of password change delete current user session and invalidate refresh token
+	pwd, err := hashAndSalt(*r.NewPassword)
+	if err != nil {
+		s.log.Error("error hashing password: %w", err)
+		return err
+	}
+
+	r.Password = &pwd
+
+	return s.repo.ResetPassword(c.ID, r)
 }
 
 func hashAndSalt(pwd string) (string, error) {

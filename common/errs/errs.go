@@ -57,6 +57,10 @@ const (
 	tooMuchFilesCode
 	requestPerDayLimitExceededCode
 	passwordConfirmMismatchCode
+	passwordRecoveryLimitCode
+	badRecoveryCode
+	emptyPasswordCode
+	recoveryCodeOutdatedCode
 )
 
 var (
@@ -112,6 +116,10 @@ var (
 	TooMuchFiles                  = errors.New("only allowed 3 images per request")
 	RequestPerDayLimitExceeded    = errors.New("request per day limit exceeded")
 	PasswordConfirmMismatch       = errors.New("password confirmation mismatch")
+	PasswordRecoveryLimit         = errors.New("password recoveries limit exceeded")
+	BadRecoveryCode               = errors.New("bad recovery code")
+	RecoveryCodeOutdated          = errors.New("recovery code outdated")
+	EmptyPassword                 = errors.New("empty password")
 
 	codes = map[error]uint{
 		Generic:                       genericCode,
@@ -166,6 +174,10 @@ var (
 		WrongApartment:                wrongApartmentCode,
 		RequestPerDayLimitExceeded:    requestPerDayLimitExceededCode,
 		PasswordConfirmMismatch:       passwordConfirmMismatchCode,
+		PasswordRecoveryLimit:         passwordRecoveryLimitCode,
+		BadRecoveryCode:               badRecoveryCode,
+		EmptyPassword:                 emptyPasswordCode,
+		RecoveryCodeOutdated:          recoveryCodeOutdatedCode,
 	}
 )
 

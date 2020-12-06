@@ -133,3 +133,16 @@ values ('Секцiя 1', 1),
 alter table requests add history text[] default '{}'::text[];
 alter table requests add created_at timestamp default CURRENT_TIMESTAMP not null;
 alter table requests add deleted_at timestamp default null;
+create table password_recovery
+(
+    id serial
+        constraint password_recovery_pk
+            primary key,
+    user_id int not null
+        constraint password_recovery_users_id_fk
+            references users (id)
+            on update cascade on delete cascade,
+    code varchar not null,
+    created_at timestamp default current_timestamp,
+    active boolean default true
+);

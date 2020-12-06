@@ -13,7 +13,9 @@ var (
 	lockUsersServiceMockAddFamilyMember    sync.RWMutex
 	lockUsersServiceMockDeleteFamilyMember sync.RWMutex
 	lockUsersServiceMockListFamilyMembers  sync.RWMutex
+	lockUsersServiceMockRecoveryCode       sync.RWMutex
 	lockUsersServiceMockRegister           sync.RWMutex
+	lockUsersServiceMockResetPassword      sync.RWMutex
 	lockUsersServiceMockUpdate             sync.RWMutex
 	lockUsersServiceMockUserByID           sync.RWMutex
 )
@@ -37,8 +39,14 @@ var _ UsersService = &UsersServiceMock{}
 //             ListFamilyMembersFunc: func(ctx context.Context, id uint) ([]*users.User, error) {
 // 	               panic("mock out the ListFamilyMembers method")
 //             },
+//             RecoveryCodeFunc: func(ctx context.Context, r *users.User) error {
+// 	               panic("mock out the RecoveryCode method")
+//             },
 //             RegisterFunc: func(ctx context.Context, req *users.User) (*users.User, error) {
 // 	               panic("mock out the Register method")
+//             },
+//             ResetPasswordFunc: func(ctx context.Context, code string, r *users.UserUpdate) error {
+// 	               panic("mock out the ResetPassword method")
 //             },
 //             UpdateFunc: func(ctx context.Context, req *users.UserUpdate) error {
 // 	               panic("mock out the Update method")
@@ -62,8 +70,14 @@ type UsersServiceMock struct {
 	// ListFamilyMembersFunc mocks the ListFamilyMembers method.
 	ListFamilyMembersFunc func(ctx context.Context, id uint) ([]*users.User, error)
 
+	// RecoveryCodeFunc mocks the RecoveryCode method.
+	RecoveryCodeFunc func(ctx context.Context, r *users.User) error
+
 	// RegisterFunc mocks the Register method.
 	RegisterFunc func(ctx context.Context, req *users.User) (*users.User, error)
+
+	// ResetPasswordFunc mocks the ResetPassword method.
+	ResetPasswordFunc func(ctx context.Context, code string, r *users.UserUpdate) error
 
 	// UpdateFunc mocks the Update method.
 	UpdateFunc func(ctx context.Context, req *users.UserUpdate) error
@@ -96,12 +110,28 @@ type UsersServiceMock struct {
 			// ID is the id argument value.
 			ID uint
 		}
+		// RecoveryCode holds details about calls to the RecoveryCode method.
+		RecoveryCode []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// R is the r argument value.
+			R *users.User
+		}
 		// Register holds details about calls to the Register method.
 		Register []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
 			// Req is the req argument value.
 			Req *users.User
+		}
+		// ResetPassword holds details about calls to the ResetPassword method.
+		ResetPassword []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Code is the code argument value.
+			Code string
+			// R is the r argument value.
+			R *users.UserUpdate
 		}
 		// Update holds details about calls to the Update method.
 		Update []struct {
@@ -229,6 +259,41 @@ func (mock *UsersServiceMock) ListFamilyMembersCalls() []struct {
 	return calls
 }
 
+// RecoveryCode calls RecoveryCodeFunc.
+func (mock *UsersServiceMock) RecoveryCode(ctx context.Context, r *users.User) error {
+	if mock.RecoveryCodeFunc == nil {
+		panic("UsersServiceMock.RecoveryCodeFunc: method is nil but UsersService.RecoveryCode was just called")
+	}
+	callInfo := struct {
+		Ctx context.Context
+		R   *users.User
+	}{
+		Ctx: ctx,
+		R:   r,
+	}
+	lockUsersServiceMockRecoveryCode.Lock()
+	mock.calls.RecoveryCode = append(mock.calls.RecoveryCode, callInfo)
+	lockUsersServiceMockRecoveryCode.Unlock()
+	return mock.RecoveryCodeFunc(ctx, r)
+}
+
+// RecoveryCodeCalls gets all the calls that were made to RecoveryCode.
+// Check the length with:
+//     len(mockedUsersService.RecoveryCodeCalls())
+func (mock *UsersServiceMock) RecoveryCodeCalls() []struct {
+	Ctx context.Context
+	R   *users.User
+} {
+	var calls []struct {
+		Ctx context.Context
+		R   *users.User
+	}
+	lockUsersServiceMockRecoveryCode.RLock()
+	calls = mock.calls.RecoveryCode
+	lockUsersServiceMockRecoveryCode.RUnlock()
+	return calls
+}
+
 // Register calls RegisterFunc.
 func (mock *UsersServiceMock) Register(ctx context.Context, req *users.User) (*users.User, error) {
 	if mock.RegisterFunc == nil {
@@ -261,6 +326,45 @@ func (mock *UsersServiceMock) RegisterCalls() []struct {
 	lockUsersServiceMockRegister.RLock()
 	calls = mock.calls.Register
 	lockUsersServiceMockRegister.RUnlock()
+	return calls
+}
+
+// ResetPassword calls ResetPasswordFunc.
+func (mock *UsersServiceMock) ResetPassword(ctx context.Context, code string, r *users.UserUpdate) error {
+	if mock.ResetPasswordFunc == nil {
+		panic("UsersServiceMock.ResetPasswordFunc: method is nil but UsersService.ResetPassword was just called")
+	}
+	callInfo := struct {
+		Ctx  context.Context
+		Code string
+		R    *users.UserUpdate
+	}{
+		Ctx:  ctx,
+		Code: code,
+		R:    r,
+	}
+	lockUsersServiceMockResetPassword.Lock()
+	mock.calls.ResetPassword = append(mock.calls.ResetPassword, callInfo)
+	lockUsersServiceMockResetPassword.Unlock()
+	return mock.ResetPasswordFunc(ctx, code, r)
+}
+
+// ResetPasswordCalls gets all the calls that were made to ResetPassword.
+// Check the length with:
+//     len(mockedUsersService.ResetPasswordCalls())
+func (mock *UsersServiceMock) ResetPasswordCalls() []struct {
+	Ctx  context.Context
+	Code string
+	R    *users.UserUpdate
+} {
+	var calls []struct {
+		Ctx  context.Context
+		Code string
+		R    *users.UserUpdate
+	}
+	lockUsersServiceMockResetPassword.RLock()
+	calls = mock.calls.ResetPassword
+	lockUsersServiceMockResetPassword.RUnlock()
 	return calls
 }
 

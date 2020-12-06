@@ -23,11 +23,12 @@ var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z
 type UsersService interface {
 	Register(ctx context.Context, req *users.User) (*users.User, error)
 	Update(ctx context.Context, req *users.UserUpdate) error
-	// UserByPhoneAndPassword(ctx context.Context, phone, password string) (*entities.User, error)
 	UserByID(ctx context.Context, id uint) (*users.User, error)
 	AddFamilyMember(ctx context.Context, r *users.User) (*users.User, error)
 	ListFamilyMembers(ctx context.Context, id uint) ([]*users.User, error)
 	DeleteFamilyMember(ctx context.Context, ownerID, memberID uint) error
+	RecoveryCode(ctx context.Context, r *users.User) error
+	ResetPassword(ctx context.Context, code string, r *users.UserUpdate) error
 }
 
 type HTTPTransport struct {
@@ -55,6 +56,8 @@ func (h *HTTPTransport) attachRoutes() {
 	h.router.Post("/v1/member", h.AddFamilyMember)
 	h.router.Get("/v1/members", h.FamilyMembersList)
 	h.router.Delete("/v1/member/{id}", h.DeleteFamilyMember)
+	h.router.Post("/v1/password-recovery", h.PasswordRecovery)
+	h.router.Post("/v1/password-reset", h.PasswordReset)
 }
 
 func (h *HTTPTransport) Register(w http.ResponseWriter, r *http.Request) {
@@ -104,7 +107,7 @@ func (h *HTTPTransport) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req UserUpdateRequest
+	var req userUpdateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.sendError(w, http.StatusBadRequest, errs.BadRequest)
 		return
@@ -275,13 +278,8 @@ func (h *HTTPTransport) AddFamilyMember(w http.ResponseWriter, r *http.Request) 
 
 	req.OwnerID = userID
 
-	if len(req.Phone) < 12 || len(req.Phone) > 13 {
+	if err := validatePhone(req.Phone); err != nil {
 		h.sendError(w, http.StatusBadRequest, errs.PhoneWrongLength)
-		return
-	}
-
-	if _, err := strconv.ParseFloat(req.Phone, 64); err != nil {
-		h.sendError(w, http.StatusBadRequest, errs.PhoneWrongChars)
 		return
 	}
 
@@ -301,6 +299,77 @@ func (h *HTTPTransport) AddFamilyMember(w http.ResponseWriter, r *http.Request) 
 	}
 
 	h.sendHTTPResponse(r.Context(), w, result)
+}
+
+func (h *HTTPTransport) PasswordRecovery(w http.ResponseWriter, r *http.Request) {
+	var req passwordRecoveryRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.sendError(w, http.StatusBadRequest, errs.BadRequest)
+		return
+	}
+
+	if err := validatePhone(req.Phone); err != nil {
+		h.sendError(w, http.StatusBadRequest, errs.PhoneWrongLength)
+		return
+	}
+
+	if !isEmailValid(req.Email) {
+		h.sendError(w, http.StatusBadRequest, errs.EmailInvalid)
+		return
+	}
+
+	if err := h.svc.RecoveryCode(r.Context(), &users.User{
+		Email: req.Email,
+		Phone: req.Phone,
+	}); err != nil {
+		h.sendError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	h.sendHTTPResponse(r.Context(), w, nil)
+}
+
+func (h *HTTPTransport) PasswordReset(w http.ResponseWriter, r *http.Request) {
+	var req passwordResetRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.sendError(w, http.StatusBadRequest, errs.BadRequest)
+		return
+	}
+
+	if len(req.Code) < 10 {
+		h.sendError(w, http.StatusBadRequest, errs.BadRecoveryCode)
+		return
+	}
+
+	var data users.UserUpdate
+	if req.NewPassword == "" {
+		h.sendError(w, http.StatusBadRequest, errs.EmptyPassword)
+		return
+	}
+
+	if req.NewPasswordConfirm == "" {
+		h.sendError(w, http.StatusBadRequest, errs.PasswordConfirmMismatch)
+		return
+	}
+
+	if req.NewPasswordConfirm != req.NewPassword {
+		h.sendError(w, http.StatusBadRequest, errs.PasswordConfirmMismatch)
+		return
+	}
+
+	if err := validatePassword(req.NewPassword); err != nil {
+		h.sendError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	data.NewPassword = &req.NewPassword
+
+	if err := h.svc.ResetPassword(r.Context(), req.Code, &data); err != nil {
+		h.sendError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	h.sendHTTPResponse(r.Context(), w, nil)
 }
 
 func getUserID(ctx context.Context) (uint, error) {
@@ -333,6 +402,10 @@ func (h *HTTPTransport) sendError(w http.ResponseWriter, httpCode int, error err
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(httpCode)
 
+	if error == nil {
+		error = errs.Generic
+	}
+
 	res := errorResponse{
 		ErrorCode: errs.Code(error),
 		Error:     error.Error(),
@@ -350,17 +423,25 @@ func validatePassword(p string) error {
 	return nil
 }
 
+func validatePhone(p string) error {
+	if len(p) < 12 || len(p) > 13 {
+		return errs.PhoneWrongLength
+	}
+
+	if _, err := strconv.ParseFloat(p, 64); err != nil {
+		return errs.PhoneWrongChars
+	}
+
+	return nil
+}
+
 func validateRegisterRequest(r *userRegisterRequest) error {
 	if err := validatePassword(r.Password); err != nil {
 		return err
 	}
 
-	if len(r.Phone) < 12 || len(r.Phone) > 13 {
-		return errs.PhoneWrongLength
-	}
-
-	if _, err := strconv.ParseFloat(r.Phone, 64); err != nil {
-		return errs.PhoneWrongChars
+	if err := validatePhone(r.Phone); err != nil {
+		return err
 	}
 
 	if len(r.FirstName) == 0 {
