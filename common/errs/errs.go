@@ -58,6 +58,9 @@ const (
 	requestPerDayLimitExceededCode
 	passwordConfirmMismatchCode
 	passwordRecoveryLimitCode
+	badRecoveryCode
+	emptyPasswordCode
+	recoveryCodeOutdatedCode
 )
 
 var (
@@ -114,6 +117,9 @@ var (
 	RequestPerDayLimitExceeded    = errors.New("request per day limit exceeded")
 	PasswordConfirmMismatch       = errors.New("password confirmation mismatch")
 	PasswordRecoveryLimit         = errors.New("password recoveries limit exceeded")
+	BadRecoveryCode               = errors.New("bad recovery code")
+	RecoveryCodeOutdated          = errors.New("recovery code outdated")
+	EmptyPassword                 = errors.New("empty password")
 
 	codes = map[error]uint{
 		Generic:                       genericCode,
@@ -169,6 +175,9 @@ var (
 		RequestPerDayLimitExceeded:    requestPerDayLimitExceededCode,
 		PasswordConfirmMismatch:       passwordConfirmMismatchCode,
 		PasswordRecoveryLimit:         passwordRecoveryLimitCode,
+		BadRecoveryCode:               badRecoveryCode,
+		EmptyPassword:                 emptyPasswordCode,
+		RecoveryCodeOutdated:          recoveryCodeOutdatedCode,
 	}
 )
 

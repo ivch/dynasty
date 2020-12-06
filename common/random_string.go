@@ -31,5 +31,6 @@ func RandomString(n int) string {
 		remain--
 	}
 
+	// nolint: gosec
 	return *(*string)(unsafe.Pointer(&b))
 }

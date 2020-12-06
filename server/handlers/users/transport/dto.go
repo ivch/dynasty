@@ -93,3 +93,9 @@ type passwordRecoveryRequest struct {
 	Email string `json:"email,omitempty"`
 	Phone string `json:"phone,omitempty"`
 }
+
+type passwordResetRequest struct {
+	Code               string `json:"code,omitempty"`
+	NewPassword        string `json:"new_password,omitempty"`
+	NewPasswordConfirm string `json:"new_password_confirm,omitempty"`
+}

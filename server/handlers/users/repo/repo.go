@@ -28,27 +28,7 @@ func (r *Repo) DeleteUser(u *users.User) error {
 }
 
 func (r *Repo) UpdateUser(req *users.UserUpdate) error {
-	update := make(map[string]interface{})
-	if req.Email != nil {
-		update["email"] = *req.Email
-	}
-
-	if req.Password != nil {
-		update["password"] = *req.Password
-	}
-
-	if req.FirstName != nil {
-		update["first_name"] = *req.FirstName
-	}
-
-	if req.LastName != nil {
-		update["last_name"] = *req.LastName
-	}
-
-	if req.Active != nil {
-		update["active"] = *req.Active
-	}
-
+	update := prepareUpdateQuery(req)
 	return r.db.Table(users.User{}.TableName()).Where("id = ?", req.ID).Updates(update).Error
 }
 
@@ -126,14 +106,58 @@ func (r *Repo) CreateRecoverCode(c *users.PasswordRecovery) error {
 	return r.db.Create(c).Error
 }
 
+func (r *Repo) GetRecoveryCode(c *users.PasswordRecovery) (*users.PasswordRecovery, error) {
+	var code users.PasswordRecovery
+	if err := r.db.Where("code = ? AND active = ? ", c.Code, c.Active).
+		First(&code).Error; err != nil {
+		return nil, err
+	}
+	return &code, nil
+}
+
 func (r *Repo) CountRecoveryCodesByUserIn24h(userID uint) (int, error) {
 	var count int
-	from := time.Now().Add(-24 * time.Hour).Unix()
-	to := time.Now().Unix()
+	from := time.Now().Add(-24 * time.Hour)
+	to := time.Now()
 	if err := r.db.Model(&users.PasswordRecovery{}).
 		Where("created_at >= ? AND created_at <= ?", from, to).
 		Where("user_id = ?", userID).Count(&count).Error; err != nil {
 		return 0, err
 	}
 	return count, nil
+}
+
+func (r *Repo) ResetPassword(codeID uint, req *users.UserUpdate) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		update := prepareUpdateQuery(req)
+		if err := tx.Table(users.User{}.TableName()).Where("id = ?", req.ID).Updates(update).Error; err != nil {
+			return err
+		}
+		return tx.Model(users.PasswordRecovery{}).Where("id = ?", codeID).Update("active", "false").Error
+	})
+}
+
+func prepareUpdateQuery(req *users.UserUpdate) map[string]interface{} {
+	update := make(map[string]interface{})
+	if req.Email != nil {
+		update["email"] = *req.Email
+	}
+
+	if req.Password != nil {
+		update["password"] = *req.Password
+	}
+
+	if req.FirstName != nil {
+		update["first_name"] = *req.FirstName
+	}
+
+	if req.LastName != nil {
+		update["last_name"] = *req.LastName
+	}
+
+	if req.Active != nil {
+		update["active"] = *req.Active
+	}
+
+	return update
 }

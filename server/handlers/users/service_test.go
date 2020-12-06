@@ -7,6 +7,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/ivch/dynasty/common/logger"
 )
@@ -745,7 +746,140 @@ func Test_ServiceRecovery(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := New(defaultLogger, tt.params.repo, tt.params.verifyRegCode, tt.params.maxMembers, tt.params.email)
-			err := s.Recovery(context.Background(), tt.input)
+			err := s.RecoveryCode(context.Background(), tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func Test_ServiceResetPassword(t *testing.T) {
+	type params struct {
+		verifyRegCode bool
+		maxMembers    int
+		repo          userRepository
+	}
+
+	type input struct {
+		code string
+		u    *UserUpdate
+	}
+	tests := []struct {
+		name    string
+		params  params
+		input   input
+		wantErr bool
+	}{
+		{
+			name: "error finding code",
+			params: params{
+				repo: &userRepositoryMock{
+					GetRecoveryCodeFunc: func(_ *PasswordRecovery) (*PasswordRecovery, error) {
+						return nil, errTestError
+					},
+				},
+			},
+			input: input{
+				code: "1",
+			},
+			wantErr: true,
+		},
+		{
+			name: "error code outdated",
+			params: params{
+				repo: &userRepositoryMock{
+					GetRecoveryCodeFunc: func(_ *PasswordRecovery) (*PasswordRecovery, error) {
+						return &PasswordRecovery{
+							CreatedAt: func(t time.Time) *time.Time { return &t }(time.Now().Add(-5 * time.Hour)),
+						}, nil
+					},
+				},
+			},
+			input: input{
+				code: "1",
+			},
+			wantErr: true,
+		},
+		{
+			name: "error no user",
+			params: params{
+				repo: &userRepositoryMock{
+					GetRecoveryCodeFunc: func(_ *PasswordRecovery) (*PasswordRecovery, error) {
+						return &PasswordRecovery{
+							UserID:    1,
+							CreatedAt: func(t time.Time) *time.Time { return &t }(time.Now()),
+						}, nil
+					},
+					GetUserByIDFunc: func(_ uint) (*User, error) {
+						return nil, errTestError
+					},
+				},
+			},
+			input: input{
+				code: "1",
+				u:    &UserUpdate{},
+			},
+			wantErr: true,
+		},
+		{
+			name: "error on reset password",
+			params: params{
+				repo: &userRepositoryMock{
+					GetRecoveryCodeFunc: func(_ *PasswordRecovery) (*PasswordRecovery, error) {
+						return &PasswordRecovery{
+							UserID:    1,
+							CreatedAt: func(t time.Time) *time.Time { return &t }(time.Now()),
+						}, nil
+					},
+					GetUserByIDFunc: func(_ uint) (*User, error) {
+						return nil, nil
+					},
+					ResetPasswordFunc: func(_ uint, _ *UserUpdate) error {
+						return errTestError
+					},
+				},
+			},
+			input: input{
+				code: "1",
+				u: &UserUpdate{
+					NewPassword: func(s string) *string { return &s }("1"),
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "ok",
+			params: params{
+				repo: &userRepositoryMock{
+					GetRecoveryCodeFunc: func(_ *PasswordRecovery) (*PasswordRecovery, error) {
+						return &PasswordRecovery{
+							UserID:    1,
+							CreatedAt: func(t time.Time) *time.Time { return &t }(time.Now()),
+						}, nil
+					},
+					GetUserByIDFunc: func(_ uint) (*User, error) {
+						return nil, nil
+					},
+					ResetPasswordFunc: func(_ uint, _ *UserUpdate) error {
+						return nil
+					},
+				},
+			},
+			input: input{
+				code: "1",
+				u: &UserUpdate{
+					NewPassword: func(s string) *string { return &s }("1"),
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := New(defaultLogger, tt.params.repo, tt.params.verifyRegCode, tt.params.maxMembers, nil)
+			err := s.ResetPassword(context.Background(), tt.input.code, tt.input.u)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
 				return

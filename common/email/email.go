@@ -11,8 +11,8 @@ import (
 const (
 	mime = "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
 
-	subjPasswordRecovery = "Восстановление пароля"
-	tplPasswordRecovery  = "../common/email/templates/passwordRecovery.html"
+	subjPasswordRecovery = "Восстановление пароля"                           // nolint: gosec
+	tplPasswordRecovery  = "../common/email/templates/passwordRecovery.html" // nolint: gosec
 )
 
 type Email struct {

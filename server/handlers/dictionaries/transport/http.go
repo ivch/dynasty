@@ -101,6 +101,10 @@ func (h *HTTPTransport) sendError(w http.ResponseWriter, httpCode int, error err
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(httpCode)
 
+	if error == nil {
+		error = errs.Generic
+	}
+
 	res := errorResponse{
 		ErrorCode: errs.Code(error),
 		Error:     error.Error(),

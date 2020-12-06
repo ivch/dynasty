@@ -21,6 +21,7 @@ type authRepository interface {
 	CreateSession(userID uint) (string, error)
 	FindSessionByAccessToken(token string) (*Session, error)
 	DeleteSessionByID(id string) error
+	DeleteSessionByUserID(id uint) error
 }
 
 type Service struct {
@@ -124,6 +125,16 @@ func (s *Service) Login(ctx context.Context, phone, password string) (*Tokens, e
 		AccessToken:  at,
 		RefreshToken: rt,
 	}, nil
+}
+
+func (s *Service) Logout(ctx context.Context, id uint) error {
+	_, err := s.uSrv.UserByID(ctx, id)
+	if err != nil {
+		s.log.Error("failed to get user: %w", err)
+		return err
+	}
+
+	return s.repo.DeleteSessionByUserID(id)
 }
 
 func (s *Service) generateAccessToken(u *users.UserByIDResponse) (string, error) {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -25,6 +26,8 @@ type userRepository interface {
 	FindUserByApartment(building uint, apt uint) (*User, error)
 	CreateRecoverCode(c *PasswordRecovery) error
 	CountRecoveryCodesByUserIn24h(userID uint) (int, error)
+	GetRecoveryCode(c *PasswordRecovery) (*PasswordRecovery, error)
+	ResetPassword(codeID uint, req *UserUpdate) error
 }
 
 type mailSender interface {
@@ -176,7 +179,7 @@ func (s *Service) Update(ctx context.Context, r *UserUpdate) error {
 	return s.repo.UpdateUser(r)
 }
 
-func (s *Service) Recovery(_ context.Context, r *User) error {
+func (s *Service) RecoveryCode(_ context.Context, r *User) error {
 	u, err := s.repo.GetUserByPhone(r.Phone)
 	if err != nil {
 		return err
@@ -212,6 +215,37 @@ func (s *Service) Recovery(_ context.Context, r *User) error {
 	}
 
 	return nil
+}
+
+func (s *Service) ResetPassword(ctx context.Context, code string, r *UserUpdate) error {
+	c, err := s.repo.GetRecoveryCode(&PasswordRecovery{
+		Code:   code,
+		Active: true,
+	})
+	if err != nil {
+		return errs.BadRecoveryCode
+	}
+
+	if time.Now().After(c.CreatedAt.Add(3 * time.Hour)) {
+		return errs.RecoveryCodeOutdated
+	}
+
+	r.ID = c.UserID
+
+	if _, err := s.repo.GetUserByID(r.ID); err != nil {
+		return err
+	}
+
+	// todo in case of password change delete current user session and invalidate refresh token
+	pwd, err := hashAndSalt(*r.NewPassword)
+	if err != nil {
+		s.log.Error("error hashing password: %w", err)
+		return err
+	}
+
+	r.Password = &pwd
+
+	return s.repo.ResetPassword(c.ID, r)
 }
 
 func hashAndSalt(pwd string) (string, error) {

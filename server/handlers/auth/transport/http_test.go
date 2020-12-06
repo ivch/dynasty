@@ -235,3 +235,68 @@ func TestHTTP_Gwfa(t *testing.T) {
 		})
 	}
 }
+
+func TestHTTP_Logout(t *testing.T) {
+	tests := []struct {
+		name     string
+		header   string
+		svc      AuthService
+		wantErr  bool
+		wantCode int
+		want     string
+	}{
+		{
+			name:     "error no user",
+			wantErr:  true,
+			wantCode: http.StatusUnauthorized,
+		},
+		{
+			name:     "error bad user id #1",
+			header:   "aswd",
+			wantErr:  true,
+			wantCode: http.StatusUnauthorized,
+		},
+		{
+			name:     "error bad user id #2",
+			header:   "0",
+			wantErr:  true,
+			wantCode: http.StatusUnauthorized,
+		},
+		{
+			name:   "error service error",
+			header: "1",
+			svc: &AuthServiceMock{
+				LogoutFunc: func(_ context.Context, _ uint) error {
+					return errTestError
+				},
+			},
+			wantErr:  true,
+			wantCode: http.StatusInternalServerError,
+		},
+		{
+			name:   "ok",
+			header: "1",
+			svc: &AuthServiceMock{
+				LogoutFunc: func(_ context.Context, _ uint) error {
+					return nil
+				},
+			},
+			wantErr:  false,
+			wantCode: http.StatusOK,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := tt.svc
+			h := NewHTTPTransport(defaultLogger, svc, middlewares.NewIDCtx(defaultLogger).Middleware)
+			rr := httptest.NewRecorder()
+			rq, _ := http.NewRequest("GET", "/v1/logout", nil)
+			rq.Header.Add("X-Auth-User", tt.header)
+			h.ServeHTTP(rr, rq)
+			if (rr.Code != tt.wantCode) && tt.wantErr {
+				t.Errorf("Request error. status = %d, wantCode = %d, wantErr %v", rr.Code, tt.wantCode, tt.wantErr)
+			}
+		})
+	}
+}

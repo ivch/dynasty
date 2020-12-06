@@ -717,7 +717,7 @@ func TestHTTPTransport_PasswordRecoveryRequest(t *testing.T) {
 			name:    "error service",
 			request: `{"email":"test@mail.com", "phone":"123456789012"}`,
 			svc: &UsersServiceMock{
-				RecoveryFunc: func(_ context.Context, _ *users.User) error {
+				RecoveryCodeFunc: func(_ context.Context, _ *users.User) error {
 					return errTestError
 				},
 			},
@@ -727,7 +727,7 @@ func TestHTTPTransport_PasswordRecoveryRequest(t *testing.T) {
 			name:    "ok",
 			request: `{"email":"test@mail.com", "phone":"123456789012"}`,
 			svc: &UsersServiceMock{
-				RecoveryFunc: func(_ context.Context, _ *users.User) error {
+				RecoveryCodeFunc: func(_ context.Context, _ *users.User) error {
 					return nil
 				},
 			},
@@ -741,6 +741,85 @@ func TestHTTPTransport_PasswordRecoveryRequest(t *testing.T) {
 			h := NewHTTPTransport(defaultLogger, svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
 			rr := httptest.NewRecorder()
 			rq, _ := http.NewRequest("POST", "/v1/password-recovery", strings.NewReader(tt.request))
+			h.ServeHTTP(rr, rq)
+			if (rr.Code != http.StatusOK) != tt.wantErr {
+				t.Errorf("Request error. status = %d, wantErr %v", rr.Code, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestHTTPTransport_PasswordResetRequest(t *testing.T) {
+	tests := []struct {
+		name    string
+		svc     UsersService
+		request string
+		wantErr bool
+	}{
+		{
+			name:    "error bad json",
+			svc:     nil,
+			request: "}{",
+			wantErr: true,
+		},
+		{
+			name:    "error short code",
+			svc:     nil,
+			request: `{"code":"1"}`,
+			wantErr: true,
+		},
+		{
+			name:    "error no new password",
+			svc:     nil,
+			request: `{"code":"1234567890"}`,
+			wantErr: true,
+		},
+		{
+			name:    "error no new password confirm",
+			svc:     nil,
+			request: `{"code":"1234567890","new_password":"passwd"}`,
+			wantErr: true,
+		},
+		{
+			name:    "error password confirm mismatch",
+			svc:     nil,
+			request: `{"code":"1234567890","new_password":"passwd", "new_password_confirm":"passwd1"}`,
+			wantErr: true,
+		},
+		{
+			name:    "error bad password",
+			svc:     nil,
+			request: `{"code":"1234567890","new_password":"pass", "new_password_confirm":"pass"}`,
+			wantErr: true,
+		},
+		{
+			name:    "error service",
+			request: `{"code":"1234567890","new_password":"passwd", "new_password_confirm":"passwd"}`,
+			svc: &UsersServiceMock{
+				ResetPasswordFunc: func(_ context.Context, _ string, _ *users.UserUpdate) error {
+					return errTestError
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name:    "ok",
+			request: `{"code":"1234567890","new_password":"passwd", "new_password_confirm":"passwd"}`,
+			svc: &UsersServiceMock{
+				ResetPasswordFunc: func(_ context.Context, _ string, _ *users.UserUpdate) error {
+					return nil
+				},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := tt.svc
+			h := NewHTTPTransport(defaultLogger, svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
+			rr := httptest.NewRecorder()
+			rq, _ := http.NewRequest("POST", "/v1/password-reset", strings.NewReader(tt.request))
 			h.ServeHTTP(rr, rq)
 			if (rr.Code != http.StatusOK) != tt.wantErr {
 				t.Errorf("Request error. status = %d, wantErr %v", rr.Code, tt.wantErr)

@@ -141,6 +141,7 @@ func (mock *userServiceMock) UserByPhoneAndPasswordCalls() []struct {
 var (
 	lockauthRepositoryMockCreateSession            sync.RWMutex
 	lockauthRepositoryMockDeleteSessionByID        sync.RWMutex
+	lockauthRepositoryMockDeleteSessionByUserID    sync.RWMutex
 	lockauthRepositoryMockFindSessionByAccessToken sync.RWMutex
 )
 
@@ -160,6 +161,9 @@ var _ authRepository = &authRepositoryMock{}
 //             DeleteSessionByIDFunc: func(id string) error {
 // 	               panic("mock out the DeleteSessionByID method")
 //             },
+//             DeleteSessionByUserIDFunc: func(id uint) error {
+// 	               panic("mock out the DeleteSessionByUserID method")
+//             },
 //             FindSessionByAccessTokenFunc: func(token string) (*Session, error) {
 // 	               panic("mock out the FindSessionByAccessToken method")
 //             },
@@ -176,6 +180,9 @@ type authRepositoryMock struct {
 	// DeleteSessionByIDFunc mocks the DeleteSessionByID method.
 	DeleteSessionByIDFunc func(id string) error
 
+	// DeleteSessionByUserIDFunc mocks the DeleteSessionByUserID method.
+	DeleteSessionByUserIDFunc func(id uint) error
+
 	// FindSessionByAccessTokenFunc mocks the FindSessionByAccessToken method.
 	FindSessionByAccessTokenFunc func(token string) (*Session, error)
 
@@ -190,6 +197,11 @@ type authRepositoryMock struct {
 		DeleteSessionByID []struct {
 			// ID is the id argument value.
 			ID string
+		}
+		// DeleteSessionByUserID holds details about calls to the DeleteSessionByUserID method.
+		DeleteSessionByUserID []struct {
+			// ID is the id argument value.
+			ID uint
 		}
 		// FindSessionByAccessToken holds details about calls to the FindSessionByAccessToken method.
 		FindSessionByAccessToken []struct {
@@ -258,6 +270,37 @@ func (mock *authRepositoryMock) DeleteSessionByIDCalls() []struct {
 	lockauthRepositoryMockDeleteSessionByID.RLock()
 	calls = mock.calls.DeleteSessionByID
 	lockauthRepositoryMockDeleteSessionByID.RUnlock()
+	return calls
+}
+
+// DeleteSessionByUserID calls DeleteSessionByUserIDFunc.
+func (mock *authRepositoryMock) DeleteSessionByUserID(id uint) error {
+	if mock.DeleteSessionByUserIDFunc == nil {
+		panic("authRepositoryMock.DeleteSessionByUserIDFunc: method is nil but authRepository.DeleteSessionByUserID was just called")
+	}
+	callInfo := struct {
+		ID uint
+	}{
+		ID: id,
+	}
+	lockauthRepositoryMockDeleteSessionByUserID.Lock()
+	mock.calls.DeleteSessionByUserID = append(mock.calls.DeleteSessionByUserID, callInfo)
+	lockauthRepositoryMockDeleteSessionByUserID.Unlock()
+	return mock.DeleteSessionByUserIDFunc(id)
+}
+
+// DeleteSessionByUserIDCalls gets all the calls that were made to DeleteSessionByUserID.
+// Check the length with:
+//     len(mockedauthRepository.DeleteSessionByUserIDCalls())
+func (mock *authRepositoryMock) DeleteSessionByUserIDCalls() []struct {
+	ID uint
+} {
+	var calls []struct {
+		ID uint
+	}
+	lockauthRepositoryMockDeleteSessionByUserID.RLock()
+	calls = mock.calls.DeleteSessionByUserID
+	lockauthRepositoryMockDeleteSessionByUserID.RUnlock()
 	return calls
 }
 

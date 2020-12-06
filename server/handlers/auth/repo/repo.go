@@ -22,7 +22,7 @@ func (a *Auth) CreateSession(userID uint) (string, error) {
 	sess := auth.Session{
 		UserID:       userID,
 		RefreshToken: rt,
-		ExpiresIn:    time.Now().Add(100 * 365 * 24 * time.Hour).Unix(),
+		ExpiresIn:    time.Now().Add(30 * 24 * time.Hour).Unix(), // 30 days
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}
@@ -44,4 +44,8 @@ func (a *Auth) FindSessionByAccessToken(token string) (*auth.Session, error) {
 
 func (a *Auth) DeleteSessionByID(id string) error {
 	return a.db.Where("id = ?", id).Delete(auth.Session{}).Error
+}
+
+func (a *Auth) DeleteSessionByUserID(id uint) error {
+	return a.db.Where("user_id = ?", id).Delete(auth.Session{}).Error
 }

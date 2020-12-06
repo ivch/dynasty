@@ -14,9 +14,11 @@ var (
 	lockuserRepositoryMockDeleteUser                    sync.RWMutex
 	lockuserRepositoryMockFindUserByApartment           sync.RWMutex
 	lockuserRepositoryMockGetFamilyMembers              sync.RWMutex
+	lockuserRepositoryMockGetRecoveryCode               sync.RWMutex
 	lockuserRepositoryMockGetRegCode                    sync.RWMutex
 	lockuserRepositoryMockGetUserByID                   sync.RWMutex
 	lockuserRepositoryMockGetUserByPhone                sync.RWMutex
+	lockuserRepositoryMockResetPassword                 sync.RWMutex
 	lockuserRepositoryMockUpdateUser                    sync.RWMutex
 	lockuserRepositoryMockUseRegCode                    sync.RWMutex
 	lockuserRepositoryMockValidateRegCode               sync.RWMutex
@@ -50,6 +52,9 @@ var _ userRepository = &userRepositoryMock{}
 //             GetFamilyMembersFunc: func(ownerID uint) ([]*User, error) {
 // 	               panic("mock out the GetFamilyMembers method")
 //             },
+//             GetRecoveryCodeFunc: func(c *PasswordRecovery) (*PasswordRecovery, error) {
+// 	               panic("mock out the GetRecoveryCode method")
+//             },
 //             GetRegCodeFunc: func() (string, error) {
 // 	               panic("mock out the GetRegCode method")
 //             },
@@ -58,6 +63,9 @@ var _ userRepository = &userRepositoryMock{}
 //             },
 //             GetUserByPhoneFunc: func(phone string) (*User, error) {
 // 	               panic("mock out the GetUserByPhone method")
+//             },
+//             ResetPasswordFunc: func(codeID uint, req *UserUpdate) error {
+// 	               panic("mock out the ResetPassword method")
 //             },
 //             UpdateUserFunc: func(u *UserUpdate) error {
 // 	               panic("mock out the UpdateUser method")
@@ -93,6 +101,9 @@ type userRepositoryMock struct {
 	// GetFamilyMembersFunc mocks the GetFamilyMembers method.
 	GetFamilyMembersFunc func(ownerID uint) ([]*User, error)
 
+	// GetRecoveryCodeFunc mocks the GetRecoveryCode method.
+	GetRecoveryCodeFunc func(c *PasswordRecovery) (*PasswordRecovery, error)
+
 	// GetRegCodeFunc mocks the GetRegCode method.
 	GetRegCodeFunc func() (string, error)
 
@@ -101,6 +112,9 @@ type userRepositoryMock struct {
 
 	// GetUserByPhoneFunc mocks the GetUserByPhone method.
 	GetUserByPhoneFunc func(phone string) (*User, error)
+
+	// ResetPasswordFunc mocks the ResetPassword method.
+	ResetPasswordFunc func(codeID uint, req *UserUpdate) error
 
 	// UpdateUserFunc mocks the UpdateUser method.
 	UpdateUserFunc func(u *UserUpdate) error
@@ -145,6 +159,11 @@ type userRepositoryMock struct {
 			// OwnerID is the ownerID argument value.
 			OwnerID uint
 		}
+		// GetRecoveryCode holds details about calls to the GetRecoveryCode method.
+		GetRecoveryCode []struct {
+			// C is the c argument value.
+			C *PasswordRecovery
+		}
 		// GetRegCode holds details about calls to the GetRegCode method.
 		GetRegCode []struct {
 		}
@@ -157,6 +176,13 @@ type userRepositoryMock struct {
 		GetUserByPhone []struct {
 			// Phone is the phone argument value.
 			Phone string
+		}
+		// ResetPassword holds details about calls to the ResetPassword method.
+		ResetPassword []struct {
+			// CodeID is the codeID argument value.
+			CodeID uint
+			// Req is the req argument value.
+			Req *UserUpdate
 		}
 		// UpdateUser holds details about calls to the UpdateUser method.
 		UpdateUser []struct {
@@ -366,6 +392,37 @@ func (mock *userRepositoryMock) GetFamilyMembersCalls() []struct {
 	return calls
 }
 
+// GetRecoveryCode calls GetRecoveryCodeFunc.
+func (mock *userRepositoryMock) GetRecoveryCode(c *PasswordRecovery) (*PasswordRecovery, error) {
+	if mock.GetRecoveryCodeFunc == nil {
+		panic("userRepositoryMock.GetRecoveryCodeFunc: method is nil but userRepository.GetRecoveryCode was just called")
+	}
+	callInfo := struct {
+		C *PasswordRecovery
+	}{
+		C: c,
+	}
+	lockuserRepositoryMockGetRecoveryCode.Lock()
+	mock.calls.GetRecoveryCode = append(mock.calls.GetRecoveryCode, callInfo)
+	lockuserRepositoryMockGetRecoveryCode.Unlock()
+	return mock.GetRecoveryCodeFunc(c)
+}
+
+// GetRecoveryCodeCalls gets all the calls that were made to GetRecoveryCode.
+// Check the length with:
+//     len(mockeduserRepository.GetRecoveryCodeCalls())
+func (mock *userRepositoryMock) GetRecoveryCodeCalls() []struct {
+	C *PasswordRecovery
+} {
+	var calls []struct {
+		C *PasswordRecovery
+	}
+	lockuserRepositoryMockGetRecoveryCode.RLock()
+	calls = mock.calls.GetRecoveryCode
+	lockuserRepositoryMockGetRecoveryCode.RUnlock()
+	return calls
+}
+
 // GetRegCode calls GetRegCodeFunc.
 func (mock *userRepositoryMock) GetRegCode() (string, error) {
 	if mock.GetRegCodeFunc == nil {
@@ -451,6 +508,41 @@ func (mock *userRepositoryMock) GetUserByPhoneCalls() []struct {
 	lockuserRepositoryMockGetUserByPhone.RLock()
 	calls = mock.calls.GetUserByPhone
 	lockuserRepositoryMockGetUserByPhone.RUnlock()
+	return calls
+}
+
+// ResetPassword calls ResetPasswordFunc.
+func (mock *userRepositoryMock) ResetPassword(codeID uint, req *UserUpdate) error {
+	if mock.ResetPasswordFunc == nil {
+		panic("userRepositoryMock.ResetPasswordFunc: method is nil but userRepository.ResetPassword was just called")
+	}
+	callInfo := struct {
+		CodeID uint
+		Req    *UserUpdate
+	}{
+		CodeID: codeID,
+		Req:    req,
+	}
+	lockuserRepositoryMockResetPassword.Lock()
+	mock.calls.ResetPassword = append(mock.calls.ResetPassword, callInfo)
+	lockuserRepositoryMockResetPassword.Unlock()
+	return mock.ResetPasswordFunc(codeID, req)
+}
+
+// ResetPasswordCalls gets all the calls that were made to ResetPassword.
+// Check the length with:
+//     len(mockeduserRepository.ResetPasswordCalls())
+func (mock *userRepositoryMock) ResetPasswordCalls() []struct {
+	CodeID uint
+	Req    *UserUpdate
+} {
+	var calls []struct {
+		CodeID uint
+		Req    *UserUpdate
+	}
+	lockuserRepositoryMockResetPassword.RLock()
+	calls = mock.calls.ResetPassword
+	lockuserRepositoryMockResetPassword.RUnlock()
 	return calls
 }
 

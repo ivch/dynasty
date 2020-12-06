@@ -13,12 +13,14 @@ import (
 	"github.com/ivch/dynasty/common/errs"
 	"github.com/ivch/dynasty/common/logger"
 	"github.com/ivch/dynasty/server/handlers/auth"
+	"github.com/ivch/dynasty/server/middlewares"
 )
 
 var uuidRegexp = regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
 
 type AuthService interface {
 	Login(ctx context.Context, phone, password string) (*auth.Tokens, error)
+	Logout(ctx context.Context, id uint) error
 	Refresh(ctx context.Context, token string) (*auth.Tokens, error)
 	Gwfa(token string) (uint, error)
 }
@@ -42,6 +44,7 @@ func NewHTTPTransport(log logger.Logger, svc AuthService, mdl ...func(http.Handl
 
 func (h *HTTPTransport) attachRoutes() {
 	h.router.Post("/v1/login", h.Login)
+	h.router.Get("/v1/logout", h.Logout)
 	h.router.Post("/v1/refresh", h.Refresh)
 	h.router.Get("/v1/gwfa", h.Gwfa)
 }
@@ -131,6 +134,21 @@ func (h *HTTPTransport) Gwfa(w http.ResponseWriter, r *http.Request) {
 	h.sendHTTPResponse(r.Context(), w, nil)
 }
 
+func (h *HTTPTransport) Logout(w http.ResponseWriter, r *http.Request) {
+	userID, err := getUserID(r.Context())
+	if err != nil {
+		h.sendError(w, http.StatusUnauthorized, errs.Unauthorized)
+		return
+	}
+
+	if err := h.svc.Logout(r.Context(), userID); err != nil {
+		h.sendError(w, http.StatusInternalServerError, nil)
+		return
+	}
+
+	h.sendHTTPResponse(r.Context(), w, nil)
+}
+
 func validateLoginRequest(r *loginRequest) error {
 	if len(r.Password) < 6 {
 		return errs.PasswordTooShort
@@ -147,6 +165,24 @@ func validateLoginRequest(r *loginRequest) error {
 	return nil
 }
 
+func getUserID(ctx context.Context) (uint, error) {
+	idStr, ok := middlewares.UserIDFromContext(ctx)
+	if !ok {
+		return 0, errs.EmptyUserID
+	}
+
+	userID, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		return 0, errs.BadUserID
+	}
+
+	if userID == 0 {
+		return 0, errs.BadUserID
+	}
+
+	return uint(userID), nil
+}
+
 func (h *HTTPTransport) sendHTTPResponse(_ context.Context, w http.ResponseWriter, response interface{}) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
@@ -158,6 +194,10 @@ func (h *HTTPTransport) sendHTTPResponse(_ context.Context, w http.ResponseWrite
 func (h *HTTPTransport) sendError(w http.ResponseWriter, httpCode int, error error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(httpCode)
+
+	if error == nil {
+		error = errs.Generic
+	}
 
 	res := errorResponse{
 		ErrorCode: errs.Code(error),

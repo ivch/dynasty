@@ -320,3 +320,74 @@ func TestService_Login(t *testing.T) {
 		})
 	}
 }
+
+func TestService_Logout(t *testing.T) {
+	type fields struct {
+		usrv userService
+		repo authRepository
+	}
+
+	tests := []struct {
+		name    string
+		fields  fields
+		input   uint
+		wantErr bool
+	}{
+		{
+			name: "error no user",
+			fields: fields{
+				usrv: &userServiceMock{
+					UserByIDFunc: func(_ context.Context, _ uint) (*transport.UserByIDResponse, error) {
+						return nil, errTestError
+					},
+				},
+			},
+			input:   1,
+			wantErr: true,
+		},
+		{
+			name: "error delete session",
+			fields: fields{
+				usrv: &userServiceMock{
+					UserByIDFunc: func(_ context.Context, _ uint) (*transport.UserByIDResponse, error) {
+						return nil, nil
+					},
+				},
+				repo: &authRepositoryMock{
+					DeleteSessionByUserIDFunc: func(_ uint) error {
+						return errTestError
+					},
+				},
+			},
+			input:   1,
+			wantErr: true,
+		},
+		{
+			name: "ok",
+			fields: fields{
+				usrv: &userServiceMock{
+					UserByIDFunc: func(_ context.Context, _ uint) (*transport.UserByIDResponse, error) {
+						return nil, nil
+					},
+				},
+				repo: &authRepositoryMock{
+					DeleteSessionByUserIDFunc: func(_ uint) error {
+						return nil
+					},
+				},
+			},
+			input:   1,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := New(defaultLogger, tt.fields.repo, tt.fields.usrv, "secret")
+			err := s.Logout(context.Background(), tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Login() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
