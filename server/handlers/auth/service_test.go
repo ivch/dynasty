@@ -33,30 +33,52 @@ func TestService_Gwfa(t *testing.T) {
 		name    string
 		secret  string
 		token   string
+		repo    authRepository
 		wantErr bool
 		want    uint
 	}{
 		{
 			name:    "error failed to parse token",
 			token:   "asd",
+			repo:    nil,
 			wantErr: true,
 		},
 		{
 			name:    "error invalid token signature",
 			token:   invalidToken,
 			secret:  "covabunga",
+			repo:    nil,
 			wantErr: true,
 		},
 		{
 			name:    "error expired token",
 			token:   expired,
 			secret:  "covabunga",
+			repo:    nil,
 			wantErr: true,
 		},
 		{
-			name:    "ok",
-			token:   validToken,
+			name:  "error no session",
+			token: validToken,
+			repo: &authRepositoryMock{
+				FindSessionByUserIDFunc: func(_ uint) (*Session, error) {
+					return nil, errTestError
+				},
+			},
 			secret:  "covabunga",
+			wantErr: true,
+		},
+		{
+			name:   "ok",
+			token:  validToken,
+			secret: "covabunga",
+			repo: &authRepositoryMock{
+				FindSessionByUserIDFunc: func(_ uint) (*Session, error) {
+					return &Session{
+						UserID: 10,
+					}, nil
+				},
+			},
 			wantErr: false,
 			want:    10,
 		},
@@ -64,7 +86,7 @@ func TestService_Gwfa(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, nil, nil, tt.secret)
+			s := New(defaultLogger, tt.repo, nil, tt.secret)
 			got, err := s.Gwfa(tt.token)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Gwfa() error = %v, wantErr %v", err, tt.wantErr)
