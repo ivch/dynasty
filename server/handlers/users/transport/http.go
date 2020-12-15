@@ -196,6 +196,7 @@ func (h *HTTPTransport) UserByID(w http.ResponseWriter, r *http.Request) {
 		Building:  &res.Building,
 		Entry:     &res.Entry,
 		Role:      res.Role,
+		Active:    res.Active,
 	}
 
 	h.sendHTTPResponse(r.Context(), w, result)

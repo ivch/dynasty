@@ -34,6 +34,14 @@ func (a *Auth) CreateSession(userID uint) (string, error) {
 	return rt.String(), nil
 }
 
+func (a *Auth) FindSessionByUserID(id uint) (*auth.Session, error) {
+	var sess auth.Session
+	if err := a.db.Where("user_id = ?", id).First(&sess).Error; err != nil {
+		return nil, err
+	}
+	return &sess, nil
+}
+
 func (a *Auth) FindSessionByAccessToken(token string) (*auth.Session, error) {
 	var sess auth.Session
 	if err := a.db.Where("refresh_token = ?", token).First(&sess).Error; err != nil {

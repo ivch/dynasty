@@ -22,6 +22,7 @@ type authRepository interface {
 	FindSessionByAccessToken(token string) (*Session, error)
 	DeleteSessionByID(id string) error
 	DeleteSessionByUserID(id uint) error
+	FindSessionByUserID(id uint) (*Session, error)
 }
 
 type Service struct {
@@ -56,7 +57,12 @@ func (s *Service) Gwfa(token string) (uint, error) {
 		return 0, errs.FailedParsingTokenClaims
 	}
 
-	return claims.ID, nil
+	sess, err := s.repo.FindSessionByUserID(claims.ID)
+	if err != nil {
+		return 0, errs.TokenExpired
+	}
+
+	return sess.UserID, nil
 }
 
 func (s *Service) Refresh(ctx context.Context, token string) (*Tokens, error) {

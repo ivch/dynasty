@@ -33,7 +33,7 @@ http:
       priority: 50
 
     need-auth:
-      rule: "PathPrefix(`/users`, `/requests`)"
+      rule: "PathPrefix(`/users`, `/requests`, `/auth/v1/logout`)"
       service: "dynasty"
       entryPoints:
         - "https"

@@ -143,6 +143,7 @@ var (
 	lockauthRepositoryMockDeleteSessionByID        sync.RWMutex
 	lockauthRepositoryMockDeleteSessionByUserID    sync.RWMutex
 	lockauthRepositoryMockFindSessionByAccessToken sync.RWMutex
+	lockauthRepositoryMockFindSessionByUserID      sync.RWMutex
 )
 
 // Ensure, that authRepositoryMock does implement authRepository.
@@ -167,6 +168,9 @@ var _ authRepository = &authRepositoryMock{}
 //             FindSessionByAccessTokenFunc: func(token string) (*Session, error) {
 // 	               panic("mock out the FindSessionByAccessToken method")
 //             },
+//             FindSessionByUserIDFunc: func(id uint) (*Session, error) {
+// 	               panic("mock out the FindSessionByUserID method")
+//             },
 //         }
 //
 //         // use mockedauthRepository in code that requires authRepository
@@ -185,6 +189,9 @@ type authRepositoryMock struct {
 
 	// FindSessionByAccessTokenFunc mocks the FindSessionByAccessToken method.
 	FindSessionByAccessTokenFunc func(token string) (*Session, error)
+
+	// FindSessionByUserIDFunc mocks the FindSessionByUserID method.
+	FindSessionByUserIDFunc func(id uint) (*Session, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -207,6 +214,11 @@ type authRepositoryMock struct {
 		FindSessionByAccessToken []struct {
 			// Token is the token argument value.
 			Token string
+		}
+		// FindSessionByUserID holds details about calls to the FindSessionByUserID method.
+		FindSessionByUserID []struct {
+			// ID is the id argument value.
+			ID uint
 		}
 	}
 }
@@ -332,5 +344,36 @@ func (mock *authRepositoryMock) FindSessionByAccessTokenCalls() []struct {
 	lockauthRepositoryMockFindSessionByAccessToken.RLock()
 	calls = mock.calls.FindSessionByAccessToken
 	lockauthRepositoryMockFindSessionByAccessToken.RUnlock()
+	return calls
+}
+
+// FindSessionByUserID calls FindSessionByUserIDFunc.
+func (mock *authRepositoryMock) FindSessionByUserID(id uint) (*Session, error) {
+	if mock.FindSessionByUserIDFunc == nil {
+		panic("authRepositoryMock.FindSessionByUserIDFunc: method is nil but authRepository.FindSessionByUserID was just called")
+	}
+	callInfo := struct {
+		ID uint
+	}{
+		ID: id,
+	}
+	lockauthRepositoryMockFindSessionByUserID.Lock()
+	mock.calls.FindSessionByUserID = append(mock.calls.FindSessionByUserID, callInfo)
+	lockauthRepositoryMockFindSessionByUserID.Unlock()
+	return mock.FindSessionByUserIDFunc(id)
+}
+
+// FindSessionByUserIDCalls gets all the calls that were made to FindSessionByUserID.
+// Check the length with:
+//     len(mockedauthRepository.FindSessionByUserIDCalls())
+func (mock *authRepositoryMock) FindSessionByUserIDCalls() []struct {
+	ID uint
+} {
+	var calls []struct {
+		ID uint
+	}
+	lockauthRepositoryMockFindSessionByUserID.RLock()
+	calls = mock.calls.FindSessionByUserID
+	lockauthRepositoryMockFindSessionByUserID.RUnlock()
 	return calls
 }

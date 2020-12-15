@@ -85,6 +85,7 @@ func TestHTTP_GetUser(t *testing.T) {
 						Phone:     "1",
 						Email:     "1",
 						Role:      1,
+						Active:    true,
 						Building: users.Building{
 							ID:      1,
 							Name:    "1",
@@ -95,7 +96,7 @@ func TestHTTP_GetUser(t *testing.T) {
 			},
 			header:   "1",
 			wantErr:  false,
-			want:     `{"id":1,"apartment":1,"first_name":"1","last_name":"1","phone":"1","email":"1","role":1,"building":{"id":1,"name":"1","address":"1"},"entry":{"id":0,"name":"","building_id":0},"active":false}`,
+			want:     `{"id":1,"apartment":1,"first_name":"1","last_name":"1","phone":"1","email":"1","role":1,"building":{"id":1,"name":"1","address":"1"},"entry":{"id":0,"name":"","building_id":0},"active":true}`,
 			wantCode: http.StatusOK,
 		},
 	}

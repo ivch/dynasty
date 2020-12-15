@@ -19,7 +19,7 @@ services:
     container_name: backend
     image: ivch/dynasty:latest
     environment:
-      - LOG_VERBOSE=true
+      - LOG_LEVEL=debug
       - HTTP_PORT=9001
       - DB_USER=postgres
       - DB_PASS=postgres
