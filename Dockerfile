@@ -28,6 +28,7 @@ ADD zoneinfo.tar.gz /
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /app/cmd/app /app
+COPY --from=builder /app/common/email/templates /emailTemplates
 COPY /_ui /_ui
 
 ENTRYPOINT ["./app"]

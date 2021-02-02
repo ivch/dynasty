@@ -78,7 +78,7 @@ func main() {
 	s3Client := s3.New(newSession)
 	p := bluemonday.StrictPolicy()
 
-	mailSender := email.New(cfg.SMTP.Host, cfg.SMTP.Port, cfg.SMTP.Pass, cfg.SMTP.From)
+	mailSender := email.New(cfg.TplPath, cfg.SMTP.Host, cfg.SMTP.Port, cfg.SMTP.Pass, cfg.SMTP.From)
 
 	healthChecker := health.NewMultiChecker()
 	healthTransport := health.NewHTTPTransport(healthChecker)

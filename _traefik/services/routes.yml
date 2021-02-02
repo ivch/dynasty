@@ -32,6 +32,17 @@ http:
         - "cors"
       priority: 50
 
+    password-recovery:
+      rule: "PathPrefix(`/users/v1/password-recovery`, `/users/v1/password-reset`)"
+      service: "dynasty"
+      entryPoints:
+        - "https"
+      tls:
+        certResolver: le
+      middlewares:
+        - "cors"
+      priority: 50
+
     need-auth:
       rule: "PathPrefix(`/users`, `/requests`, `/auth/v1/logout`)"
       service: "dynasty"

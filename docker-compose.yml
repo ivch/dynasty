@@ -42,6 +42,7 @@ services:
       - SMTP_PASS=
       - SMTP_HOST=
       - SMTP_PORT=
+      - EMAIL_TPL_PATH=/emailTemplates
     expose:
       - 9001
     ports:
