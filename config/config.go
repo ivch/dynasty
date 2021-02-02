@@ -54,10 +54,11 @@ type S3 struct {
 }
 
 type SMTP struct {
-	Host string `validate:"required"`
-	Port string `validate:"required"`
-	From string `validate:"required"`
-	Pass string `validate:"required"`
+	TplPath string `validate:"required"`
+	Host    string `validate:"required"`
+	Port    string `validate:"required"`
+	From    string `validate:"required"`
+	Pass    string `validate:"required"`
 }
 
 func New() (*Config, error) {
@@ -98,10 +99,11 @@ func New() (*Config, error) {
 			Endpoint: v.GetString("S3_ENDPOINT"),
 		},
 		SMTP: SMTP{
-			Host: v.GetString("SMTP_HOST"),
-			Port: v.GetString("SMTP_PORT"),
-			From: v.GetString("SMTP_FROM"),
-			Pass: v.GetString("SMTP_PASS"),
+			TplPath: v.GetString("EMAIL_TPL_PATH"),
+			Host:    v.GetString("SMTP_HOST"),
+			Port:    v.GetString("SMTP_PORT"),
+			From:    v.GetString("SMTP_FROM"),
+			Pass:    v.GetString("SMTP_PASS"),
 		},
 	}
 

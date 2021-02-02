@@ -11,23 +11,25 @@ import (
 const (
 	mime = "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
 
-	subjPasswordRecovery = "Восстановление пароля"                           // nolint: gosec
-	tplPasswordRecovery  = "../common/email/templates/passwordRecovery.html" // nolint: gosec
+	subjPasswordRecovery = "Восстановление пароля" // nolint: gosec
+	tplPasswordRecovery  = "passwordRecovery.html" // nolint: gosec
 )
 
 type Email struct {
-	Host string
-	Port string
-	From string
-	Pass string
+	TplPath string
+	Host    string
+	Port    string
+	From    string
+	Pass    string
 }
 
-func New(host, port, pass, from string) *Email {
+func New(tplPath, host, port, pass, from string) *Email {
 	return &Email{
-		Host: host,
-		Port: port,
-		From: from,
-		Pass: pass,
+		TplPath: tplPath,
+		Host:    host,
+		Port:    port,
+		From:    from,
+		Pass:    pass,
 	}
 }
 
@@ -40,7 +42,7 @@ func (e *Email) SendRecoveryCodeEmail(to, username, code string) error {
 		RecoveryCode: code,
 	}
 
-	tpl, err := e.parseTemplate(tplPasswordRecovery, templateData)
+	tpl, err := e.parseTemplate(fmt.Sprintf("%s/%s", e.TplPath, tplPasswordRecovery), templateData)
 	if err != nil {
 		return err
 	}
