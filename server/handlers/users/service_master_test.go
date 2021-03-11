@@ -456,8 +456,10 @@ func TestService_familyMemberRegister(t *testing.T) {
 				verifyRegCode: false,
 				maxMembers:    0,
 				repo: &userRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*User, error) {
+						return nil, nil
+					},
 					GetUserByPhoneFunc: func(_ string) (*User, error) {
-
 						return &User{ParentID: &pid, RegCode: "111"}, nil
 					},
 				},
@@ -475,6 +477,9 @@ func TestService_familyMemberRegister(t *testing.T) {
 				verifyRegCode: false,
 				maxMembers:    0,
 				repo: &userRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*User, error) {
+						return nil, nil
+					},
 					GetUserByPhoneFunc: func(_ string) (*User, error) {
 						return &User{ParentID: &pid, Active: true, RegCode: "123"}, nil
 					},
@@ -493,6 +498,9 @@ func TestService_familyMemberRegister(t *testing.T) {
 				verifyRegCode: false,
 				maxMembers:    0,
 				repo: &userRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*User, error) {
+						return nil, nil
+					},
 					GetUserByPhoneFunc: func(_ string) (*User, error) {
 						return &User{ParentID: &pid, Active: false, RegCode: "123"}, nil
 					},
@@ -514,6 +522,9 @@ func TestService_familyMemberRegister(t *testing.T) {
 				verifyRegCode: false,
 				maxMembers:    0,
 				repo: &userRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*User, error) {
+						return nil, nil
+					},
 					GetUserByPhoneFunc: func(_ string) (*User, error) {
 						return &User{ParentID: &pid, Active: false, RegCode: "123"}, nil
 					},
@@ -536,6 +547,9 @@ func TestService_familyMemberRegister(t *testing.T) {
 				verifyRegCode: false,
 				maxMembers:    0,
 				repo: &userRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*User, error) {
+						return nil, nil
+					},
 					GetUserByPhoneFunc: func(_ string) (*User, error) {
 						return &User{ParentID: &pid, Active: false, RegCode: "123"}, nil
 					},
@@ -560,6 +574,9 @@ func TestService_familyMemberRegister(t *testing.T) {
 				verifyRegCode: false,
 				maxMembers:    0,
 				repo: &userRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*User, error) {
+						return nil, nil
+					},
 					GetUserByPhoneFunc: func(_ string) (*User, error) {
 						return &User{ID: 5, ParentID: &pid, Active: false, Phone: "123", RegCode: "123"}, nil
 					},

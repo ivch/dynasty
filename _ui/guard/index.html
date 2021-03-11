@@ -252,6 +252,10 @@
                 images = renderImages(item.images);
             }
 
+            if(typeof item.description === "undefined"){
+                item.description = '';
+            }
+
             table.append("<tr>" +
                 "<td>" +
                 "<h4><span class='badge badge-info float-left'>" + reqType[item.type] + "</span></h4><br/>" +

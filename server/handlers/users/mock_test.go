@@ -16,6 +16,7 @@ var (
 	lockuserRepositoryMockGetFamilyMembers              sync.RWMutex
 	lockuserRepositoryMockGetRecoveryCode               sync.RWMutex
 	lockuserRepositoryMockGetRegCode                    sync.RWMutex
+	lockuserRepositoryMockGetUserByEmail                sync.RWMutex
 	lockuserRepositoryMockGetUserByID                   sync.RWMutex
 	lockuserRepositoryMockGetUserByPhone                sync.RWMutex
 	lockuserRepositoryMockResetPassword                 sync.RWMutex
@@ -57,6 +58,9 @@ var _ userRepository = &userRepositoryMock{}
 //             },
 //             GetRegCodeFunc: func() (string, error) {
 // 	               panic("mock out the GetRegCode method")
+//             },
+//             GetUserByEmailFunc: func(email string) (*User, error) {
+// 	               panic("mock out the GetUserByEmail method")
 //             },
 //             GetUserByIDFunc: func(id uint) (*User, error) {
 // 	               panic("mock out the GetUserByID method")
@@ -106,6 +110,9 @@ type userRepositoryMock struct {
 
 	// GetRegCodeFunc mocks the GetRegCode method.
 	GetRegCodeFunc func() (string, error)
+
+	// GetUserByEmailFunc mocks the GetUserByEmail method.
+	GetUserByEmailFunc func(email string) (*User, error)
 
 	// GetUserByIDFunc mocks the GetUserByID method.
 	GetUserByIDFunc func(id uint) (*User, error)
@@ -166,6 +173,11 @@ type userRepositoryMock struct {
 		}
 		// GetRegCode holds details about calls to the GetRegCode method.
 		GetRegCode []struct {
+		}
+		// GetUserByEmail holds details about calls to the GetUserByEmail method.
+		GetUserByEmail []struct {
+			// Email is the email argument value.
+			Email string
 		}
 		// GetUserByID holds details about calls to the GetUserByID method.
 		GetUserByID []struct {
@@ -446,6 +458,37 @@ func (mock *userRepositoryMock) GetRegCodeCalls() []struct {
 	lockuserRepositoryMockGetRegCode.RLock()
 	calls = mock.calls.GetRegCode
 	lockuserRepositoryMockGetRegCode.RUnlock()
+	return calls
+}
+
+// GetUserByEmail calls GetUserByEmailFunc.
+func (mock *userRepositoryMock) GetUserByEmail(email string) (*User, error) {
+	if mock.GetUserByEmailFunc == nil {
+		panic("userRepositoryMock.GetUserByEmailFunc: method is nil but userRepository.GetUserByEmail was just called")
+	}
+	callInfo := struct {
+		Email string
+	}{
+		Email: email,
+	}
+	lockuserRepositoryMockGetUserByEmail.Lock()
+	mock.calls.GetUserByEmail = append(mock.calls.GetUserByEmail, callInfo)
+	lockuserRepositoryMockGetUserByEmail.Unlock()
+	return mock.GetUserByEmailFunc(email)
+}
+
+// GetUserByEmailCalls gets all the calls that were made to GetUserByEmail.
+// Check the length with:
+//     len(mockeduserRepository.GetUserByEmailCalls())
+func (mock *userRepositoryMock) GetUserByEmailCalls() []struct {
+	Email string
+} {
+	var calls []struct {
+		Email string
+	}
+	lockuserRepositoryMockGetUserByEmail.RLock()
+	calls = mock.calls.GetUserByEmail
+	lockuserRepositoryMockGetUserByEmail.RUnlock()
 	return calls
 }
 

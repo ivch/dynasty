@@ -465,6 +465,10 @@ func validateRegisterRequest(r *userRegisterRequest) error {
 		return errs.ApartmentEmpty
 	}
 
+	if r.Apartment > 1050 {
+		return errs.AptNumberIsTooBig
+	}
+
 	if len(r.Email) == 0 {
 		return errs.EmailEmpty
 	}
