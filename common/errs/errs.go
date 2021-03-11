@@ -61,6 +61,8 @@ const (
 	badRecoveryCode
 	emptyPasswordCode
 	recoveryCodeOutdatedCode
+	aptNumberIsTooBigCode
+	emailAlreadyExistsCode
 )
 
 var (
@@ -120,6 +122,8 @@ var (
 	BadRecoveryCode               = errors.New("bad recovery code")
 	RecoveryCodeOutdated          = errors.New("recovery code outdated")
 	EmptyPassword                 = errors.New("empty password")
+	AptNumberIsTooBig             = errors.New("apartment number is too big")
+	EmailAlreadyExists            = errors.New("provided email already in use")
 
 	codes = map[error]uint{
 		Generic:                       genericCode,
@@ -178,6 +182,8 @@ var (
 		BadRecoveryCode:               badRecoveryCode,
 		EmptyPassword:                 emptyPasswordCode,
 		RecoveryCodeOutdated:          recoveryCodeOutdatedCode,
+		AptNumberIsTooBig:             aptNumberIsTooBigCode,
+		EmailAlreadyExists:            emailAlreadyExistsCode,
 	}
 )
 

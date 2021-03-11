@@ -189,6 +189,12 @@ func TestHTTP_Register(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name:    "error invalid apartment #2",
+			svc:     nil,
+			request: `{"email":"test@test.com","first_name":"John","last_name":"Doe","password":"1213123", "phone":"380671234567","building_id": 2, "entry_id": 1, "code":"1231", "apartment":12312312"}`,
+			wantErr: true,
+		},
+		{
 			name:    "error invalid email",
 			svc:     nil,
 			request: `{"first_name":"John","last_name":"Doe","apartment":1, "entry_id": 1,"password":"1213123", "phone":"380671234567","building_id": 2, "code":"1231"}`,

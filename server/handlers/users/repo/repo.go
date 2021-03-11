@@ -52,9 +52,20 @@ func (r *Repo) GetUserByPhone(phone string) (*users.User, error) {
 	return &u, nil
 }
 
+func (r *Repo) GetUserByEmail(email string) (*users.User, error) {
+	var u users.User
+	if err := r.db.Where("email = ?", email).First(&u).Error; err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &u, nil
+}
+
 func (r *Repo) ValidateRegCode(code string) error {
 	var c struct{ Exists bool }
-	if err := r.db.Raw("select exists(select id from reg_codes where code = ? and not used)", c).Scan(&code).Error; err != nil {
+	if err := r.db.Raw("select exists(select id from reg_codes where code = ? and not used)", code).Scan(&c).Error; err != nil {
 		return err
 	}
 

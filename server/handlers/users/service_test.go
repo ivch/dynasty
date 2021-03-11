@@ -37,9 +37,38 @@ func TestService_Register(t *testing.T) {
 		want    *User
 	}{
 		{
+			name: "error getUserByEmail",
+			params: params{
+				repo: &userRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*User, error) {
+						return nil, errTestError
+					},
+				},
+			},
+			input:   &User{},
+			wantErr: true,
+			want:    nil,
+		},
+		{
+			name: "error email in use",
+			params: params{
+				repo: &userRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*User, error) {
+						return &User{}, nil
+					},
+				},
+			},
+			input:   &User{},
+			wantErr: true,
+			want:    nil,
+		},
+		{
 			name: "error failed to check user",
 			params: params{
 				repo: &userRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*User, error) {
+						return nil, nil
+					},
 					GetUserByPhoneFunc: func(_ string) (*User, error) {
 						return nil, errTestError
 					},
@@ -53,6 +82,9 @@ func TestService_Register(t *testing.T) {
 			name: "error user exists",
 			params: params{
 				repo: &userRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*User, error) {
+						return nil, nil
+					},
 					GetUserByPhoneFunc: func(_ string) (*User, error) {
 						return &User{
 							ID: 1,
@@ -69,6 +101,9 @@ func TestService_Register(t *testing.T) {
 			params: params{
 				verifyRegCode: true,
 				repo: &userRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*User, error) {
+						return nil, nil
+					},
 					GetUserByPhoneFunc: func(_ string) (*User, error) {
 						return nil, nil
 					},
@@ -85,6 +120,9 @@ func TestService_Register(t *testing.T) {
 			name: "error failed to find user by apartment",
 			params: params{
 				repo: &userRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*User, error) {
+						return nil, nil
+					},
 					GetUserByPhoneFunc: func(_ string) (*User, error) {
 						return nil, nil
 					},
@@ -100,6 +138,9 @@ func TestService_Register(t *testing.T) {
 			name: "error master account already exists",
 			params: params{
 				repo: &userRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*User, error) {
+						return nil, nil
+					},
 					GetUserByPhoneFunc: func(_ string) (*User, error) {
 						return nil, nil
 					},
@@ -115,6 +156,9 @@ func TestService_Register(t *testing.T) {
 			name: "error user not created",
 			params: params{
 				repo: &userRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*User, error) {
+						return nil, nil
+					},
 					GetUserByPhoneFunc: func(_ string) (*User, error) {
 						return nil, nil
 					},
@@ -135,6 +179,9 @@ func TestService_Register(t *testing.T) {
 			params: params{
 				verifyRegCode: true,
 				repo: &userRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*User, error) {
+						return nil, nil
+					},
 					GetUserByPhoneFunc: func(_ string) (*User, error) {
 						return nil, nil
 					},
@@ -164,6 +211,9 @@ func TestService_Register(t *testing.T) {
 			params: params{
 				verifyRegCode: true,
 				repo: &userRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*User, error) {
+						return nil, nil
+					},
 					GetUserByPhoneFunc: func(_ string) (*User, error) {
 						return nil, nil
 					},
@@ -192,6 +242,9 @@ func TestService_Register(t *testing.T) {
 			name: "ok",
 			params: params{
 				repo: &userRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*User, error) {
+						return nil, nil
+					},
 					GetUserByPhoneFunc: func(_ string) (*User, error) {
 						return nil, nil
 					},

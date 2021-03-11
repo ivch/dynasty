@@ -16,6 +16,7 @@ import (
 type userRepository interface {
 	GetUserByID(id uint) (*User, error)
 	GetUserByPhone(phone string) (*User, error)
+	GetUserByEmail(email string) (*User, error)
 	CreateUser(user *User) error
 	UpdateUser(u *UserUpdate) error
 	DeleteUser(u *User) error
@@ -83,7 +84,17 @@ func (s *Service) UserByPhoneAndPassword(_ context.Context, phone, password stri
 }
 
 func (s *Service) Register(ctx context.Context, r *User) (*User, error) {
-	user, err := s.repo.GetUserByPhone(r.Phone)
+	user, err := s.repo.GetUserByEmail(r.Email)
+	if err != nil {
+		s.log.Error("error getting user by email: %w", err)
+		return nil, err
+	}
+
+	if user != nil {
+		return nil, errs.EmailAlreadyExists
+	}
+
+	user, err = s.repo.GetUserByPhone(r.Phone)
 	if err != nil {
 		s.log.Error("error getting user by phone: %w", err)
 		return nil, err
