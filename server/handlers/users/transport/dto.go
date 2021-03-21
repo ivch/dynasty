@@ -1,6 +1,8 @@
 package transport
 
 import (
+	"strings"
+
 	"github.com/microcosm-cc/bluemonday"
 
 	"github.com/ivch/dynasty/server/handlers/users"
@@ -17,6 +19,7 @@ type UserByIDResponse struct {
 	Building  *users.Building `json:"building"`
 	Entry     *users.Entry    `json:"entry,omitempty"`
 	Active    bool            `json:"active" gorm:"active"`
+	ParentID  *uint           `json:"parent_id,omitempty"`
 }
 
 type errorResponse struct {
@@ -40,6 +43,7 @@ func (r *userRegisterRequest) Sanitize(p *bluemonday.Policy) {
 	r.FirstName = p.Sanitize(r.FirstName)
 	r.LastName = p.Sanitize(r.LastName)
 	r.Code = p.Sanitize(r.Code)
+	r.Email = strings.ToLower(r.Email)
 }
 
 type userRegisterResponse struct {
@@ -86,6 +90,9 @@ func (r *userUpdateRequest) Sanitize(p *bluemonday.Policy) {
 	if r.LastName != nil {
 		lname := p.Sanitize(*r.LastName)
 		r.LastName = &lname
+	}
+	if r.Email != nil {
+		*r.Email = strings.ToLower(*r.Email)
 	}
 }
 
