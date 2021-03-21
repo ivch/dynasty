@@ -197,6 +197,7 @@ func (h *HTTPTransport) UserByID(w http.ResponseWriter, r *http.Request) {
 		Entry:     &res.Entry,
 		Role:      res.Role,
 		Active:    res.Active,
+		ParentID:  res.ParentID,
 	}
 
 	h.sendHTTPResponse(r.Context(), w, result)
@@ -318,6 +319,8 @@ func (h *HTTPTransport) PasswordRecovery(w http.ResponseWriter, r *http.Request)
 		h.sendError(w, http.StatusBadRequest, errs.EmailInvalid)
 		return
 	}
+
+	req.Email = strings.ToLower(req.Email)
 
 	if err := h.svc.RecoveryCode(r.Context(), &users.User{
 		Email: req.Email,
