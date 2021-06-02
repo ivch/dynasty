@@ -83,6 +83,7 @@ func (s *Service) UserByPhoneAndPassword(_ context.Context, phone, password stri
 	return u, nil
 }
 
+// nolint: gocyclo,funlen
 func (s *Service) Register(ctx context.Context, r *User) (*User, error) {
 	user, err := s.repo.GetUserByEmail(r.Email)
 	if err != nil {
@@ -107,21 +108,21 @@ func (s *Service) Register(ctx context.Context, r *User) (*User, error) {
 		return nil, errs.FamilyMemberPhoneExists
 	}
 
-	if s.verifyRegCode {
-		if err := s.repo.ValidateRegCode(r.RegCode); err != nil {
-			s.log.Debug("validated reg code: %w", err)
-			return nil, err
-		}
-	}
-
 	m, err := s.repo.FindUserByApartment(r.BuildingID, r.Apartment)
 	if err != nil {
 		s.log.Error("error getting user by apt: %w", err)
 		return nil, err
 	}
 
-	if m != nil {
+	if m != nil && m.Role != predefinedUserRole {
 		return nil, errs.MasterAccountExists
+	}
+
+	if s.verifyRegCode && (m != nil && m.Role != predefinedUserRole) {
+		if err := s.repo.ValidateRegCode(r.RegCode); err != nil {
+			s.log.Debug("validated reg code: %w", err)
+			return nil, err
+		}
 	}
 
 	pwd, err := hashAndSalt(r.Password)
@@ -143,6 +144,13 @@ func (s *Service) Register(ctx context.Context, r *User) (*User, error) {
 		Role:       defaultUserRole,
 	}
 
+	if m != nil && m.Role == predefinedUserRole {
+		if m.RegCode != r.RegCode {
+			return nil, errs.RegCodeInvalid
+		}
+		return s.registerPredefinedUser(ctx, m, &u)
+	}
+
 	if err := s.repo.CreateUser(&u); err != nil {
 		s.log.Error("error creating user: %w", err)
 		return nil, err
@@ -158,6 +166,27 @@ func (s *Service) Register(ctx context.Context, r *User) (*User, error) {
 	}
 
 	return &u, nil
+}
+
+func (s *Service) registerPredefinedUser(_ context.Context, predefinedUser, newUser *User) (*User, error) {
+	upd := UserUpdate{
+		ID:        predefinedUser.ID,
+		Email:     &newUser.Email,
+		Phone:     &newUser.Phone,
+		Password:  &newUser.Password,
+		Role:      &newUser.Role,
+		FirstName: &newUser.FirstName,
+		LastName:  &newUser.LastName,
+		Active:    &newUser.Active,
+	}
+
+	if err := s.repo.UpdateUser(&upd); err != nil {
+		return nil, err
+	}
+
+	newUser.ID = predefinedUser.ID
+
+	return newUser, nil
 }
 
 func (s *Service) Update(ctx context.Context, r *UserUpdate) error {

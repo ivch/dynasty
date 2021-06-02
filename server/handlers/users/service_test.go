@@ -97,26 +97,6 @@ func TestService_Register(t *testing.T) {
 			want:    nil,
 		},
 		{
-			name: "error wrong reg code",
-			params: params{
-				verifyRegCode: true,
-				repo: &userRepositoryMock{
-					GetUserByEmailFunc: func(_ string) (*User, error) {
-						return nil, nil
-					},
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
-						return nil, nil
-					},
-					ValidateRegCodeFunc: func(_ string) error {
-						return errTestError
-					},
-				},
-			},
-			input:   &User{},
-			wantErr: true,
-			want:    nil,
-		},
-		{
 			name: "error failed to find user by apartment",
 			params: params{
 				repo: &userRepositoryMock{
@@ -151,6 +131,29 @@ func TestService_Register(t *testing.T) {
 			},
 			input:   &User{},
 			wantErr: true,
+		},
+		{
+			name: "error wrong reg code",
+			params: params{
+				verifyRegCode: true,
+				repo: &userRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*User, error) {
+						return nil, nil
+					},
+					GetUserByPhoneFunc: func(_ string) (*User, error) {
+						return nil, nil
+					},
+					FindUserByApartmentFunc: func(_ uint, _ uint) (*User, error) {
+						return &User{}, nil
+					},
+					ValidateRegCodeFunc: func(_ string) error {
+						return errTestError
+					},
+				},
+			},
+			input:   &User{},
+			wantErr: true,
+			want:    nil,
 		},
 		{
 			name: "error user not created",
@@ -258,6 +261,74 @@ func TestService_Register(t *testing.T) {
 				},
 			},
 			input:   &User{Phone: "1", Password: "1"},
+			wantErr: false,
+			want: &User{
+				ID:     1,
+				Phone:  "1",
+				Role:   defaultUserRole,
+				Active: true,
+			},
+		},
+		{
+			name: "error predefined user wrong code",
+			params: params{
+				repo: &userRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*User, error) {
+						return nil, nil
+					},
+					GetUserByPhoneFunc: func(_ string) (*User, error) {
+						return nil, nil
+					},
+					FindUserByApartmentFunc: func(_ uint, _ uint) (*User, error) {
+						return &User{Role: predefinedUserRole, RegCode: "abc"}, nil
+					},
+				},
+			},
+			input:   &User{Phone: "1", Password: "1", RegCode: "cba"},
+			wantErr: true,
+			want:    nil,
+		},
+		{
+			name: "error predefined user update error",
+			params: params{
+				repo: &userRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*User, error) {
+						return nil, nil
+					},
+					GetUserByPhoneFunc: func(_ string) (*User, error) {
+						return nil, nil
+					},
+					FindUserByApartmentFunc: func(_ uint, _ uint) (*User, error) {
+						return &User{Role: predefinedUserRole, RegCode: "abc"}, nil
+					},
+					UpdateUserFunc: func(_ *UserUpdate) error {
+						return errTestError
+					},
+				},
+			},
+			input:   &User{Phone: "1", Password: "1", RegCode: "abc"},
+			wantErr: true,
+			want:    nil,
+		},
+		{
+			name: "ok predefined user",
+			params: params{
+				repo: &userRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*User, error) {
+						return nil, nil
+					},
+					GetUserByPhoneFunc: func(_ string) (*User, error) {
+						return nil, nil
+					},
+					FindUserByApartmentFunc: func(_ uint, _ uint) (*User, error) {
+						return &User{ID: 1, Role: predefinedUserRole, RegCode: "abc"}, nil
+					},
+					UpdateUserFunc: func(_ *UserUpdate) error {
+						return nil
+					},
+				},
+			},
+			input:   &User{Phone: "1", Password: "1", RegCode: "abc"},
 			wantErr: false,
 			want: &User{
 				ID:     1,

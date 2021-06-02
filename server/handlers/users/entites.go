@@ -2,7 +2,10 @@ package users
 
 import "time"
 
-const defaultUserRole = 4
+const (
+	defaultUserRole    = 4
+	predefinedUserRole = 5
+)
 
 type User struct {
 	ID         uint `gorm:"primary_key"`
@@ -25,11 +28,13 @@ type User struct {
 type UserUpdate struct {
 	ID          uint    `gorm:"primary_key"`
 	Email       *string `json:"email,omitempty"`
+	Phone       *string `json:"phone,omitempty" gorm:"phone"`
 	Password    *string `json:"password,omitempty"`
 	NewPassword *string `json:"new_password,omitempty"`
 	FirstName   *string `json:"first_name,omitempty"`
 	LastName    *string `json:"last_name,omitempty"`
 	Active      *bool   `json:"active" gorm:"active"`
+	Role        *uint   `json:"role,omitempty" gorm:"role"`
 }
 
 func (User) TableName() string { return "users" }
