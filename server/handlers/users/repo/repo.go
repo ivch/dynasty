@@ -154,6 +154,10 @@ func prepareUpdateQuery(req *users.UserUpdate) map[string]interface{} {
 		update["email"] = *req.Email
 	}
 
+	if req.Phone != nil {
+		update["phone"] = *req.Phone
+	}
+
 	if req.Password != nil {
 		update["password"] = *req.Password
 	}
@@ -168,6 +172,10 @@ func prepareUpdateQuery(req *users.UserUpdate) map[string]interface{} {
 
 	if req.Active != nil {
 		update["active"] = *req.Active
+	}
+
+	if req.Role != nil {
+		update["role"] = *req.Role
 	}
 
 	return update

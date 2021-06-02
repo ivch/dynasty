@@ -28,7 +28,6 @@ lint:
 deps:
 	rm -rf vendor
 	go mod download
-	go mod vendor
 	go mod tidy
 
 .PHONY: build
