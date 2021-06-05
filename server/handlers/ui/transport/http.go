@@ -53,5 +53,15 @@ func NewHTTPHandler(apiHost, pageURI string, pagerLimit int) http.Handler {
 		io.Copy(w, fp)
 	})
 
+	r.Get("/docs/oferta", func(w http.ResponseWriter, r *http.Request) {
+		fp, err := os.Open("../_ui/oferta.html")
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		w.Header().Add("Content-Type", "text/html")
+		io.Copy(w, fp)
+	})
+
 	return r
 }
