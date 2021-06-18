@@ -3,6 +3,8 @@ package transport
 type errorResponse struct {
 	Error     string `json:"error"`
 	ErrorCode uint   `json:"error_code"`
+	Ru        string `json:"ru"`
+	Ua        string `json:"ua"`
 }
 
 type BuildingsDictionaryResposnse struct {

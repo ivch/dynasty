@@ -9,6 +9,18 @@ http:
         - "https_redirect"
       priority: 100
 
+    ui:
+      rule: "PathPrefix(`/ui`)"
+      service: "dynasty"
+      entryPoints:
+        - "https"
+      tls:
+        certResolver: le
+      middlewares:
+        - "cors"
+        - "basicauth"
+      priority: 60
+
     guard-api:
       rule: "PathPrefix(`/requests/v1/guard`)"
       service: "dynasty"

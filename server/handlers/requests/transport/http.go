@@ -582,9 +582,20 @@ func (h *HTTPTransport) sendError(w http.ResponseWriter, httpCode int, error err
 		error = errs.Generic
 	}
 
+	var (
+		ru string
+		ua string
+	)
+
+	if e, ok := error.(errs.SvcError); ok {
+		ru, ua = e.Ru, e.Ua
+	}
+
 	res := errorResponse{
 		ErrorCode: errs.Code(error),
 		Error:     error.Error(),
+		Ru:        ru,
+		Ua:        ua,
 	}
 
 	if err := json.NewEncoder(w).Encode(&res); err != nil {

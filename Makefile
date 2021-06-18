@@ -21,8 +21,11 @@ test:
 
 .PHONY: lint
 lint:
-	go get github.com/golangci/golangci-lint/cmd/golangci-lint
 	golangci-lint run
+
+.PHONY: inastall-lint
+install-lint:
+	go get github.com/golangci/golangci-lint/cmd/golangci-lint
 
 .PHONY: deps
 deps:
