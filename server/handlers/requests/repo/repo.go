@@ -124,8 +124,8 @@ func (r *Requests) ListByUser(req *requests.RequestListFilter) ([]*requests.Requ
 }
 
 func buildGuardFilterQuery(db *gorm.DB, req *requests.RequestListFilter) *gorm.DB {
-	from := time.Now().Add(-12 * time.Hour).Unix()
-	to := time.Now().Add(12 * time.Hour).Unix()
+	from := time.Now().Add(-2 * 24 * time.Hour).Unix()
+	to := time.Now().Add(2 * 24 * time.Hour).Unix()
 
 	q := db.Preload("User.Building").Preload("User.Entry").
 		Where("time >= ? AND time <= ?", from, to)
