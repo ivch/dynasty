@@ -150,7 +150,7 @@ func (s *Service) generateAccessToken(u *users.UserByIDResponse) (string, error)
 		Role: u.Role,
 		StandardClaims: jwt.StandardClaims{
 			Audience:  "dynapp",
-			ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
+			ExpiresAt: time.Now().Add(29 * 24 * time.Hour).Unix(), // 29 days us a tmp fix due to broken ios client
 			Issuer:    "auth.dynapp",
 			IssuedAt:  time.Now().Unix(),
 		},
