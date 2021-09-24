@@ -225,6 +225,10 @@ func (s *Service) RecoveryCode(_ context.Context, r *User) error {
 		return err
 	}
 
+	if u == nil {
+		return errs.UserNotFound
+	}
+
 	cnt, err := s.repo.CountRecoveryCodesByUserIn24h(u.ID)
 	if err != nil {
 		s.log.Error("error counting codes: %w", err)
