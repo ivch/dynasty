@@ -730,6 +730,20 @@ func Test_ServiceRecovery(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "error empty user",
+			params: params{
+				repo: &userRepositoryMock{
+					GetUserByPhoneFunc: func(_ string) (*User, error) {
+						return nil, nil
+					},
+				},
+			},
+			input: &User{
+				Phone: "1",
+			},
+			wantErr: true,
+		},
+		{
 			name: "error getting count",
 			params: params{
 				repo: &userRepositoryMock{
