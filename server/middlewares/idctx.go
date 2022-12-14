@@ -7,9 +7,15 @@ import (
 	"github.com/ivch/dynasty/common/logger"
 )
 
+type contextKey string
+
+func (c contextKey) String() string {
+	return string(c)
+}
+
 const (
-	userIDHeader = "X-Auth-User"
-	userIDCtxKey = "userID"
+	userIDHeader contextKey = "X-Auth-User"
+	userIDCtxKey contextKey = "userID"
 )
 
 func NewIDCtx(log logger.Logger) *IDCtx { return &IDCtx{log: log} }
@@ -21,7 +27,7 @@ type IDCtx struct {
 func (m *IDCtx) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		if v := r.Header.Get(userIDHeader); v != "" {
+		if v := r.Header.Get(userIDHeader.String()); v != "" {
 			ctx = context.WithValue(r.Context(), userIDCtxKey, v)
 		}
 		next.ServeHTTP(w, r.WithContext(ctx))
@@ -29,7 +35,7 @@ func (m *IDCtx) Middleware(next http.Handler) http.Handler {
 }
 
 func UserIDToCTX(ctx context.Context, r *http.Request) context.Context {
-	if v := r.Header.Get(userIDHeader); v != "" {
+	if v := r.Header.Get(userIDHeader.String()); v != "" {
 		ctx = context.WithValue(ctx, userIDCtxKey, v)
 	}
 
