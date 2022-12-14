@@ -1,6 +1,10 @@
 package transport
 
-import "github.com/microcosm-cc/bluemonday"
+import (
+	"time"
+
+	"github.com/microcosm-cc/bluemonday"
+)
 
 type errorResponse struct {
 	Error     string `json:"error"`
@@ -52,6 +56,7 @@ type RequestByIDResponse struct {
 	Description string              `json:"description"`
 	Status      string              `json:"status"`
 	Images      []map[string]string `json:"images,omitempty"`
+	CreatedAt   *time.Time          `json:"created_at,omitempty"`
 }
 
 type UploadImageResponse struct {
@@ -75,6 +80,7 @@ type RequestForGuard struct {
 	Address     string              `json:"address"`
 	Apartment   uint                `json:"apartment"`
 	Images      []map[string]string `json:"images,omitempty"`
+	CreatedAt   *time.Time          `json:"created_at,omitempty"`
 }
 
 type RequestGuardListResponse struct {

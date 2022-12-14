@@ -3,7 +3,7 @@ package transport
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -251,6 +251,7 @@ func (h *HTTPTransport) ListByUser(w http.ResponseWriter, r *http.Request) {
 			Description: res[i].Description,
 			Status:      res[i].Status,
 			Images:      res[i].ImagesURL,
+			CreatedAt:   res[i].CreatedAt,
 		}
 	}
 
@@ -289,7 +290,7 @@ func (h *HTTPTransport) UploadFile(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	fileBytes, err := ioutil.ReadAll(file)
+	fileBytes, err := io.ReadAll(file)
 	if err != nil {
 		h.log.Error("failed reading file content: %w", err)
 		h.sendError(w, http.StatusBadRequest, errs.BadRequest)
@@ -412,6 +413,7 @@ func (h *HTTPTransport) GuardList(w http.ResponseWriter, r *http.Request) {
 			Address:     res[i].User.Building.Name + ", " + res[i].User.Entry.Name,
 			Apartment:   res[i].User.Apartment,
 			Images:      res[i].ImagesURL,
+			CreatedAt:   res[i].CreatedAt,
 		}
 	}
 

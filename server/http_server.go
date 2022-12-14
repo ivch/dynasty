@@ -25,8 +25,9 @@ type Server struct {
 func New(addr string, log logger.Logger, services map[string]http.Handler) (*Server, error) {
 	router := chi.NewRouter()
 	server := &http.Server{
-		Handler: router,
-		Addr:    addr,
+		Handler:           router,
+		Addr:              addr,
+		ReadHeaderTimeout: 2 * time.Second,
 	}
 
 	s := &Server{

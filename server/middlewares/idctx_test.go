@@ -11,7 +11,7 @@ import (
 func TestUserIDToCTX(t *testing.T) {
 	ctx := context.Background()
 	r, _ := http.NewRequest("GET", "/", nil)
-	r.Header.Add(userIDHeader, "2")
+	r.Header.Add(userIDHeader.String(), "2")
 	newCtx := UserIDToCTX(ctx, r)
 	val := newCtx.Value(userIDCtxKey)
 	assert.Equal(t, val, "2")
