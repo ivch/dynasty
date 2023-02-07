@@ -125,7 +125,7 @@ func (h *HTTPTransport) Gwfa(w http.ResponseWriter, r *http.Request) {
 
 	id, err := h.svc.Gwfa(strings.TrimPrefix(token, "Bearer "))
 	if err != nil {
-		h.sendError(w, http.StatusForbidden, errs.Unauthorized)
+		h.sendError(w, http.StatusUnauthorized, errs.Unauthorized)
 		return
 	}
 
