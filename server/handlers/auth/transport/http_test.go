@@ -199,7 +199,7 @@ func TestHTTP_Gwfa(t *testing.T) {
 				},
 			},
 			wantErr:  true,
-			wantCode: http.StatusForbidden,
+			wantCode: http.StatusUnauthorized,
 		},
 		{
 			name:   "ok",
