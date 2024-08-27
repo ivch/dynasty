@@ -94,15 +94,18 @@ create table requests
     id          serial
         constraint requests_pk
             primary key,
-    type        varchar(50)               not null,
-    user_id     int                       not null
+    type        varchar(50)                                  not null,
+    user_id     integer                                      not null
         constraint requests_users_id_fk
             references users (id)
             on delete cascade,
-    time        int                       not null,
+    time        integer                                      not null,
     description varchar(1000),
-    status      varchar(15) default 'new' not null,
-    images      text[]      default '{}'::text[]
+    status      varchar(15) default 'new'::character varying not null,
+    images      text[]      default '{}'::text[],
+    history     text[]      default '{}'::text[],
+    created_at  timestamp   default CURRENT_TIMESTAMP        not null,
+    deleted_at  timestamp
 );
 
 alter table users
@@ -130,9 +133,6 @@ values ('Секцiя 1', 1),
        ('Секцiя 4', 2);
 
 
-alter table requests add history text[] default '{}'::text[];
-alter table requests add created_at timestamp default CURRENT_TIMESTAMP not null;
-alter table requests add deleted_at timestamp default null;
 create table password_recovery
 (
     id serial

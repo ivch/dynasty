@@ -2,7 +2,7 @@
 # STEP 1 build executable binary
 ################################
 
-FROM golang:1.19.3 as builder
+FROM golang:1.22 as builder
 
 RUN apt update && apt install -y make gcc musl-dev git ca-certificates && update-ca-certificates && mkdir -p /app
 
@@ -10,13 +10,13 @@ WORKDIR /app
 ARG CODECOV_TOKEN
 
 ADD go.mod .
-RUN go mod download && go mod vendor && go mod tidy
+RUN go mod download && go mod vendor
 
 COPY . .
 
 RUN CGO_ENABLED=1 GOOS=linux go test -mod=mod -cover -race -coverprofile=coverage.txt -covermode=atomic ./...
 RUN if [ "$CODECOV_TOKEN" != "" ] ; then curl -s https://codecov.io/bash > .codecov && chmod +x .codecov && ./.codecov -t $CODECOV_TOKEN ; fi
-RUN cd cmd && CGO_ENABLED=0 GOOS=linux go build -mod=mod -a -o app
+RUN cd cmd && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -mod=mod -a -o app
 
 ############################
 # STEP 2 build a small image

@@ -1,12 +1,12 @@
 module github.com/ivch/dynasty
 
-go 1.19
+go 1.22
 
 require (
 	github.com/aws/aws-sdk-go v1.36.30
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/disintegration/imaging v1.6.2
-	github.com/go-chi/chi v4.0.3+incompatible
+	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/jinzhu/gorm v1.9.12
 	github.com/joho/godotenv v1.3.0
 	github.com/lib/pq v1.9.0

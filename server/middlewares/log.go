@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/ivch/dynasty/common/logger"
@@ -19,6 +20,10 @@ type Logging struct {
 // request logging functionality.
 func (m *Logging) Middleware(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.RequestURI, "/ui/") {
+			next.ServeHTTP(w, r)
+			return
+		}
 		start := time.Now()
 		ww := NewResponseWrapper(w)
 		next.ServeHTTP(ww, r)
