@@ -12,6 +12,7 @@ import (
 type Request struct {
 	ID          uint                `json:"id"`
 	Type        string              `json:"type"`
+	Rtype       RequestType         `json:"rtype"`
 	UserID      uint                `json:"user_id" gorm:"user_id"`
 	Time        int64               `json:"time"`
 	Description string              `json:"description"`
@@ -28,6 +29,7 @@ type UpdateRequest struct {
 	ID          uint
 	UserID      uint `gorm:"user_id"`
 	Type        *string
+	Rtype       *RequestType `json:"rtype"`
 	Time        *int64
 	Description *string
 	Status      *string
@@ -39,6 +41,7 @@ type RequestListFilter struct {
 	DateFrom  *time.Time `json:"date_from,omitempty"`
 	DateTo    *time.Time `json:"date_to,omitempty"`
 	Type      string     `json:"type,omitempty" validate:"oneof=all taxi guest delivery noise complain"`
+	Rtype     int        `json:"rtype,omitempty"`
 	Place     string     `json:"place,omitempty" validate:"oneof=all kpp"`
 	Offset    uint       `json:"offset" validate:"min=0"`
 	Limit     uint       `json:"limit" validate:"required,min=1"`

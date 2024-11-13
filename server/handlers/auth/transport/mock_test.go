@@ -9,41 +9,34 @@ import (
 	"sync"
 )
 
-var (
-	lockAuthServiceMockGwfa    sync.RWMutex
-	lockAuthServiceMockLogin   sync.RWMutex
-	lockAuthServiceMockLogout  sync.RWMutex
-	lockAuthServiceMockRefresh sync.RWMutex
-)
-
 // Ensure, that AuthServiceMock does implement AuthService.
 // If this is not the case, regenerate this file with moq.
 var _ AuthService = &AuthServiceMock{}
 
 // AuthServiceMock is a mock implementation of AuthService.
 //
-//     func TestSomethingThatUsesAuthService(t *testing.T) {
+//	func TestSomethingThatUsesAuthService(t *testing.T) {
 //
-//         // make and configure a mocked AuthService
-//         mockedAuthService := &AuthServiceMock{
-//             GwfaFunc: func(token string) (uint, error) {
-// 	               panic("mock out the Gwfa method")
-//             },
-//             LoginFunc: func(ctx context.Context, phone string, password string) (*auth.Tokens, error) {
-// 	               panic("mock out the Login method")
-//             },
-//             LogoutFunc: func(ctx context.Context, id uint) error {
-// 	               panic("mock out the Logout method")
-//             },
-//             RefreshFunc: func(ctx context.Context, token string) (*auth.Tokens, error) {
-// 	               panic("mock out the Refresh method")
-//             },
-//         }
+//		// make and configure a mocked AuthService
+//		mockedAuthService := &AuthServiceMock{
+//			GwfaFunc: func(token string) (uint, error) {
+//				panic("mock out the Gwfa method")
+//			},
+//			LoginFunc: func(ctx context.Context, phone string, password string) (*auth.Tokens, error) {
+//				panic("mock out the Login method")
+//			},
+//			LogoutFunc: func(ctx context.Context, id uint) error {
+//				panic("mock out the Logout method")
+//			},
+//			RefreshFunc: func(ctx context.Context, token string) (*auth.Tokens, error) {
+//				panic("mock out the Refresh method")
+//			},
+//		}
 //
-//         // use mockedAuthService in code that requires AuthService
-//         // and then make assertions.
+//		// use mockedAuthService in code that requires AuthService
+//		// and then make assertions.
 //
-//     }
+//	}
 type AuthServiceMock struct {
 	// GwfaFunc mocks the Gwfa method.
 	GwfaFunc func(token string) (uint, error)
@@ -88,6 +81,10 @@ type AuthServiceMock struct {
 			Token string
 		}
 	}
+	lockGwfa    sync.RWMutex
+	lockLogin   sync.RWMutex
+	lockLogout  sync.RWMutex
+	lockRefresh sync.RWMutex
 }
 
 // Gwfa calls GwfaFunc.
@@ -100,24 +97,25 @@ func (mock *AuthServiceMock) Gwfa(token string) (uint, error) {
 	}{
 		Token: token,
 	}
-	lockAuthServiceMockGwfa.Lock()
+	mock.lockGwfa.Lock()
 	mock.calls.Gwfa = append(mock.calls.Gwfa, callInfo)
-	lockAuthServiceMockGwfa.Unlock()
+	mock.lockGwfa.Unlock()
 	return mock.GwfaFunc(token)
 }
 
 // GwfaCalls gets all the calls that were made to Gwfa.
 // Check the length with:
-//     len(mockedAuthService.GwfaCalls())
+//
+//	len(mockedAuthService.GwfaCalls())
 func (mock *AuthServiceMock) GwfaCalls() []struct {
 	Token string
 } {
 	var calls []struct {
 		Token string
 	}
-	lockAuthServiceMockGwfa.RLock()
+	mock.lockGwfa.RLock()
 	calls = mock.calls.Gwfa
-	lockAuthServiceMockGwfa.RUnlock()
+	mock.lockGwfa.RUnlock()
 	return calls
 }
 
@@ -135,15 +133,16 @@ func (mock *AuthServiceMock) Login(ctx context.Context, phone string, password s
 		Phone:    phone,
 		Password: password,
 	}
-	lockAuthServiceMockLogin.Lock()
+	mock.lockLogin.Lock()
 	mock.calls.Login = append(mock.calls.Login, callInfo)
-	lockAuthServiceMockLogin.Unlock()
+	mock.lockLogin.Unlock()
 	return mock.LoginFunc(ctx, phone, password)
 }
 
 // LoginCalls gets all the calls that were made to Login.
 // Check the length with:
-//     len(mockedAuthService.LoginCalls())
+//
+//	len(mockedAuthService.LoginCalls())
 func (mock *AuthServiceMock) LoginCalls() []struct {
 	Ctx      context.Context
 	Phone    string
@@ -154,9 +153,9 @@ func (mock *AuthServiceMock) LoginCalls() []struct {
 		Phone    string
 		Password string
 	}
-	lockAuthServiceMockLogin.RLock()
+	mock.lockLogin.RLock()
 	calls = mock.calls.Login
-	lockAuthServiceMockLogin.RUnlock()
+	mock.lockLogin.RUnlock()
 	return calls
 }
 
@@ -172,15 +171,16 @@ func (mock *AuthServiceMock) Logout(ctx context.Context, id uint) error {
 		Ctx: ctx,
 		ID:  id,
 	}
-	lockAuthServiceMockLogout.Lock()
+	mock.lockLogout.Lock()
 	mock.calls.Logout = append(mock.calls.Logout, callInfo)
-	lockAuthServiceMockLogout.Unlock()
+	mock.lockLogout.Unlock()
 	return mock.LogoutFunc(ctx, id)
 }
 
 // LogoutCalls gets all the calls that were made to Logout.
 // Check the length with:
-//     len(mockedAuthService.LogoutCalls())
+//
+//	len(mockedAuthService.LogoutCalls())
 func (mock *AuthServiceMock) LogoutCalls() []struct {
 	Ctx context.Context
 	ID  uint
@@ -189,9 +189,9 @@ func (mock *AuthServiceMock) LogoutCalls() []struct {
 		Ctx context.Context
 		ID  uint
 	}
-	lockAuthServiceMockLogout.RLock()
+	mock.lockLogout.RLock()
 	calls = mock.calls.Logout
-	lockAuthServiceMockLogout.RUnlock()
+	mock.lockLogout.RUnlock()
 	return calls
 }
 
@@ -207,15 +207,16 @@ func (mock *AuthServiceMock) Refresh(ctx context.Context, token string) (*auth.T
 		Ctx:   ctx,
 		Token: token,
 	}
-	lockAuthServiceMockRefresh.Lock()
+	mock.lockRefresh.Lock()
 	mock.calls.Refresh = append(mock.calls.Refresh, callInfo)
-	lockAuthServiceMockRefresh.Unlock()
+	mock.lockRefresh.Unlock()
 	return mock.RefreshFunc(ctx, token)
 }
 
 // RefreshCalls gets all the calls that were made to Refresh.
 // Check the length with:
-//     len(mockedAuthService.RefreshCalls())
+//
+//	len(mockedAuthService.RefreshCalls())
 func (mock *AuthServiceMock) RefreshCalls() []struct {
 	Ctx   context.Context
 	Token string
@@ -224,8 +225,8 @@ func (mock *AuthServiceMock) RefreshCalls() []struct {
 		Ctx   context.Context
 		Token string
 	}
-	lockAuthServiceMockRefresh.RLock()
+	mock.lockRefresh.RLock()
 	calls = mock.calls.Refresh
-	lockAuthServiceMockRefresh.RUnlock()
+	mock.lockRefresh.RUnlock()
 	return calls
 }

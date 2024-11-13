@@ -57,6 +57,7 @@ func TestService_GuardRequestList(t *testing.T) {
 						{
 							ID:          1,
 							Type:        "1",
+							Rtype:       1,
 							UserID:      1,
 							Time:        1,
 							Description: "1",
@@ -87,6 +88,7 @@ func TestService_GuardRequestList(t *testing.T) {
 					ID:          1,
 					UserID:      1,
 					Type:        "1",
+					Rtype:       1,
 					Time:        1,
 					Description: "1",
 					Status:      "1",

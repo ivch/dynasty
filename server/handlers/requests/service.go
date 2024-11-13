@@ -11,7 +11,15 @@ import (
 	"github.com/ivch/dynasty/common/logger"
 )
 
+type RequestType int
+
 const (
+	_ RequestType = iota
+	Guest
+	Taxi
+	Delivery
+	Cargo
+
 	defaultRequestStatus = "new"
 	allowedFileType      = "image/jpeg"
 	requestsPerDay       = 20
@@ -19,6 +27,41 @@ const (
 	imgPathPrefix        = "req/i/"
 	thumbPathPrefix      = "req/t/"
 	defaultS3ACL         = "public-read"
+)
+
+var (
+	oldRequestTypes = map[string]RequestType{
+		"guest":    Guest,
+		"taxi":     Taxi,
+		"delivery": Delivery,
+		"cargo":    Cargo,
+	}
+	newRequestTypes = map[RequestType]map[string]string{
+		Guest: {
+			"key": "guest",
+			"en":  "Guest",
+			"ru":  "Гость",
+			"ua":  "Гість",
+		},
+		Taxi: {
+			"key": "taxi",
+			"en":  "Taxi",
+			"ru":  "Такси",
+			"ua":  "Таксі",
+		},
+		Delivery: {
+			"key": "delivery",
+			"en":  "Delivery",
+			"ru":  "Доставка",
+			"ua":  "Доставка",
+		},
+		Cargo: {
+			"key": "cargo",
+			"en":  "37-b Unload Area",
+			"ru":  "37-Б Разгрузка",
+			"ua":  "37-Б Розвантаження",
+		},
+	}
 )
 
 type requestsRepository interface {
@@ -92,6 +135,22 @@ func (s *Service) Update(_ context.Context, r *UpdateRequest) error {
 		return err
 	}
 
+	// backward compatibility
+	if r.Type != nil {
+		if _, ok := oldRequestTypes[*r.Type]; ok {
+			newType := oldRequestTypes[*r.Type]
+			r.Rtype = &newType
+		}
+	}
+
+	if r.Rtype != nil {
+		if _, ok := newRequestTypes[*r.Rtype]; ok {
+			oldType := newRequestTypes[*r.Rtype]["key"]
+			r.Type = &oldType
+		}
+	}
+	// end backward compatibility
+
 	return s.repo.Update(r)
 }
 
@@ -119,6 +178,21 @@ func (s *Service) Create(_ context.Context, r *Request) (*Request, error) {
 		Limit:    25,
 		UserID:   r.UserID,
 	})
+
+	// backward compatibility
+	if r.Type != "" {
+		if _, ok := oldRequestTypes[r.Type]; ok {
+			r.Rtype = oldRequestTypes[r.Type]
+		}
+	}
+
+	if r.Rtype != 0 {
+		if _, ok := newRequestTypes[r.Rtype]; ok {
+			r.Type = newRequestTypes[r.Rtype]["key"]
+		}
+	}
+	// end backward compatibility
+
 	if err != nil {
 		return nil, err
 	}
@@ -135,4 +209,8 @@ func (s *Service) Create(_ context.Context, r *Request) (*Request, error) {
 	}
 
 	return r, nil
+}
+
+func GetRequestTypes() map[RequestType]map[string]string {
+	return newRequestTypes
 }

@@ -54,7 +54,7 @@ run:
 #  modules-download-mode: vendor
 
 output:
-  format: colored-line-number
+  formats: colored-line-number
   print-issued-lines: true
   print-linter-name: true
 
@@ -66,7 +66,6 @@ linters:
     - lll
     - misspell
     - depguard
-    - maligned
     - stylecheck
     - gofmt
   enable:
@@ -79,19 +78,13 @@ linters:
     - gosec
     - errcheck
     - staticcheck
-    - golint
-    - structcheck
     - typecheck
-    - varcheck
     - unused
     - ineffassign
-    - deadcode
     - unconvert
-    - interfacer
     - funlen
     - bodyclose
     - whitespace
-    - scopelint
     - prealloc
     - nakedret
     - dogsled
@@ -103,15 +96,11 @@ linters-settings:
     check-type-assertions: true
     check-blank: true
     # a path to a file containing a list of functions to be excluded.
-    exclude: errcheck_excludes.txt
+    exclude-functions: errcheck_excludes.txt
 
   funlen:
     lines: 75
     statements: 40
-
-  golint:
-    # minimal confidence for issues, default is 0.8
-    min-confidence: 2
 
   govet:
     check-shadowing: false

@@ -86,6 +86,7 @@ func (h *HTTPTransport) Create(w http.ResponseWriter, r *http.Request) {
 
 	data := requests.Request{
 		Type:        req.Type,
+		Rtype:       req.Rtype,
 		UserID:      req.UserID,
 		Time:        req.Time,
 		Description: req.Description,
@@ -140,6 +141,10 @@ func (h *HTTPTransport) Update(w http.ResponseWriter, r *http.Request) {
 
 	if req.Time != nil {
 		data.Time = req.Time
+	}
+
+	if req.Rtype != nil {
+		data.Rtype = req.Rtype
 	}
 
 	if err := h.svc.Update(r.Context(), &data); err != nil {
@@ -288,7 +293,7 @@ func (h *HTTPTransport) UploadFile(w http.ResponseWriter, r *http.Request) {
 		h.sendError(w, http.StatusBadRequest, errs.FileIsTooBig)
 		return
 	}
-	defer file.Close()
+	defer file.Close() // nolint: errcheck
 
 	fileBytes, err := io.ReadAll(file)
 	if err != nil {
@@ -405,6 +410,7 @@ func (h *HTTPTransport) GuardList(w http.ResponseWriter, r *http.Request) {
 			ID:          res[i].ID,
 			UserID:      res[i].UserID,
 			Type:        res[i].Type,
+			Rtype:       res[i].Rtype,
 			Time:        res[i].Time,
 			Description: res[i].Description,
 			Status:      res[i].Status,
@@ -485,15 +491,25 @@ func getUserID(ctx context.Context) (uint, error) {
 
 func validateCreateRequest(r *RequestCreateRequest) error {
 	// todo: add request status validation: oneof=all new closed
-	reqTypes := map[string]struct{}{
-		"taxi":     {},
-		"guest":    {},
-		"delivery": {},
-		"noise":    {},
-		"complain": {},
+	reqTypes := requests.GetRequestTypes()
+	correctType := false
+
+	if r.Type != "" {
+		for _, t := range reqTypes {
+			if t["key"] == r.Type {
+				correctType = true
+				break
+			}
+		}
 	}
 
-	if _, ok := reqTypes[r.Type]; !ok {
+	if r.Rtype != 0 {
+		if _, ok := reqTypes[r.Rtype]; ok {
+			correctType = true
+		}
+	}
+
+	if !correctType {
 		return errs.WrongRequestType
 	}
 

@@ -9,61 +9,49 @@ import (
 	"sync"
 )
 
-var (
-	lockRequestsServiceMockCreate             sync.RWMutex
-	lockRequestsServiceMockDelete             sync.RWMutex
-	lockRequestsServiceMockDeleteImage        sync.RWMutex
-	lockRequestsServiceMockGet                sync.RWMutex
-	lockRequestsServiceMockGuardRequestList   sync.RWMutex
-	lockRequestsServiceMockGuardUpdateRequest sync.RWMutex
-	lockRequestsServiceMockMy                 sync.RWMutex
-	lockRequestsServiceMockUpdate             sync.RWMutex
-	lockRequestsServiceMockUploadImage        sync.RWMutex
-)
-
 // Ensure, that RequestsServiceMock does implement RequestsService.
 // If this is not the case, regenerate this file with moq.
 var _ RequestsService = &RequestsServiceMock{}
 
 // RequestsServiceMock is a mock implementation of RequestsService.
 //
-//     func TestSomethingThatUsesRequestsService(t *testing.T) {
+//	func TestSomethingThatUsesRequestsService(t *testing.T) {
 //
-//         // make and configure a mocked RequestsService
-//         mockedRequestsService := &RequestsServiceMock{
-//             CreateFunc: func(ctx context.Context, r *requests.Request) (*requests.Request, error) {
-// 	               panic("mock out the Create method")
-//             },
-//             DeleteFunc: func(ctx context.Context, r *requests.Request) error {
-// 	               panic("mock out the Delete method")
-//             },
-//             DeleteImageFunc: func(ctx context.Context, r *requests.Image) error {
-// 	               panic("mock out the DeleteImage method")
-//             },
-//             GetFunc: func(ctx context.Context, r *requests.Request) (*requests.Request, error) {
-// 	               panic("mock out the Get method")
-//             },
-//             GuardRequestListFunc: func(ctx context.Context, r *requests.RequestListFilter) ([]*requests.Request, int, error) {
-// 	               panic("mock out the GuardRequestList method")
-//             },
-//             GuardUpdateRequestFunc: func(ctx context.Context, r *requests.Request) error {
-// 	               panic("mock out the GuardUpdateRequest method")
-//             },
-//             MyFunc: func(ctx context.Context, r *requests.RequestListFilter) ([]*requests.Request, error) {
-// 	               panic("mock out the My method")
-//             },
-//             UpdateFunc: func(ctx context.Context, r *requests.UpdateRequest) error {
-// 	               panic("mock out the Update method")
-//             },
-//             UploadImageFunc: func(ctx context.Context, r *requests.Image) (*requests.Image, error) {
-// 	               panic("mock out the UploadImage method")
-//             },
-//         }
+//		// make and configure a mocked RequestsService
+//		mockedRequestsService := &RequestsServiceMock{
+//			CreateFunc: func(ctx context.Context, r *requests.Request) (*requests.Request, error) {
+//				panic("mock out the Create method")
+//			},
+//			DeleteFunc: func(ctx context.Context, r *requests.Request) error {
+//				panic("mock out the Delete method")
+//			},
+//			DeleteImageFunc: func(ctx context.Context, r *requests.Image) error {
+//				panic("mock out the DeleteImage method")
+//			},
+//			GetFunc: func(ctx context.Context, r *requests.Request) (*requests.Request, error) {
+//				panic("mock out the Get method")
+//			},
+//			GuardRequestListFunc: func(ctx context.Context, r *requests.RequestListFilter) ([]*requests.Request, int, error) {
+//				panic("mock out the GuardRequestList method")
+//			},
+//			GuardUpdateRequestFunc: func(ctx context.Context, r *requests.Request) error {
+//				panic("mock out the GuardUpdateRequest method")
+//			},
+//			MyFunc: func(ctx context.Context, r *requests.RequestListFilter) ([]*requests.Request, error) {
+//				panic("mock out the My method")
+//			},
+//			UpdateFunc: func(ctx context.Context, r *requests.UpdateRequest) error {
+//				panic("mock out the Update method")
+//			},
+//			UploadImageFunc: func(ctx context.Context, r *requests.Image) (*requests.Image, error) {
+//				panic("mock out the UploadImage method")
+//			},
+//		}
 //
-//         // use mockedRequestsService in code that requires RequestsService
-//         // and then make assertions.
+//		// use mockedRequestsService in code that requires RequestsService
+//		// and then make assertions.
 //
-//     }
+//	}
 type RequestsServiceMock struct {
 	// CreateFunc mocks the Create method.
 	CreateFunc func(ctx context.Context, r *requests.Request) (*requests.Request, error)
@@ -158,6 +146,15 @@ type RequestsServiceMock struct {
 			R *requests.Image
 		}
 	}
+	lockCreate             sync.RWMutex
+	lockDelete             sync.RWMutex
+	lockDeleteImage        sync.RWMutex
+	lockGet                sync.RWMutex
+	lockGuardRequestList   sync.RWMutex
+	lockGuardUpdateRequest sync.RWMutex
+	lockMy                 sync.RWMutex
+	lockUpdate             sync.RWMutex
+	lockUploadImage        sync.RWMutex
 }
 
 // Create calls CreateFunc.
@@ -172,15 +169,16 @@ func (mock *RequestsServiceMock) Create(ctx context.Context, r *requests.Request
 		Ctx: ctx,
 		R:   r,
 	}
-	lockRequestsServiceMockCreate.Lock()
+	mock.lockCreate.Lock()
 	mock.calls.Create = append(mock.calls.Create, callInfo)
-	lockRequestsServiceMockCreate.Unlock()
+	mock.lockCreate.Unlock()
 	return mock.CreateFunc(ctx, r)
 }
 
 // CreateCalls gets all the calls that were made to Create.
 // Check the length with:
-//     len(mockedRequestsService.CreateCalls())
+//
+//	len(mockedRequestsService.CreateCalls())
 func (mock *RequestsServiceMock) CreateCalls() []struct {
 	Ctx context.Context
 	R   *requests.Request
@@ -189,9 +187,9 @@ func (mock *RequestsServiceMock) CreateCalls() []struct {
 		Ctx context.Context
 		R   *requests.Request
 	}
-	lockRequestsServiceMockCreate.RLock()
+	mock.lockCreate.RLock()
 	calls = mock.calls.Create
-	lockRequestsServiceMockCreate.RUnlock()
+	mock.lockCreate.RUnlock()
 	return calls
 }
 
@@ -207,15 +205,16 @@ func (mock *RequestsServiceMock) Delete(ctx context.Context, r *requests.Request
 		Ctx: ctx,
 		R:   r,
 	}
-	lockRequestsServiceMockDelete.Lock()
+	mock.lockDelete.Lock()
 	mock.calls.Delete = append(mock.calls.Delete, callInfo)
-	lockRequestsServiceMockDelete.Unlock()
+	mock.lockDelete.Unlock()
 	return mock.DeleteFunc(ctx, r)
 }
 
 // DeleteCalls gets all the calls that were made to Delete.
 // Check the length with:
-//     len(mockedRequestsService.DeleteCalls())
+//
+//	len(mockedRequestsService.DeleteCalls())
 func (mock *RequestsServiceMock) DeleteCalls() []struct {
 	Ctx context.Context
 	R   *requests.Request
@@ -224,9 +223,9 @@ func (mock *RequestsServiceMock) DeleteCalls() []struct {
 		Ctx context.Context
 		R   *requests.Request
 	}
-	lockRequestsServiceMockDelete.RLock()
+	mock.lockDelete.RLock()
 	calls = mock.calls.Delete
-	lockRequestsServiceMockDelete.RUnlock()
+	mock.lockDelete.RUnlock()
 	return calls
 }
 
@@ -242,15 +241,16 @@ func (mock *RequestsServiceMock) DeleteImage(ctx context.Context, r *requests.Im
 		Ctx: ctx,
 		R:   r,
 	}
-	lockRequestsServiceMockDeleteImage.Lock()
+	mock.lockDeleteImage.Lock()
 	mock.calls.DeleteImage = append(mock.calls.DeleteImage, callInfo)
-	lockRequestsServiceMockDeleteImage.Unlock()
+	mock.lockDeleteImage.Unlock()
 	return mock.DeleteImageFunc(ctx, r)
 }
 
 // DeleteImageCalls gets all the calls that were made to DeleteImage.
 // Check the length with:
-//     len(mockedRequestsService.DeleteImageCalls())
+//
+//	len(mockedRequestsService.DeleteImageCalls())
 func (mock *RequestsServiceMock) DeleteImageCalls() []struct {
 	Ctx context.Context
 	R   *requests.Image
@@ -259,9 +259,9 @@ func (mock *RequestsServiceMock) DeleteImageCalls() []struct {
 		Ctx context.Context
 		R   *requests.Image
 	}
-	lockRequestsServiceMockDeleteImage.RLock()
+	mock.lockDeleteImage.RLock()
 	calls = mock.calls.DeleteImage
-	lockRequestsServiceMockDeleteImage.RUnlock()
+	mock.lockDeleteImage.RUnlock()
 	return calls
 }
 
@@ -277,15 +277,16 @@ func (mock *RequestsServiceMock) Get(ctx context.Context, r *requests.Request) (
 		Ctx: ctx,
 		R:   r,
 	}
-	lockRequestsServiceMockGet.Lock()
+	mock.lockGet.Lock()
 	mock.calls.Get = append(mock.calls.Get, callInfo)
-	lockRequestsServiceMockGet.Unlock()
+	mock.lockGet.Unlock()
 	return mock.GetFunc(ctx, r)
 }
 
 // GetCalls gets all the calls that were made to Get.
 // Check the length with:
-//     len(mockedRequestsService.GetCalls())
+//
+//	len(mockedRequestsService.GetCalls())
 func (mock *RequestsServiceMock) GetCalls() []struct {
 	Ctx context.Context
 	R   *requests.Request
@@ -294,9 +295,9 @@ func (mock *RequestsServiceMock) GetCalls() []struct {
 		Ctx context.Context
 		R   *requests.Request
 	}
-	lockRequestsServiceMockGet.RLock()
+	mock.lockGet.RLock()
 	calls = mock.calls.Get
-	lockRequestsServiceMockGet.RUnlock()
+	mock.lockGet.RUnlock()
 	return calls
 }
 
@@ -312,15 +313,16 @@ func (mock *RequestsServiceMock) GuardRequestList(ctx context.Context, r *reques
 		Ctx: ctx,
 		R:   r,
 	}
-	lockRequestsServiceMockGuardRequestList.Lock()
+	mock.lockGuardRequestList.Lock()
 	mock.calls.GuardRequestList = append(mock.calls.GuardRequestList, callInfo)
-	lockRequestsServiceMockGuardRequestList.Unlock()
+	mock.lockGuardRequestList.Unlock()
 	return mock.GuardRequestListFunc(ctx, r)
 }
 
 // GuardRequestListCalls gets all the calls that were made to GuardRequestList.
 // Check the length with:
-//     len(mockedRequestsService.GuardRequestListCalls())
+//
+//	len(mockedRequestsService.GuardRequestListCalls())
 func (mock *RequestsServiceMock) GuardRequestListCalls() []struct {
 	Ctx context.Context
 	R   *requests.RequestListFilter
@@ -329,9 +331,9 @@ func (mock *RequestsServiceMock) GuardRequestListCalls() []struct {
 		Ctx context.Context
 		R   *requests.RequestListFilter
 	}
-	lockRequestsServiceMockGuardRequestList.RLock()
+	mock.lockGuardRequestList.RLock()
 	calls = mock.calls.GuardRequestList
-	lockRequestsServiceMockGuardRequestList.RUnlock()
+	mock.lockGuardRequestList.RUnlock()
 	return calls
 }
 
@@ -347,15 +349,16 @@ func (mock *RequestsServiceMock) GuardUpdateRequest(ctx context.Context, r *requ
 		Ctx: ctx,
 		R:   r,
 	}
-	lockRequestsServiceMockGuardUpdateRequest.Lock()
+	mock.lockGuardUpdateRequest.Lock()
 	mock.calls.GuardUpdateRequest = append(mock.calls.GuardUpdateRequest, callInfo)
-	lockRequestsServiceMockGuardUpdateRequest.Unlock()
+	mock.lockGuardUpdateRequest.Unlock()
 	return mock.GuardUpdateRequestFunc(ctx, r)
 }
 
 // GuardUpdateRequestCalls gets all the calls that were made to GuardUpdateRequest.
 // Check the length with:
-//     len(mockedRequestsService.GuardUpdateRequestCalls())
+//
+//	len(mockedRequestsService.GuardUpdateRequestCalls())
 func (mock *RequestsServiceMock) GuardUpdateRequestCalls() []struct {
 	Ctx context.Context
 	R   *requests.Request
@@ -364,9 +367,9 @@ func (mock *RequestsServiceMock) GuardUpdateRequestCalls() []struct {
 		Ctx context.Context
 		R   *requests.Request
 	}
-	lockRequestsServiceMockGuardUpdateRequest.RLock()
+	mock.lockGuardUpdateRequest.RLock()
 	calls = mock.calls.GuardUpdateRequest
-	lockRequestsServiceMockGuardUpdateRequest.RUnlock()
+	mock.lockGuardUpdateRequest.RUnlock()
 	return calls
 }
 
@@ -382,15 +385,16 @@ func (mock *RequestsServiceMock) My(ctx context.Context, r *requests.RequestList
 		Ctx: ctx,
 		R:   r,
 	}
-	lockRequestsServiceMockMy.Lock()
+	mock.lockMy.Lock()
 	mock.calls.My = append(mock.calls.My, callInfo)
-	lockRequestsServiceMockMy.Unlock()
+	mock.lockMy.Unlock()
 	return mock.MyFunc(ctx, r)
 }
 
 // MyCalls gets all the calls that were made to My.
 // Check the length with:
-//     len(mockedRequestsService.MyCalls())
+//
+//	len(mockedRequestsService.MyCalls())
 func (mock *RequestsServiceMock) MyCalls() []struct {
 	Ctx context.Context
 	R   *requests.RequestListFilter
@@ -399,9 +403,9 @@ func (mock *RequestsServiceMock) MyCalls() []struct {
 		Ctx context.Context
 		R   *requests.RequestListFilter
 	}
-	lockRequestsServiceMockMy.RLock()
+	mock.lockMy.RLock()
 	calls = mock.calls.My
-	lockRequestsServiceMockMy.RUnlock()
+	mock.lockMy.RUnlock()
 	return calls
 }
 
@@ -417,15 +421,16 @@ func (mock *RequestsServiceMock) Update(ctx context.Context, r *requests.UpdateR
 		Ctx: ctx,
 		R:   r,
 	}
-	lockRequestsServiceMockUpdate.Lock()
+	mock.lockUpdate.Lock()
 	mock.calls.Update = append(mock.calls.Update, callInfo)
-	lockRequestsServiceMockUpdate.Unlock()
+	mock.lockUpdate.Unlock()
 	return mock.UpdateFunc(ctx, r)
 }
 
 // UpdateCalls gets all the calls that were made to Update.
 // Check the length with:
-//     len(mockedRequestsService.UpdateCalls())
+//
+//	len(mockedRequestsService.UpdateCalls())
 func (mock *RequestsServiceMock) UpdateCalls() []struct {
 	Ctx context.Context
 	R   *requests.UpdateRequest
@@ -434,9 +439,9 @@ func (mock *RequestsServiceMock) UpdateCalls() []struct {
 		Ctx context.Context
 		R   *requests.UpdateRequest
 	}
-	lockRequestsServiceMockUpdate.RLock()
+	mock.lockUpdate.RLock()
 	calls = mock.calls.Update
-	lockRequestsServiceMockUpdate.RUnlock()
+	mock.lockUpdate.RUnlock()
 	return calls
 }
 
@@ -452,15 +457,16 @@ func (mock *RequestsServiceMock) UploadImage(ctx context.Context, r *requests.Im
 		Ctx: ctx,
 		R:   r,
 	}
-	lockRequestsServiceMockUploadImage.Lock()
+	mock.lockUploadImage.Lock()
 	mock.calls.UploadImage = append(mock.calls.UploadImage, callInfo)
-	lockRequestsServiceMockUploadImage.Unlock()
+	mock.lockUploadImage.Unlock()
 	return mock.UploadImageFunc(ctx, r)
 }
 
 // UploadImageCalls gets all the calls that were made to UploadImage.
 // Check the length with:
-//     len(mockedRequestsService.UploadImageCalls())
+//
+//	len(mockedRequestsService.UploadImageCalls())
 func (mock *RequestsServiceMock) UploadImageCalls() []struct {
 	Ctx context.Context
 	R   *requests.Image
@@ -469,8 +475,8 @@ func (mock *RequestsServiceMock) UploadImageCalls() []struct {
 		Ctx context.Context
 		R   *requests.Image
 	}
-	lockRequestsServiceMockUploadImage.RLock()
+	mock.lockUploadImage.RLock()
 	calls = mock.calls.UploadImage
-	lockRequestsServiceMockUploadImage.RUnlock()
+	mock.lockUploadImage.RUnlock()
 	return calls
 }

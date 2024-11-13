@@ -8,65 +8,52 @@ import (
 	"sync"
 )
 
-var (
-	lockrequestsRepositoryMockAddImage              sync.RWMutex
-	lockrequestsRepositoryMockCountForGuard         sync.RWMutex
-	lockrequestsRepositoryMockCreate                sync.RWMutex
-	lockrequestsRepositoryMockDelete                sync.RWMutex
-	lockrequestsRepositoryMockDeleteImage           sync.RWMutex
-	lockrequestsRepositoryMockGetRequestByIDAndUser sync.RWMutex
-	lockrequestsRepositoryMockListByUser            sync.RWMutex
-	lockrequestsRepositoryMockListForGuard          sync.RWMutex
-	lockrequestsRepositoryMockUpdate                sync.RWMutex
-	lockrequestsRepositoryMockUpdateForGuard        sync.RWMutex
-)
-
 // Ensure, that requestsRepositoryMock does implement requestsRepository.
 // If this is not the case, regenerate this file with moq.
 var _ requestsRepository = &requestsRepositoryMock{}
 
 // requestsRepositoryMock is a mock implementation of requestsRepository.
 //
-//     func TestSomethingThatUsesrequestsRepository(t *testing.T) {
+//	func TestSomethingThatUsesrequestsRepository(t *testing.T) {
 //
-//         // make and configure a mocked requestsRepository
-//         mockedrequestsRepository := &requestsRepositoryMock{
-//             AddImageFunc: func(userID uint, requestID uint, filename string) error {
-// 	               panic("mock out the AddImage method")
-//             },
-//             CountForGuardFunc: func(req *RequestListFilter) (int, error) {
-// 	               panic("mock out the CountForGuard method")
-//             },
-//             CreateFunc: func(req *Request) error {
-// 	               panic("mock out the Create method")
-//             },
-//             DeleteFunc: func(id uint, userID uint) error {
-// 	               panic("mock out the Delete method")
-//             },
-//             DeleteImageFunc: func(userID uint, requestID uint, filename string) error {
-// 	               panic("mock out the DeleteImage method")
-//             },
-//             GetRequestByIDAndUserFunc: func(id uint, userID uint) (*Request, error) {
-// 	               panic("mock out the GetRequestByIDAndUser method")
-//             },
-//             ListByUserFunc: func(r *RequestListFilter) ([]*Request, error) {
-// 	               panic("mock out the ListByUser method")
-//             },
-//             ListForGuardFunc: func(req *RequestListFilter) ([]*Request, error) {
-// 	               panic("mock out the ListForGuard method")
-//             },
-//             UpdateFunc: func(update *UpdateRequest) error {
-// 	               panic("mock out the Update method")
-//             },
-//             UpdateForGuardFunc: func(id uint, status string) error {
-// 	               panic("mock out the UpdateForGuard method")
-//             },
-//         }
+//		// make and configure a mocked requestsRepository
+//		mockedrequestsRepository := &requestsRepositoryMock{
+//			AddImageFunc: func(userID uint, requestID uint, filename string) error {
+//				panic("mock out the AddImage method")
+//			},
+//			CountForGuardFunc: func(req *RequestListFilter) (int, error) {
+//				panic("mock out the CountForGuard method")
+//			},
+//			CreateFunc: func(req *Request) error {
+//				panic("mock out the Create method")
+//			},
+//			DeleteFunc: func(id uint, userID uint) error {
+//				panic("mock out the Delete method")
+//			},
+//			DeleteImageFunc: func(userID uint, requestID uint, filename string) error {
+//				panic("mock out the DeleteImage method")
+//			},
+//			GetRequestByIDAndUserFunc: func(id uint, userID uint) (*Request, error) {
+//				panic("mock out the GetRequestByIDAndUser method")
+//			},
+//			ListByUserFunc: func(r *RequestListFilter) ([]*Request, error) {
+//				panic("mock out the ListByUser method")
+//			},
+//			ListForGuardFunc: func(req *RequestListFilter) ([]*Request, error) {
+//				panic("mock out the ListForGuard method")
+//			},
+//			UpdateFunc: func(update *UpdateRequest) error {
+//				panic("mock out the Update method")
+//			},
+//			UpdateForGuardFunc: func(id uint, status string) error {
+//				panic("mock out the UpdateForGuard method")
+//			},
+//		}
 //
-//         // use mockedrequestsRepository in code that requires requestsRepository
-//         // and then make assertions.
+//		// use mockedrequestsRepository in code that requires requestsRepository
+//		// and then make assertions.
 //
-//     }
+//	}
 type requestsRepositoryMock struct {
 	// AddImageFunc mocks the AddImage method.
 	AddImageFunc func(userID uint, requestID uint, filename string) error
@@ -165,6 +152,16 @@ type requestsRepositoryMock struct {
 			Status string
 		}
 	}
+	lockAddImage              sync.RWMutex
+	lockCountForGuard         sync.RWMutex
+	lockCreate                sync.RWMutex
+	lockDelete                sync.RWMutex
+	lockDeleteImage           sync.RWMutex
+	lockGetRequestByIDAndUser sync.RWMutex
+	lockListByUser            sync.RWMutex
+	lockListForGuard          sync.RWMutex
+	lockUpdate                sync.RWMutex
+	lockUpdateForGuard        sync.RWMutex
 }
 
 // AddImage calls AddImageFunc.
@@ -181,15 +178,16 @@ func (mock *requestsRepositoryMock) AddImage(userID uint, requestID uint, filena
 		RequestID: requestID,
 		Filename:  filename,
 	}
-	lockrequestsRepositoryMockAddImage.Lock()
+	mock.lockAddImage.Lock()
 	mock.calls.AddImage = append(mock.calls.AddImage, callInfo)
-	lockrequestsRepositoryMockAddImage.Unlock()
+	mock.lockAddImage.Unlock()
 	return mock.AddImageFunc(userID, requestID, filename)
 }
 
 // AddImageCalls gets all the calls that were made to AddImage.
 // Check the length with:
-//     len(mockedrequestsRepository.AddImageCalls())
+//
+//	len(mockedrequestsRepository.AddImageCalls())
 func (mock *requestsRepositoryMock) AddImageCalls() []struct {
 	UserID    uint
 	RequestID uint
@@ -200,9 +198,9 @@ func (mock *requestsRepositoryMock) AddImageCalls() []struct {
 		RequestID uint
 		Filename  string
 	}
-	lockrequestsRepositoryMockAddImage.RLock()
+	mock.lockAddImage.RLock()
 	calls = mock.calls.AddImage
-	lockrequestsRepositoryMockAddImage.RUnlock()
+	mock.lockAddImage.RUnlock()
 	return calls
 }
 
@@ -216,24 +214,25 @@ func (mock *requestsRepositoryMock) CountForGuard(req *RequestListFilter) (int, 
 	}{
 		Req: req,
 	}
-	lockrequestsRepositoryMockCountForGuard.Lock()
+	mock.lockCountForGuard.Lock()
 	mock.calls.CountForGuard = append(mock.calls.CountForGuard, callInfo)
-	lockrequestsRepositoryMockCountForGuard.Unlock()
+	mock.lockCountForGuard.Unlock()
 	return mock.CountForGuardFunc(req)
 }
 
 // CountForGuardCalls gets all the calls that were made to CountForGuard.
 // Check the length with:
-//     len(mockedrequestsRepository.CountForGuardCalls())
+//
+//	len(mockedrequestsRepository.CountForGuardCalls())
 func (mock *requestsRepositoryMock) CountForGuardCalls() []struct {
 	Req *RequestListFilter
 } {
 	var calls []struct {
 		Req *RequestListFilter
 	}
-	lockrequestsRepositoryMockCountForGuard.RLock()
+	mock.lockCountForGuard.RLock()
 	calls = mock.calls.CountForGuard
-	lockrequestsRepositoryMockCountForGuard.RUnlock()
+	mock.lockCountForGuard.RUnlock()
 	return calls
 }
 
@@ -247,24 +246,25 @@ func (mock *requestsRepositoryMock) Create(req *Request) error {
 	}{
 		Req: req,
 	}
-	lockrequestsRepositoryMockCreate.Lock()
+	mock.lockCreate.Lock()
 	mock.calls.Create = append(mock.calls.Create, callInfo)
-	lockrequestsRepositoryMockCreate.Unlock()
+	mock.lockCreate.Unlock()
 	return mock.CreateFunc(req)
 }
 
 // CreateCalls gets all the calls that were made to Create.
 // Check the length with:
-//     len(mockedrequestsRepository.CreateCalls())
+//
+//	len(mockedrequestsRepository.CreateCalls())
 func (mock *requestsRepositoryMock) CreateCalls() []struct {
 	Req *Request
 } {
 	var calls []struct {
 		Req *Request
 	}
-	lockrequestsRepositoryMockCreate.RLock()
+	mock.lockCreate.RLock()
 	calls = mock.calls.Create
-	lockrequestsRepositoryMockCreate.RUnlock()
+	mock.lockCreate.RUnlock()
 	return calls
 }
 
@@ -280,15 +280,16 @@ func (mock *requestsRepositoryMock) Delete(id uint, userID uint) error {
 		ID:     id,
 		UserID: userID,
 	}
-	lockrequestsRepositoryMockDelete.Lock()
+	mock.lockDelete.Lock()
 	mock.calls.Delete = append(mock.calls.Delete, callInfo)
-	lockrequestsRepositoryMockDelete.Unlock()
+	mock.lockDelete.Unlock()
 	return mock.DeleteFunc(id, userID)
 }
 
 // DeleteCalls gets all the calls that were made to Delete.
 // Check the length with:
-//     len(mockedrequestsRepository.DeleteCalls())
+//
+//	len(mockedrequestsRepository.DeleteCalls())
 func (mock *requestsRepositoryMock) DeleteCalls() []struct {
 	ID     uint
 	UserID uint
@@ -297,9 +298,9 @@ func (mock *requestsRepositoryMock) DeleteCalls() []struct {
 		ID     uint
 		UserID uint
 	}
-	lockrequestsRepositoryMockDelete.RLock()
+	mock.lockDelete.RLock()
 	calls = mock.calls.Delete
-	lockrequestsRepositoryMockDelete.RUnlock()
+	mock.lockDelete.RUnlock()
 	return calls
 }
 
@@ -317,15 +318,16 @@ func (mock *requestsRepositoryMock) DeleteImage(userID uint, requestID uint, fil
 		RequestID: requestID,
 		Filename:  filename,
 	}
-	lockrequestsRepositoryMockDeleteImage.Lock()
+	mock.lockDeleteImage.Lock()
 	mock.calls.DeleteImage = append(mock.calls.DeleteImage, callInfo)
-	lockrequestsRepositoryMockDeleteImage.Unlock()
+	mock.lockDeleteImage.Unlock()
 	return mock.DeleteImageFunc(userID, requestID, filename)
 }
 
 // DeleteImageCalls gets all the calls that were made to DeleteImage.
 // Check the length with:
-//     len(mockedrequestsRepository.DeleteImageCalls())
+//
+//	len(mockedrequestsRepository.DeleteImageCalls())
 func (mock *requestsRepositoryMock) DeleteImageCalls() []struct {
 	UserID    uint
 	RequestID uint
@@ -336,9 +338,9 @@ func (mock *requestsRepositoryMock) DeleteImageCalls() []struct {
 		RequestID uint
 		Filename  string
 	}
-	lockrequestsRepositoryMockDeleteImage.RLock()
+	mock.lockDeleteImage.RLock()
 	calls = mock.calls.DeleteImage
-	lockrequestsRepositoryMockDeleteImage.RUnlock()
+	mock.lockDeleteImage.RUnlock()
 	return calls
 }
 
@@ -354,15 +356,16 @@ func (mock *requestsRepositoryMock) GetRequestByIDAndUser(id uint, userID uint) 
 		ID:     id,
 		UserID: userID,
 	}
-	lockrequestsRepositoryMockGetRequestByIDAndUser.Lock()
+	mock.lockGetRequestByIDAndUser.Lock()
 	mock.calls.GetRequestByIDAndUser = append(mock.calls.GetRequestByIDAndUser, callInfo)
-	lockrequestsRepositoryMockGetRequestByIDAndUser.Unlock()
+	mock.lockGetRequestByIDAndUser.Unlock()
 	return mock.GetRequestByIDAndUserFunc(id, userID)
 }
 
 // GetRequestByIDAndUserCalls gets all the calls that were made to GetRequestByIDAndUser.
 // Check the length with:
-//     len(mockedrequestsRepository.GetRequestByIDAndUserCalls())
+//
+//	len(mockedrequestsRepository.GetRequestByIDAndUserCalls())
 func (mock *requestsRepositoryMock) GetRequestByIDAndUserCalls() []struct {
 	ID     uint
 	UserID uint
@@ -371,9 +374,9 @@ func (mock *requestsRepositoryMock) GetRequestByIDAndUserCalls() []struct {
 		ID     uint
 		UserID uint
 	}
-	lockrequestsRepositoryMockGetRequestByIDAndUser.RLock()
+	mock.lockGetRequestByIDAndUser.RLock()
 	calls = mock.calls.GetRequestByIDAndUser
-	lockrequestsRepositoryMockGetRequestByIDAndUser.RUnlock()
+	mock.lockGetRequestByIDAndUser.RUnlock()
 	return calls
 }
 
@@ -387,24 +390,25 @@ func (mock *requestsRepositoryMock) ListByUser(r *RequestListFilter) ([]*Request
 	}{
 		R: r,
 	}
-	lockrequestsRepositoryMockListByUser.Lock()
+	mock.lockListByUser.Lock()
 	mock.calls.ListByUser = append(mock.calls.ListByUser, callInfo)
-	lockrequestsRepositoryMockListByUser.Unlock()
+	mock.lockListByUser.Unlock()
 	return mock.ListByUserFunc(r)
 }
 
 // ListByUserCalls gets all the calls that were made to ListByUser.
 // Check the length with:
-//     len(mockedrequestsRepository.ListByUserCalls())
+//
+//	len(mockedrequestsRepository.ListByUserCalls())
 func (mock *requestsRepositoryMock) ListByUserCalls() []struct {
 	R *RequestListFilter
 } {
 	var calls []struct {
 		R *RequestListFilter
 	}
-	lockrequestsRepositoryMockListByUser.RLock()
+	mock.lockListByUser.RLock()
 	calls = mock.calls.ListByUser
-	lockrequestsRepositoryMockListByUser.RUnlock()
+	mock.lockListByUser.RUnlock()
 	return calls
 }
 
@@ -418,24 +422,25 @@ func (mock *requestsRepositoryMock) ListForGuard(req *RequestListFilter) ([]*Req
 	}{
 		Req: req,
 	}
-	lockrequestsRepositoryMockListForGuard.Lock()
+	mock.lockListForGuard.Lock()
 	mock.calls.ListForGuard = append(mock.calls.ListForGuard, callInfo)
-	lockrequestsRepositoryMockListForGuard.Unlock()
+	mock.lockListForGuard.Unlock()
 	return mock.ListForGuardFunc(req)
 }
 
 // ListForGuardCalls gets all the calls that were made to ListForGuard.
 // Check the length with:
-//     len(mockedrequestsRepository.ListForGuardCalls())
+//
+//	len(mockedrequestsRepository.ListForGuardCalls())
 func (mock *requestsRepositoryMock) ListForGuardCalls() []struct {
 	Req *RequestListFilter
 } {
 	var calls []struct {
 		Req *RequestListFilter
 	}
-	lockrequestsRepositoryMockListForGuard.RLock()
+	mock.lockListForGuard.RLock()
 	calls = mock.calls.ListForGuard
-	lockrequestsRepositoryMockListForGuard.RUnlock()
+	mock.lockListForGuard.RUnlock()
 	return calls
 }
 
@@ -449,24 +454,25 @@ func (mock *requestsRepositoryMock) Update(update *UpdateRequest) error {
 	}{
 		Update: update,
 	}
-	lockrequestsRepositoryMockUpdate.Lock()
+	mock.lockUpdate.Lock()
 	mock.calls.Update = append(mock.calls.Update, callInfo)
-	lockrequestsRepositoryMockUpdate.Unlock()
+	mock.lockUpdate.Unlock()
 	return mock.UpdateFunc(update)
 }
 
 // UpdateCalls gets all the calls that were made to Update.
 // Check the length with:
-//     len(mockedrequestsRepository.UpdateCalls())
+//
+//	len(mockedrequestsRepository.UpdateCalls())
 func (mock *requestsRepositoryMock) UpdateCalls() []struct {
 	Update *UpdateRequest
 } {
 	var calls []struct {
 		Update *UpdateRequest
 	}
-	lockrequestsRepositoryMockUpdate.RLock()
+	mock.lockUpdate.RLock()
 	calls = mock.calls.Update
-	lockrequestsRepositoryMockUpdate.RUnlock()
+	mock.lockUpdate.RUnlock()
 	return calls
 }
 
@@ -482,15 +488,16 @@ func (mock *requestsRepositoryMock) UpdateForGuard(id uint, status string) error
 		ID:     id,
 		Status: status,
 	}
-	lockrequestsRepositoryMockUpdateForGuard.Lock()
+	mock.lockUpdateForGuard.Lock()
 	mock.calls.UpdateForGuard = append(mock.calls.UpdateForGuard, callInfo)
-	lockrequestsRepositoryMockUpdateForGuard.Unlock()
+	mock.lockUpdateForGuard.Unlock()
 	return mock.UpdateForGuardFunc(id, status)
 }
 
 // UpdateForGuardCalls gets all the calls that were made to UpdateForGuard.
 // Check the length with:
-//     len(mockedrequestsRepository.UpdateForGuardCalls())
+//
+//	len(mockedrequestsRepository.UpdateForGuardCalls())
 func (mock *requestsRepositoryMock) UpdateForGuardCalls() []struct {
 	ID     uint
 	Status string
@@ -499,16 +506,11 @@ func (mock *requestsRepositoryMock) UpdateForGuardCalls() []struct {
 		ID     uint
 		Status string
 	}
-	lockrequestsRepositoryMockUpdateForGuard.RLock()
+	mock.lockUpdateForGuard.RLock()
 	calls = mock.calls.UpdateForGuard
-	lockrequestsRepositoryMockUpdateForGuard.RUnlock()
+	mock.lockUpdateForGuard.RUnlock()
 	return calls
 }
-
-var (
-	locks3ClientMockDeleteObject sync.RWMutex
-	locks3ClientMockPutObject    sync.RWMutex
-)
 
 // Ensure, that s3ClientMock does implement s3Client.
 // If this is not the case, regenerate this file with moq.
@@ -516,22 +518,22 @@ var _ s3Client = &s3ClientMock{}
 
 // s3ClientMock is a mock implementation of s3Client.
 //
-//     func TestSomethingThatUsess3Client(t *testing.T) {
+//	func TestSomethingThatUsess3Client(t *testing.T) {
 //
-//         // make and configure a mocked s3Client
-//         mockeds3Client := &s3ClientMock{
-//             DeleteObjectFunc: func(input *s3.DeleteObjectInput) (*s3.DeleteObjectOutput, error) {
-// 	               panic("mock out the DeleteObject method")
-//             },
-//             PutObjectFunc: func(input *s3.PutObjectInput) (*s3.PutObjectOutput, error) {
-// 	               panic("mock out the PutObject method")
-//             },
-//         }
+//		// make and configure a mocked s3Client
+//		mockeds3Client := &s3ClientMock{
+//			DeleteObjectFunc: func(input *s3.DeleteObjectInput) (*s3.DeleteObjectOutput, error) {
+//				panic("mock out the DeleteObject method")
+//			},
+//			PutObjectFunc: func(input *s3.PutObjectInput) (*s3.PutObjectOutput, error) {
+//				panic("mock out the PutObject method")
+//			},
+//		}
 //
-//         // use mockeds3Client in code that requires s3Client
-//         // and then make assertions.
+//		// use mockeds3Client in code that requires s3Client
+//		// and then make assertions.
 //
-//     }
+//	}
 type s3ClientMock struct {
 	// DeleteObjectFunc mocks the DeleteObject method.
 	DeleteObjectFunc func(input *s3.DeleteObjectInput) (*s3.DeleteObjectOutput, error)
@@ -552,6 +554,8 @@ type s3ClientMock struct {
 			Input *s3.PutObjectInput
 		}
 	}
+	lockDeleteObject sync.RWMutex
+	lockPutObject    sync.RWMutex
 }
 
 // DeleteObject calls DeleteObjectFunc.
@@ -564,24 +568,25 @@ func (mock *s3ClientMock) DeleteObject(input *s3.DeleteObjectInput) (*s3.DeleteO
 	}{
 		Input: input,
 	}
-	locks3ClientMockDeleteObject.Lock()
+	mock.lockDeleteObject.Lock()
 	mock.calls.DeleteObject = append(mock.calls.DeleteObject, callInfo)
-	locks3ClientMockDeleteObject.Unlock()
+	mock.lockDeleteObject.Unlock()
 	return mock.DeleteObjectFunc(input)
 }
 
 // DeleteObjectCalls gets all the calls that were made to DeleteObject.
 // Check the length with:
-//     len(mockeds3Client.DeleteObjectCalls())
+//
+//	len(mockeds3Client.DeleteObjectCalls())
 func (mock *s3ClientMock) DeleteObjectCalls() []struct {
 	Input *s3.DeleteObjectInput
 } {
 	var calls []struct {
 		Input *s3.DeleteObjectInput
 	}
-	locks3ClientMockDeleteObject.RLock()
+	mock.lockDeleteObject.RLock()
 	calls = mock.calls.DeleteObject
-	locks3ClientMockDeleteObject.RUnlock()
+	mock.lockDeleteObject.RUnlock()
 	return calls
 }
 
@@ -595,23 +600,24 @@ func (mock *s3ClientMock) PutObject(input *s3.PutObjectInput) (*s3.PutObjectOutp
 	}{
 		Input: input,
 	}
-	locks3ClientMockPutObject.Lock()
+	mock.lockPutObject.Lock()
 	mock.calls.PutObject = append(mock.calls.PutObject, callInfo)
-	locks3ClientMockPutObject.Unlock()
+	mock.lockPutObject.Unlock()
 	return mock.PutObjectFunc(input)
 }
 
 // PutObjectCalls gets all the calls that were made to PutObject.
 // Check the length with:
-//     len(mockeds3Client.PutObjectCalls())
+//
+//	len(mockeds3Client.PutObjectCalls())
 func (mock *s3ClientMock) PutObjectCalls() []struct {
 	Input *s3.PutObjectInput
 } {
 	var calls []struct {
 		Input *s3.PutObjectInput
 	}
-	locks3ClientMockPutObject.RLock()
+	mock.lockPutObject.RLock()
 	calls = mock.calls.PutObject
-	locks3ClientMockPutObject.RUnlock()
+	mock.lockPutObject.RUnlock()
 	return calls
 }

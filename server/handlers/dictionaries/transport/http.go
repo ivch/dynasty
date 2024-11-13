@@ -11,6 +11,7 @@ import (
 	"github.com/ivch/dynasty/common/errs"
 	"github.com/ivch/dynasty/common/logger"
 	"github.com/ivch/dynasty/server/handlers/dictionaries"
+	"github.com/ivch/dynasty/server/handlers/requests"
 )
 
 type DictionaryService interface {
@@ -38,6 +39,11 @@ func NewHTTPTransport(log logger.Logger, svc DictionaryService, mdl ...func(http
 func (h *HTTPTransport) attachRoutes() {
 	h.router.Get("/v1/buildings", h.Buildings)
 	h.router.Get("/v1/building/{id}/entries", h.Entries)
+	h.router.Get("/v1/request-types", h.RequestTypes)
+}
+
+func (h *HTTPTransport) RequestTypes(w http.ResponseWriter, r *http.Request) {
+	h.sendHTTPResponse(r.Context(), w, RequestTypesDictionaryResponse{Data: requests.GetRequestTypes()})
 }
 
 func (h *HTTPTransport) Buildings(w http.ResponseWriter, r *http.Request) {

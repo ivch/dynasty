@@ -7,33 +7,28 @@ import (
 	"sync"
 )
 
-var (
-	lockdictRepositoryMockBuildingsList     sync.RWMutex
-	lockdictRepositoryMockEntriesByBuilding sync.RWMutex
-)
-
 // Ensure, that dictRepositoryMock does implement dictRepository.
 // If this is not the case, regenerate this file with moq.
 var _ dictRepository = &dictRepositoryMock{}
 
 // dictRepositoryMock is a mock implementation of dictRepository.
 //
-//     func TestSomethingThatUsesdictRepository(t *testing.T) {
+//	func TestSomethingThatUsesdictRepository(t *testing.T) {
 //
-//         // make and configure a mocked dictRepository
-//         mockeddictRepository := &dictRepositoryMock{
-//             BuildingsListFunc: func() ([]*Building, error) {
-// 	               panic("mock out the BuildingsList method")
-//             },
-//             EntriesByBuildingFunc: func(id uint) ([]*Entry, error) {
-// 	               panic("mock out the EntriesByBuilding method")
-//             },
-//         }
+//		// make and configure a mocked dictRepository
+//		mockeddictRepository := &dictRepositoryMock{
+//			BuildingsListFunc: func() ([]*Building, error) {
+//				panic("mock out the BuildingsList method")
+//			},
+//			EntriesByBuildingFunc: func(id uint) ([]*Entry, error) {
+//				panic("mock out the EntriesByBuilding method")
+//			},
+//		}
 //
-//         // use mockeddictRepository in code that requires dictRepository
-//         // and then make assertions.
+//		// use mockeddictRepository in code that requires dictRepository
+//		// and then make assertions.
 //
-//     }
+//	}
 type dictRepositoryMock struct {
 	// BuildingsListFunc mocks the BuildingsList method.
 	BuildingsListFunc func() ([]*Building, error)
@@ -52,6 +47,8 @@ type dictRepositoryMock struct {
 			ID uint
 		}
 	}
+	lockBuildingsList     sync.RWMutex
+	lockEntriesByBuilding sync.RWMutex
 }
 
 // BuildingsList calls BuildingsListFunc.
@@ -61,22 +58,23 @@ func (mock *dictRepositoryMock) BuildingsList() ([]*Building, error) {
 	}
 	callInfo := struct {
 	}{}
-	lockdictRepositoryMockBuildingsList.Lock()
+	mock.lockBuildingsList.Lock()
 	mock.calls.BuildingsList = append(mock.calls.BuildingsList, callInfo)
-	lockdictRepositoryMockBuildingsList.Unlock()
+	mock.lockBuildingsList.Unlock()
 	return mock.BuildingsListFunc()
 }
 
 // BuildingsListCalls gets all the calls that were made to BuildingsList.
 // Check the length with:
-//     len(mockeddictRepository.BuildingsListCalls())
+//
+//	len(mockeddictRepository.BuildingsListCalls())
 func (mock *dictRepositoryMock) BuildingsListCalls() []struct {
 } {
 	var calls []struct {
 	}
-	lockdictRepositoryMockBuildingsList.RLock()
+	mock.lockBuildingsList.RLock()
 	calls = mock.calls.BuildingsList
-	lockdictRepositoryMockBuildingsList.RUnlock()
+	mock.lockBuildingsList.RUnlock()
 	return calls
 }
 
@@ -90,23 +88,24 @@ func (mock *dictRepositoryMock) EntriesByBuilding(id uint) ([]*Entry, error) {
 	}{
 		ID: id,
 	}
-	lockdictRepositoryMockEntriesByBuilding.Lock()
+	mock.lockEntriesByBuilding.Lock()
 	mock.calls.EntriesByBuilding = append(mock.calls.EntriesByBuilding, callInfo)
-	lockdictRepositoryMockEntriesByBuilding.Unlock()
+	mock.lockEntriesByBuilding.Unlock()
 	return mock.EntriesByBuildingFunc(id)
 }
 
 // EntriesByBuildingCalls gets all the calls that were made to EntriesByBuilding.
 // Check the length with:
-//     len(mockeddictRepository.EntriesByBuildingCalls())
+//
+//	len(mockeddictRepository.EntriesByBuildingCalls())
 func (mock *dictRepositoryMock) EntriesByBuildingCalls() []struct {
 	ID uint
 } {
 	var calls []struct {
 		ID uint
 	}
-	lockdictRepositoryMockEntriesByBuilding.RLock()
+	mock.lockEntriesByBuilding.RLock()
 	calls = mock.calls.EntriesByBuilding
-	lockdictRepositoryMockEntriesByBuilding.RUnlock()
+	mock.lockEntriesByBuilding.RUnlock()
 	return calls
 }

@@ -7,85 +7,67 @@ import (
 	"sync"
 )
 
-var (
-	lockuserRepositoryMockCountRecoveryCodesByUserIn24h sync.RWMutex
-	lockuserRepositoryMockCreateRecoverCode             sync.RWMutex
-	lockuserRepositoryMockCreateUser                    sync.RWMutex
-	lockuserRepositoryMockDeleteUser                    sync.RWMutex
-	lockuserRepositoryMockFindUserByApartment           sync.RWMutex
-	lockuserRepositoryMockGetFamilyMembers              sync.RWMutex
-	lockuserRepositoryMockGetRecoveryCode               sync.RWMutex
-	lockuserRepositoryMockGetRegCode                    sync.RWMutex
-	lockuserRepositoryMockGetUserByEmail                sync.RWMutex
-	lockuserRepositoryMockGetUserByID                   sync.RWMutex
-	lockuserRepositoryMockGetUserByPhone                sync.RWMutex
-	lockuserRepositoryMockResetPassword                 sync.RWMutex
-	lockuserRepositoryMockUpdateUser                    sync.RWMutex
-	lockuserRepositoryMockUseRegCode                    sync.RWMutex
-	lockuserRepositoryMockValidateRegCode               sync.RWMutex
-)
-
 // Ensure, that userRepositoryMock does implement userRepository.
 // If this is not the case, regenerate this file with moq.
 var _ userRepository = &userRepositoryMock{}
 
 // userRepositoryMock is a mock implementation of userRepository.
 //
-//     func TestSomethingThatUsesuserRepository(t *testing.T) {
+//	func TestSomethingThatUsesuserRepository(t *testing.T) {
 //
-//         // make and configure a mocked userRepository
-//         mockeduserRepository := &userRepositoryMock{
-//             CountRecoveryCodesByUserIn24hFunc: func(userID uint) (int, error) {
-// 	               panic("mock out the CountRecoveryCodesByUserIn24h method")
-//             },
-//             CreateRecoverCodeFunc: func(c *PasswordRecovery) error {
-// 	               panic("mock out the CreateRecoverCode method")
-//             },
-//             CreateUserFunc: func(user *User) error {
-// 	               panic("mock out the CreateUser method")
-//             },
-//             DeleteUserFunc: func(u *User) error {
-// 	               panic("mock out the DeleteUser method")
-//             },
-//             FindUserByApartmentFunc: func(building uint, apt uint) (*User, error) {
-// 	               panic("mock out the FindUserByApartment method")
-//             },
-//             GetFamilyMembersFunc: func(ownerID uint) ([]*User, error) {
-// 	               panic("mock out the GetFamilyMembers method")
-//             },
-//             GetRecoveryCodeFunc: func(c *PasswordRecovery) (*PasswordRecovery, error) {
-// 	               panic("mock out the GetRecoveryCode method")
-//             },
-//             GetRegCodeFunc: func() (string, error) {
-// 	               panic("mock out the GetRegCode method")
-//             },
-//             GetUserByEmailFunc: func(email string) (*User, error) {
-// 	               panic("mock out the GetUserByEmail method")
-//             },
-//             GetUserByIDFunc: func(id uint) (*User, error) {
-// 	               panic("mock out the GetUserByID method")
-//             },
-//             GetUserByPhoneFunc: func(phone string) (*User, error) {
-// 	               panic("mock out the GetUserByPhone method")
-//             },
-//             ResetPasswordFunc: func(codeID uint, req *UserUpdate) error {
-// 	               panic("mock out the ResetPassword method")
-//             },
-//             UpdateUserFunc: func(u *UserUpdate) error {
-// 	               panic("mock out the UpdateUser method")
-//             },
-//             UseRegCodeFunc: func(code string) error {
-// 	               panic("mock out the UseRegCode method")
-//             },
-//             ValidateRegCodeFunc: func(code string) error {
-// 	               panic("mock out the ValidateRegCode method")
-//             },
-//         }
+//		// make and configure a mocked userRepository
+//		mockeduserRepository := &userRepositoryMock{
+//			CountRecoveryCodesByUserIn24hFunc: func(userID uint) (int, error) {
+//				panic("mock out the CountRecoveryCodesByUserIn24h method")
+//			},
+//			CreateRecoverCodeFunc: func(c *PasswordRecovery) error {
+//				panic("mock out the CreateRecoverCode method")
+//			},
+//			CreateUserFunc: func(user *User) error {
+//				panic("mock out the CreateUser method")
+//			},
+//			DeleteUserFunc: func(u *User) error {
+//				panic("mock out the DeleteUser method")
+//			},
+//			FindUserByApartmentFunc: func(building uint, apt uint) (*User, error) {
+//				panic("mock out the FindUserByApartment method")
+//			},
+//			GetFamilyMembersFunc: func(ownerID uint) ([]*User, error) {
+//				panic("mock out the GetFamilyMembers method")
+//			},
+//			GetRecoveryCodeFunc: func(c *PasswordRecovery) (*PasswordRecovery, error) {
+//				panic("mock out the GetRecoveryCode method")
+//			},
+//			GetRegCodeFunc: func() (string, error) {
+//				panic("mock out the GetRegCode method")
+//			},
+//			GetUserByEmailFunc: func(email string) (*User, error) {
+//				panic("mock out the GetUserByEmail method")
+//			},
+//			GetUserByIDFunc: func(id uint) (*User, error) {
+//				panic("mock out the GetUserByID method")
+//			},
+//			GetUserByPhoneFunc: func(phone string) (*User, error) {
+//				panic("mock out the GetUserByPhone method")
+//			},
+//			ResetPasswordFunc: func(codeID uint, req *UserUpdate) error {
+//				panic("mock out the ResetPassword method")
+//			},
+//			UpdateUserFunc: func(u *UserUpdate) error {
+//				panic("mock out the UpdateUser method")
+//			},
+//			UseRegCodeFunc: func(code string) error {
+//				panic("mock out the UseRegCode method")
+//			},
+//			ValidateRegCodeFunc: func(code string) error {
+//				panic("mock out the ValidateRegCode method")
+//			},
+//		}
 //
-//         // use mockeduserRepository in code that requires userRepository
-//         // and then make assertions.
+//		// use mockeduserRepository in code that requires userRepository
+//		// and then make assertions.
 //
-//     }
+//	}
 type userRepositoryMock struct {
 	// CountRecoveryCodesByUserIn24hFunc mocks the CountRecoveryCodesByUserIn24h method.
 	CountRecoveryCodesByUserIn24hFunc func(userID uint) (int, error)
@@ -212,6 +194,21 @@ type userRepositoryMock struct {
 			Code string
 		}
 	}
+	lockCountRecoveryCodesByUserIn24h sync.RWMutex
+	lockCreateRecoverCode             sync.RWMutex
+	lockCreateUser                    sync.RWMutex
+	lockDeleteUser                    sync.RWMutex
+	lockFindUserByApartment           sync.RWMutex
+	lockGetFamilyMembers              sync.RWMutex
+	lockGetRecoveryCode               sync.RWMutex
+	lockGetRegCode                    sync.RWMutex
+	lockGetUserByEmail                sync.RWMutex
+	lockGetUserByID                   sync.RWMutex
+	lockGetUserByPhone                sync.RWMutex
+	lockResetPassword                 sync.RWMutex
+	lockUpdateUser                    sync.RWMutex
+	lockUseRegCode                    sync.RWMutex
+	lockValidateRegCode               sync.RWMutex
 }
 
 // CountRecoveryCodesByUserIn24h calls CountRecoveryCodesByUserIn24hFunc.
@@ -224,24 +221,25 @@ func (mock *userRepositoryMock) CountRecoveryCodesByUserIn24h(userID uint) (int,
 	}{
 		UserID: userID,
 	}
-	lockuserRepositoryMockCountRecoveryCodesByUserIn24h.Lock()
+	mock.lockCountRecoveryCodesByUserIn24h.Lock()
 	mock.calls.CountRecoveryCodesByUserIn24h = append(mock.calls.CountRecoveryCodesByUserIn24h, callInfo)
-	lockuserRepositoryMockCountRecoveryCodesByUserIn24h.Unlock()
+	mock.lockCountRecoveryCodesByUserIn24h.Unlock()
 	return mock.CountRecoveryCodesByUserIn24hFunc(userID)
 }
 
 // CountRecoveryCodesByUserIn24hCalls gets all the calls that were made to CountRecoveryCodesByUserIn24h.
 // Check the length with:
-//     len(mockeduserRepository.CountRecoveryCodesByUserIn24hCalls())
+//
+//	len(mockeduserRepository.CountRecoveryCodesByUserIn24hCalls())
 func (mock *userRepositoryMock) CountRecoveryCodesByUserIn24hCalls() []struct {
 	UserID uint
 } {
 	var calls []struct {
 		UserID uint
 	}
-	lockuserRepositoryMockCountRecoveryCodesByUserIn24h.RLock()
+	mock.lockCountRecoveryCodesByUserIn24h.RLock()
 	calls = mock.calls.CountRecoveryCodesByUserIn24h
-	lockuserRepositoryMockCountRecoveryCodesByUserIn24h.RUnlock()
+	mock.lockCountRecoveryCodesByUserIn24h.RUnlock()
 	return calls
 }
 
@@ -255,24 +253,25 @@ func (mock *userRepositoryMock) CreateRecoverCode(c *PasswordRecovery) error {
 	}{
 		C: c,
 	}
-	lockuserRepositoryMockCreateRecoverCode.Lock()
+	mock.lockCreateRecoverCode.Lock()
 	mock.calls.CreateRecoverCode = append(mock.calls.CreateRecoverCode, callInfo)
-	lockuserRepositoryMockCreateRecoverCode.Unlock()
+	mock.lockCreateRecoverCode.Unlock()
 	return mock.CreateRecoverCodeFunc(c)
 }
 
 // CreateRecoverCodeCalls gets all the calls that were made to CreateRecoverCode.
 // Check the length with:
-//     len(mockeduserRepository.CreateRecoverCodeCalls())
+//
+//	len(mockeduserRepository.CreateRecoverCodeCalls())
 func (mock *userRepositoryMock) CreateRecoverCodeCalls() []struct {
 	C *PasswordRecovery
 } {
 	var calls []struct {
 		C *PasswordRecovery
 	}
-	lockuserRepositoryMockCreateRecoverCode.RLock()
+	mock.lockCreateRecoverCode.RLock()
 	calls = mock.calls.CreateRecoverCode
-	lockuserRepositoryMockCreateRecoverCode.RUnlock()
+	mock.lockCreateRecoverCode.RUnlock()
 	return calls
 }
 
@@ -286,24 +285,25 @@ func (mock *userRepositoryMock) CreateUser(user *User) error {
 	}{
 		User: user,
 	}
-	lockuserRepositoryMockCreateUser.Lock()
+	mock.lockCreateUser.Lock()
 	mock.calls.CreateUser = append(mock.calls.CreateUser, callInfo)
-	lockuserRepositoryMockCreateUser.Unlock()
+	mock.lockCreateUser.Unlock()
 	return mock.CreateUserFunc(user)
 }
 
 // CreateUserCalls gets all the calls that were made to CreateUser.
 // Check the length with:
-//     len(mockeduserRepository.CreateUserCalls())
+//
+//	len(mockeduserRepository.CreateUserCalls())
 func (mock *userRepositoryMock) CreateUserCalls() []struct {
 	User *User
 } {
 	var calls []struct {
 		User *User
 	}
-	lockuserRepositoryMockCreateUser.RLock()
+	mock.lockCreateUser.RLock()
 	calls = mock.calls.CreateUser
-	lockuserRepositoryMockCreateUser.RUnlock()
+	mock.lockCreateUser.RUnlock()
 	return calls
 }
 
@@ -317,24 +317,25 @@ func (mock *userRepositoryMock) DeleteUser(u *User) error {
 	}{
 		U: u,
 	}
-	lockuserRepositoryMockDeleteUser.Lock()
+	mock.lockDeleteUser.Lock()
 	mock.calls.DeleteUser = append(mock.calls.DeleteUser, callInfo)
-	lockuserRepositoryMockDeleteUser.Unlock()
+	mock.lockDeleteUser.Unlock()
 	return mock.DeleteUserFunc(u)
 }
 
 // DeleteUserCalls gets all the calls that were made to DeleteUser.
 // Check the length with:
-//     len(mockeduserRepository.DeleteUserCalls())
+//
+//	len(mockeduserRepository.DeleteUserCalls())
 func (mock *userRepositoryMock) DeleteUserCalls() []struct {
 	U *User
 } {
 	var calls []struct {
 		U *User
 	}
-	lockuserRepositoryMockDeleteUser.RLock()
+	mock.lockDeleteUser.RLock()
 	calls = mock.calls.DeleteUser
-	lockuserRepositoryMockDeleteUser.RUnlock()
+	mock.lockDeleteUser.RUnlock()
 	return calls
 }
 
@@ -350,15 +351,16 @@ func (mock *userRepositoryMock) FindUserByApartment(building uint, apt uint) (*U
 		Building: building,
 		Apt:      apt,
 	}
-	lockuserRepositoryMockFindUserByApartment.Lock()
+	mock.lockFindUserByApartment.Lock()
 	mock.calls.FindUserByApartment = append(mock.calls.FindUserByApartment, callInfo)
-	lockuserRepositoryMockFindUserByApartment.Unlock()
+	mock.lockFindUserByApartment.Unlock()
 	return mock.FindUserByApartmentFunc(building, apt)
 }
 
 // FindUserByApartmentCalls gets all the calls that were made to FindUserByApartment.
 // Check the length with:
-//     len(mockeduserRepository.FindUserByApartmentCalls())
+//
+//	len(mockeduserRepository.FindUserByApartmentCalls())
 func (mock *userRepositoryMock) FindUserByApartmentCalls() []struct {
 	Building uint
 	Apt      uint
@@ -367,9 +369,9 @@ func (mock *userRepositoryMock) FindUserByApartmentCalls() []struct {
 		Building uint
 		Apt      uint
 	}
-	lockuserRepositoryMockFindUserByApartment.RLock()
+	mock.lockFindUserByApartment.RLock()
 	calls = mock.calls.FindUserByApartment
-	lockuserRepositoryMockFindUserByApartment.RUnlock()
+	mock.lockFindUserByApartment.RUnlock()
 	return calls
 }
 
@@ -383,24 +385,25 @@ func (mock *userRepositoryMock) GetFamilyMembers(ownerID uint) ([]*User, error) 
 	}{
 		OwnerID: ownerID,
 	}
-	lockuserRepositoryMockGetFamilyMembers.Lock()
+	mock.lockGetFamilyMembers.Lock()
 	mock.calls.GetFamilyMembers = append(mock.calls.GetFamilyMembers, callInfo)
-	lockuserRepositoryMockGetFamilyMembers.Unlock()
+	mock.lockGetFamilyMembers.Unlock()
 	return mock.GetFamilyMembersFunc(ownerID)
 }
 
 // GetFamilyMembersCalls gets all the calls that were made to GetFamilyMembers.
 // Check the length with:
-//     len(mockeduserRepository.GetFamilyMembersCalls())
+//
+//	len(mockeduserRepository.GetFamilyMembersCalls())
 func (mock *userRepositoryMock) GetFamilyMembersCalls() []struct {
 	OwnerID uint
 } {
 	var calls []struct {
 		OwnerID uint
 	}
-	lockuserRepositoryMockGetFamilyMembers.RLock()
+	mock.lockGetFamilyMembers.RLock()
 	calls = mock.calls.GetFamilyMembers
-	lockuserRepositoryMockGetFamilyMembers.RUnlock()
+	mock.lockGetFamilyMembers.RUnlock()
 	return calls
 }
 
@@ -414,24 +417,25 @@ func (mock *userRepositoryMock) GetRecoveryCode(c *PasswordRecovery) (*PasswordR
 	}{
 		C: c,
 	}
-	lockuserRepositoryMockGetRecoveryCode.Lock()
+	mock.lockGetRecoveryCode.Lock()
 	mock.calls.GetRecoveryCode = append(mock.calls.GetRecoveryCode, callInfo)
-	lockuserRepositoryMockGetRecoveryCode.Unlock()
+	mock.lockGetRecoveryCode.Unlock()
 	return mock.GetRecoveryCodeFunc(c)
 }
 
 // GetRecoveryCodeCalls gets all the calls that were made to GetRecoveryCode.
 // Check the length with:
-//     len(mockeduserRepository.GetRecoveryCodeCalls())
+//
+//	len(mockeduserRepository.GetRecoveryCodeCalls())
 func (mock *userRepositoryMock) GetRecoveryCodeCalls() []struct {
 	C *PasswordRecovery
 } {
 	var calls []struct {
 		C *PasswordRecovery
 	}
-	lockuserRepositoryMockGetRecoveryCode.RLock()
+	mock.lockGetRecoveryCode.RLock()
 	calls = mock.calls.GetRecoveryCode
-	lockuserRepositoryMockGetRecoveryCode.RUnlock()
+	mock.lockGetRecoveryCode.RUnlock()
 	return calls
 }
 
@@ -442,22 +446,23 @@ func (mock *userRepositoryMock) GetRegCode() (string, error) {
 	}
 	callInfo := struct {
 	}{}
-	lockuserRepositoryMockGetRegCode.Lock()
+	mock.lockGetRegCode.Lock()
 	mock.calls.GetRegCode = append(mock.calls.GetRegCode, callInfo)
-	lockuserRepositoryMockGetRegCode.Unlock()
+	mock.lockGetRegCode.Unlock()
 	return mock.GetRegCodeFunc()
 }
 
 // GetRegCodeCalls gets all the calls that were made to GetRegCode.
 // Check the length with:
-//     len(mockeduserRepository.GetRegCodeCalls())
+//
+//	len(mockeduserRepository.GetRegCodeCalls())
 func (mock *userRepositoryMock) GetRegCodeCalls() []struct {
 } {
 	var calls []struct {
 	}
-	lockuserRepositoryMockGetRegCode.RLock()
+	mock.lockGetRegCode.RLock()
 	calls = mock.calls.GetRegCode
-	lockuserRepositoryMockGetRegCode.RUnlock()
+	mock.lockGetRegCode.RUnlock()
 	return calls
 }
 
@@ -471,24 +476,25 @@ func (mock *userRepositoryMock) GetUserByEmail(email string) (*User, error) {
 	}{
 		Email: email,
 	}
-	lockuserRepositoryMockGetUserByEmail.Lock()
+	mock.lockGetUserByEmail.Lock()
 	mock.calls.GetUserByEmail = append(mock.calls.GetUserByEmail, callInfo)
-	lockuserRepositoryMockGetUserByEmail.Unlock()
+	mock.lockGetUserByEmail.Unlock()
 	return mock.GetUserByEmailFunc(email)
 }
 
 // GetUserByEmailCalls gets all the calls that were made to GetUserByEmail.
 // Check the length with:
-//     len(mockeduserRepository.GetUserByEmailCalls())
+//
+//	len(mockeduserRepository.GetUserByEmailCalls())
 func (mock *userRepositoryMock) GetUserByEmailCalls() []struct {
 	Email string
 } {
 	var calls []struct {
 		Email string
 	}
-	lockuserRepositoryMockGetUserByEmail.RLock()
+	mock.lockGetUserByEmail.RLock()
 	calls = mock.calls.GetUserByEmail
-	lockuserRepositoryMockGetUserByEmail.RUnlock()
+	mock.lockGetUserByEmail.RUnlock()
 	return calls
 }
 
@@ -502,24 +508,25 @@ func (mock *userRepositoryMock) GetUserByID(id uint) (*User, error) {
 	}{
 		ID: id,
 	}
-	lockuserRepositoryMockGetUserByID.Lock()
+	mock.lockGetUserByID.Lock()
 	mock.calls.GetUserByID = append(mock.calls.GetUserByID, callInfo)
-	lockuserRepositoryMockGetUserByID.Unlock()
+	mock.lockGetUserByID.Unlock()
 	return mock.GetUserByIDFunc(id)
 }
 
 // GetUserByIDCalls gets all the calls that were made to GetUserByID.
 // Check the length with:
-//     len(mockeduserRepository.GetUserByIDCalls())
+//
+//	len(mockeduserRepository.GetUserByIDCalls())
 func (mock *userRepositoryMock) GetUserByIDCalls() []struct {
 	ID uint
 } {
 	var calls []struct {
 		ID uint
 	}
-	lockuserRepositoryMockGetUserByID.RLock()
+	mock.lockGetUserByID.RLock()
 	calls = mock.calls.GetUserByID
-	lockuserRepositoryMockGetUserByID.RUnlock()
+	mock.lockGetUserByID.RUnlock()
 	return calls
 }
 
@@ -533,24 +540,25 @@ func (mock *userRepositoryMock) GetUserByPhone(phone string) (*User, error) {
 	}{
 		Phone: phone,
 	}
-	lockuserRepositoryMockGetUserByPhone.Lock()
+	mock.lockGetUserByPhone.Lock()
 	mock.calls.GetUserByPhone = append(mock.calls.GetUserByPhone, callInfo)
-	lockuserRepositoryMockGetUserByPhone.Unlock()
+	mock.lockGetUserByPhone.Unlock()
 	return mock.GetUserByPhoneFunc(phone)
 }
 
 // GetUserByPhoneCalls gets all the calls that were made to GetUserByPhone.
 // Check the length with:
-//     len(mockeduserRepository.GetUserByPhoneCalls())
+//
+//	len(mockeduserRepository.GetUserByPhoneCalls())
 func (mock *userRepositoryMock) GetUserByPhoneCalls() []struct {
 	Phone string
 } {
 	var calls []struct {
 		Phone string
 	}
-	lockuserRepositoryMockGetUserByPhone.RLock()
+	mock.lockGetUserByPhone.RLock()
 	calls = mock.calls.GetUserByPhone
-	lockuserRepositoryMockGetUserByPhone.RUnlock()
+	mock.lockGetUserByPhone.RUnlock()
 	return calls
 }
 
@@ -566,15 +574,16 @@ func (mock *userRepositoryMock) ResetPassword(codeID uint, req *UserUpdate) erro
 		CodeID: codeID,
 		Req:    req,
 	}
-	lockuserRepositoryMockResetPassword.Lock()
+	mock.lockResetPassword.Lock()
 	mock.calls.ResetPassword = append(mock.calls.ResetPassword, callInfo)
-	lockuserRepositoryMockResetPassword.Unlock()
+	mock.lockResetPassword.Unlock()
 	return mock.ResetPasswordFunc(codeID, req)
 }
 
 // ResetPasswordCalls gets all the calls that were made to ResetPassword.
 // Check the length with:
-//     len(mockeduserRepository.ResetPasswordCalls())
+//
+//	len(mockeduserRepository.ResetPasswordCalls())
 func (mock *userRepositoryMock) ResetPasswordCalls() []struct {
 	CodeID uint
 	Req    *UserUpdate
@@ -583,9 +592,9 @@ func (mock *userRepositoryMock) ResetPasswordCalls() []struct {
 		CodeID uint
 		Req    *UserUpdate
 	}
-	lockuserRepositoryMockResetPassword.RLock()
+	mock.lockResetPassword.RLock()
 	calls = mock.calls.ResetPassword
-	lockuserRepositoryMockResetPassword.RUnlock()
+	mock.lockResetPassword.RUnlock()
 	return calls
 }
 
@@ -599,24 +608,25 @@ func (mock *userRepositoryMock) UpdateUser(u *UserUpdate) error {
 	}{
 		U: u,
 	}
-	lockuserRepositoryMockUpdateUser.Lock()
+	mock.lockUpdateUser.Lock()
 	mock.calls.UpdateUser = append(mock.calls.UpdateUser, callInfo)
-	lockuserRepositoryMockUpdateUser.Unlock()
+	mock.lockUpdateUser.Unlock()
 	return mock.UpdateUserFunc(u)
 }
 
 // UpdateUserCalls gets all the calls that were made to UpdateUser.
 // Check the length with:
-//     len(mockeduserRepository.UpdateUserCalls())
+//
+//	len(mockeduserRepository.UpdateUserCalls())
 func (mock *userRepositoryMock) UpdateUserCalls() []struct {
 	U *UserUpdate
 } {
 	var calls []struct {
 		U *UserUpdate
 	}
-	lockuserRepositoryMockUpdateUser.RLock()
+	mock.lockUpdateUser.RLock()
 	calls = mock.calls.UpdateUser
-	lockuserRepositoryMockUpdateUser.RUnlock()
+	mock.lockUpdateUser.RUnlock()
 	return calls
 }
 
@@ -630,24 +640,25 @@ func (mock *userRepositoryMock) UseRegCode(code string) error {
 	}{
 		Code: code,
 	}
-	lockuserRepositoryMockUseRegCode.Lock()
+	mock.lockUseRegCode.Lock()
 	mock.calls.UseRegCode = append(mock.calls.UseRegCode, callInfo)
-	lockuserRepositoryMockUseRegCode.Unlock()
+	mock.lockUseRegCode.Unlock()
 	return mock.UseRegCodeFunc(code)
 }
 
 // UseRegCodeCalls gets all the calls that were made to UseRegCode.
 // Check the length with:
-//     len(mockeduserRepository.UseRegCodeCalls())
+//
+//	len(mockeduserRepository.UseRegCodeCalls())
 func (mock *userRepositoryMock) UseRegCodeCalls() []struct {
 	Code string
 } {
 	var calls []struct {
 		Code string
 	}
-	lockuserRepositoryMockUseRegCode.RLock()
+	mock.lockUseRegCode.RLock()
 	calls = mock.calls.UseRegCode
-	lockuserRepositoryMockUseRegCode.RUnlock()
+	mock.lockUseRegCode.RUnlock()
 	return calls
 }
 
@@ -661,30 +672,27 @@ func (mock *userRepositoryMock) ValidateRegCode(code string) error {
 	}{
 		Code: code,
 	}
-	lockuserRepositoryMockValidateRegCode.Lock()
+	mock.lockValidateRegCode.Lock()
 	mock.calls.ValidateRegCode = append(mock.calls.ValidateRegCode, callInfo)
-	lockuserRepositoryMockValidateRegCode.Unlock()
+	mock.lockValidateRegCode.Unlock()
 	return mock.ValidateRegCodeFunc(code)
 }
 
 // ValidateRegCodeCalls gets all the calls that were made to ValidateRegCode.
 // Check the length with:
-//     len(mockeduserRepository.ValidateRegCodeCalls())
+//
+//	len(mockeduserRepository.ValidateRegCodeCalls())
 func (mock *userRepositoryMock) ValidateRegCodeCalls() []struct {
 	Code string
 } {
 	var calls []struct {
 		Code string
 	}
-	lockuserRepositoryMockValidateRegCode.RLock()
+	mock.lockValidateRegCode.RLock()
 	calls = mock.calls.ValidateRegCode
-	lockuserRepositoryMockValidateRegCode.RUnlock()
+	mock.lockValidateRegCode.RUnlock()
 	return calls
 }
-
-var (
-	lockmailSenderMockSendRecoveryCodeEmail sync.RWMutex
-)
 
 // Ensure, that mailSenderMock does implement mailSender.
 // If this is not the case, regenerate this file with moq.
@@ -692,19 +700,19 @@ var _ mailSender = &mailSenderMock{}
 
 // mailSenderMock is a mock implementation of mailSender.
 //
-//     func TestSomethingThatUsesmailSender(t *testing.T) {
+//	func TestSomethingThatUsesmailSender(t *testing.T) {
 //
-//         // make and configure a mocked mailSender
-//         mockedmailSender := &mailSenderMock{
-//             SendRecoveryCodeEmailFunc: func(to string, username string, code string) error {
-// 	               panic("mock out the SendRecoveryCodeEmail method")
-//             },
-//         }
+//		// make and configure a mocked mailSender
+//		mockedmailSender := &mailSenderMock{
+//			SendRecoveryCodeEmailFunc: func(to string, username string, code string) error {
+//				panic("mock out the SendRecoveryCodeEmail method")
+//			},
+//		}
 //
-//         // use mockedmailSender in code that requires mailSender
-//         // and then make assertions.
+//		// use mockedmailSender in code that requires mailSender
+//		// and then make assertions.
 //
-//     }
+//	}
 type mailSenderMock struct {
 	// SendRecoveryCodeEmailFunc mocks the SendRecoveryCodeEmail method.
 	SendRecoveryCodeEmailFunc func(to string, username string, code string) error
@@ -721,6 +729,7 @@ type mailSenderMock struct {
 			Code string
 		}
 	}
+	lockSendRecoveryCodeEmail sync.RWMutex
 }
 
 // SendRecoveryCodeEmail calls SendRecoveryCodeEmailFunc.
@@ -737,15 +746,16 @@ func (mock *mailSenderMock) SendRecoveryCodeEmail(to string, username string, co
 		Username: username,
 		Code:     code,
 	}
-	lockmailSenderMockSendRecoveryCodeEmail.Lock()
+	mock.lockSendRecoveryCodeEmail.Lock()
 	mock.calls.SendRecoveryCodeEmail = append(mock.calls.SendRecoveryCodeEmail, callInfo)
-	lockmailSenderMockSendRecoveryCodeEmail.Unlock()
+	mock.lockSendRecoveryCodeEmail.Unlock()
 	return mock.SendRecoveryCodeEmailFunc(to, username, code)
 }
 
 // SendRecoveryCodeEmailCalls gets all the calls that were made to SendRecoveryCodeEmail.
 // Check the length with:
-//     len(mockedmailSender.SendRecoveryCodeEmailCalls())
+//
+//	len(mockedmailSender.SendRecoveryCodeEmailCalls())
 func (mock *mailSenderMock) SendRecoveryCodeEmailCalls() []struct {
 	To       string
 	Username string
@@ -756,8 +766,8 @@ func (mock *mailSenderMock) SendRecoveryCodeEmailCalls() []struct {
 		Username string
 		Code     string
 	}
-	lockmailSenderMockSendRecoveryCodeEmail.RLock()
+	mock.lockSendRecoveryCodeEmail.RLock()
 	calls = mock.calls.SendRecoveryCodeEmail
-	lockmailSenderMockSendRecoveryCodeEmail.RUnlock()
+	mock.lockSendRecoveryCodeEmail.RUnlock()
 	return calls
 }

@@ -13,7 +13,7 @@ testtag:
 
 .PHONY: rundb
 rundb:
-	docker-compose p-f docker-database.yml up -d --remove-orphans --force-recreate
+	docker-compose -f docker-database.yml up -d --remove-orphans --force-recreate
 
 .PHONY: test
 test:
@@ -25,7 +25,7 @@ lint:
 
 .PHONY: inastall-lint
 install-lint:
-	go get github.com/golangci/golangci-lint/cmd/golangci-lint
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
 .PHONY: deps
 deps:
@@ -48,7 +48,7 @@ cover:
 
 .PHONY: gen
 gen:
-	GO111MODULE=off go get github.com/matryer/moq
+	go install github.com/matryer/moq@latest
 	${GOPATH}/bin/moq -out server/handlers/users/mock_test.go server/handlers/users userRepository mailSender
 	${GOPATH}/bin/moq -out server/handlers/users/transport/mock_test.go server/handlers/users/transport UsersService
 	${GOPATH}/bin/moq -out common/clients/users/mock_test.go common/clients/users userService

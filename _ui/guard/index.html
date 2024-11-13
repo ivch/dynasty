@@ -11,7 +11,7 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="/ui/assets/css/bootstrap.css">
 
-    <title>Система заявок | ЖК Династия</title>
+    <title>Система заявок | ЖК Династія</title>
     <style>
         nav.navbar {
             background: rgb(34, 193, 195);
@@ -56,16 +56,16 @@
 <nav class="navbar navbar-light">
     <a class="navbar-brand" href="/ui/guard">
         <img src="/ui/assets/img/logo.png" width="30" height="30" class="d-inline-block align-top" alt="">
-        ЖК Династия
+        ЖК Династія
     </a>
 </nav>
 <div class="container mt-2">
     <ul class="nav nav-pills nav-fill justify-content-center">
         <li class="nav-item">
-            <a class="nav-link itemsTypeFilter" data-value="kpp" href="#">только для КПП</a>
+            <a class="nav-link itemsTypeFilter" data-value="kpp" href="#">тільки для КПП</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link itemsStatusFilter" href="#" data-value="new">только открытые</a>
+            <a class="nav-link itemsStatusFilter" href="#" data-value="new">тільки відкриті</a>
         </li>
         <li class="text-left w-auto">
             <div class="input-group input-group-sm text-left mt-2 ml-2">
@@ -119,7 +119,7 @@
 
     let pageURI = {{.PageURI}};
     let apiHost = {{.APIHost}};
-    let reqType = {"taxi": "Такси", "guest": "Гости", "delivery": "Доставка", "noise": "Шум", "complain": "Жалоба"};
+    let reqType = ""; //,{"taxi": "Таксі", "guest": "Гости", "delivery": "Доставка", "noise": "Шум", "complain": "Жалоба"};
     let queryParams = getQueryParams(window.location.hash.substr(1));
     let currPage = typeof queryParams["page"] === "undefined" ? 1 : parseInt(queryParams["page"]);
     let limit = {{.PagerLimit}};
@@ -127,6 +127,8 @@
     let reqTypeFilter = !localStorage.getItem('reqType') ? 'kpp' : localStorage.getItem('reqType');
 
     $(document).ready(function () {
+        loadRequestTypes()
+
         if (reqStatusFilter === 'new') {
             $(`.itemsStatusFilter`).addClass('active');
         }
@@ -140,7 +142,7 @@
 
             let id = $(this).attr('data-id');
             let status = $(this).attr('data-action');
-            let endpoint = `${apiHost}/v1/guard/request/${id}`;
+            let endpoint = `${apiHost}/requests/v1/guard/request/${id}`;
 
             $.ajax({
                 type: 'PUT',
@@ -203,13 +205,24 @@
         loadItems();
     });
 
+    function loadRequestTypes() {
+        reqStatusFilter = !localStorage.getItem('reqStatus') ? 'new' : localStorage.getItem('reqStatus');
+        let endpoint = `${apiHost}/dictionary/v1/request-types`;
+        $.get(endpoint, function () {
+        }).done(function (data) {
+            reqType = data["data"];
+        }).fail(function () {
+            // TODO
+        });
+    }
+
     function loadItems() {
         reqStatusFilter = !localStorage.getItem('reqStatus') ? 'new' : localStorage.getItem('reqStatus');
         currPage = typeof queryParams["page"] === "undefined" ? 1 : parseInt(queryParams["page"]);
 
         let offset = (parseInt(currPage) - 1) * limit;
         let apt = !localStorage.getItem('apt') ? '' : localStorage.getItem('apt');
-        let endpoint = `${apiHost}/v1/guard/list?offset=${offset}&limit=${limit}&status=${reqStatusFilter}&place=${reqTypeFilter}&apartment=${apt}`;
+        let endpoint = `${apiHost}/requests/v1/guard/list?offset=${offset}&limit=${limit}&status=${reqStatusFilter}&place=${reqTypeFilter}&apartment=${apt}`;
 
         $.get(endpoint, function () {
         }).done(function (data) {
@@ -243,7 +256,6 @@
         table.empty();
 
         if (items.data.length === 0) return;
-
         items.data.forEach(function (item) {
             let date = new Date(item.time * 1000);
             let images = "";
@@ -256,9 +268,13 @@
                 item.description = '';
             }
 
+            let cargoMark = "";
+            // if (item.type === "cargo") {
+            //     cargoMark = "<span class='badge badge-danger float-left'>!</span>";
+            // }
             table.append("<tr>" +
                 "<td>" +
-                "<h4><span class='badge badge-info float-left'>" + reqType[item.type] + "</span></h4><br/>" +
+                "<h4><span class='badge badge-info float-left'>" + reqType[item.rtype]["ua"] + "</span>" + cargoMark + "</h4><br/>" +
                 "<b>" + item.address + " # " + item.apartment + "</b> | " + item.user_name + ": " + item.phone +
                 "<br/>" + item.description +
                 "<br/>" + images +

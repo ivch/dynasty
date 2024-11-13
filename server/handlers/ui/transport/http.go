@@ -50,7 +50,10 @@ func NewHTTPHandler(apiHost, pageURI string, pagerLimit int) http.Handler {
 		case ".css":
 			w.Header().Add("Content-Type", "text/css")
 		}
-		io.Copy(w, fp)
+		if _, err := io.Copy(w, fp); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	})
 
 	r.Get("/docs/oferta", func(w http.ResponseWriter, r *http.Request) {
@@ -60,7 +63,10 @@ func NewHTTPHandler(apiHost, pageURI string, pagerLimit int) http.Handler {
 			return
 		}
 		w.Header().Add("Content-Type", "text/html")
-		io.Copy(w, fp)
+		if _, err := io.Copy(w, fp); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	})
 
 	return r

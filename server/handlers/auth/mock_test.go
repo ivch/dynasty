@@ -5,13 +5,8 @@ package auth
 
 import (
 	"context"
-	"github.com/ivch/dynasty/server/handlers/users/transport"
+	users "github.com/ivch/dynasty/server/handlers/users/transport"
 	"sync"
-)
-
-var (
-	lockuserServiceMockUserByID               sync.RWMutex
-	lockuserServiceMockUserByPhoneAndPassword sync.RWMutex
 )
 
 // Ensure, that userServiceMock does implement userService.
@@ -20,28 +15,28 @@ var _ userService = &userServiceMock{}
 
 // userServiceMock is a mock implementation of userService.
 //
-//     func TestSomethingThatUsesuserService(t *testing.T) {
+//	func TestSomethingThatUsesuserService(t *testing.T) {
 //
-//         // make and configure a mocked userService
-//         mockeduserService := &userServiceMock{
-//             UserByIDFunc: func(ctx context.Context, id uint) (*transport.UserByIDResponse, error) {
-// 	               panic("mock out the UserByID method")
-//             },
-//             UserByPhoneAndPasswordFunc: func(ctx context.Context, phone string, password string) (*transport.UserByIDResponse, error) {
-// 	               panic("mock out the UserByPhoneAndPassword method")
-//             },
-//         }
+//		// make and configure a mocked userService
+//		mockeduserService := &userServiceMock{
+//			UserByIDFunc: func(ctx context.Context, id uint) (*users.UserByIDResponse, error) {
+//				panic("mock out the UserByID method")
+//			},
+//			UserByPhoneAndPasswordFunc: func(ctx context.Context, phone string, password string) (*users.UserByIDResponse, error) {
+//				panic("mock out the UserByPhoneAndPassword method")
+//			},
+//		}
 //
-//         // use mockeduserService in code that requires userService
-//         // and then make assertions.
+//		// use mockeduserService in code that requires userService
+//		// and then make assertions.
 //
-//     }
+//	}
 type userServiceMock struct {
 	// UserByIDFunc mocks the UserByID method.
-	UserByIDFunc func(ctx context.Context, id uint) (*transport.UserByIDResponse, error)
+	UserByIDFunc func(ctx context.Context, id uint) (*users.UserByIDResponse, error)
 
 	// UserByPhoneAndPasswordFunc mocks the UserByPhoneAndPassword method.
-	UserByPhoneAndPasswordFunc func(ctx context.Context, phone string, password string) (*transport.UserByIDResponse, error)
+	UserByPhoneAndPasswordFunc func(ctx context.Context, phone string, password string) (*users.UserByIDResponse, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -62,10 +57,12 @@ type userServiceMock struct {
 			Password string
 		}
 	}
+	lockUserByID               sync.RWMutex
+	lockUserByPhoneAndPassword sync.RWMutex
 }
 
 // UserByID calls UserByIDFunc.
-func (mock *userServiceMock) UserByID(ctx context.Context, id uint) (*transport.UserByIDResponse, error) {
+func (mock *userServiceMock) UserByID(ctx context.Context, id uint) (*users.UserByIDResponse, error) {
 	if mock.UserByIDFunc == nil {
 		panic("userServiceMock.UserByIDFunc: method is nil but userService.UserByID was just called")
 	}
@@ -76,15 +73,16 @@ func (mock *userServiceMock) UserByID(ctx context.Context, id uint) (*transport.
 		Ctx: ctx,
 		ID:  id,
 	}
-	lockuserServiceMockUserByID.Lock()
+	mock.lockUserByID.Lock()
 	mock.calls.UserByID = append(mock.calls.UserByID, callInfo)
-	lockuserServiceMockUserByID.Unlock()
+	mock.lockUserByID.Unlock()
 	return mock.UserByIDFunc(ctx, id)
 }
 
 // UserByIDCalls gets all the calls that were made to UserByID.
 // Check the length with:
-//     len(mockeduserService.UserByIDCalls())
+//
+//	len(mockeduserService.UserByIDCalls())
 func (mock *userServiceMock) UserByIDCalls() []struct {
 	Ctx context.Context
 	ID  uint
@@ -93,14 +91,14 @@ func (mock *userServiceMock) UserByIDCalls() []struct {
 		Ctx context.Context
 		ID  uint
 	}
-	lockuserServiceMockUserByID.RLock()
+	mock.lockUserByID.RLock()
 	calls = mock.calls.UserByID
-	lockuserServiceMockUserByID.RUnlock()
+	mock.lockUserByID.RUnlock()
 	return calls
 }
 
 // UserByPhoneAndPassword calls UserByPhoneAndPasswordFunc.
-func (mock *userServiceMock) UserByPhoneAndPassword(ctx context.Context, phone string, password string) (*transport.UserByIDResponse, error) {
+func (mock *userServiceMock) UserByPhoneAndPassword(ctx context.Context, phone string, password string) (*users.UserByIDResponse, error) {
 	if mock.UserByPhoneAndPasswordFunc == nil {
 		panic("userServiceMock.UserByPhoneAndPasswordFunc: method is nil but userService.UserByPhoneAndPassword was just called")
 	}
@@ -113,15 +111,16 @@ func (mock *userServiceMock) UserByPhoneAndPassword(ctx context.Context, phone s
 		Phone:    phone,
 		Password: password,
 	}
-	lockuserServiceMockUserByPhoneAndPassword.Lock()
+	mock.lockUserByPhoneAndPassword.Lock()
 	mock.calls.UserByPhoneAndPassword = append(mock.calls.UserByPhoneAndPassword, callInfo)
-	lockuserServiceMockUserByPhoneAndPassword.Unlock()
+	mock.lockUserByPhoneAndPassword.Unlock()
 	return mock.UserByPhoneAndPasswordFunc(ctx, phone, password)
 }
 
 // UserByPhoneAndPasswordCalls gets all the calls that were made to UserByPhoneAndPassword.
 // Check the length with:
-//     len(mockeduserService.UserByPhoneAndPasswordCalls())
+//
+//	len(mockeduserService.UserByPhoneAndPasswordCalls())
 func (mock *userServiceMock) UserByPhoneAndPasswordCalls() []struct {
 	Ctx      context.Context
 	Phone    string
@@ -132,19 +131,11 @@ func (mock *userServiceMock) UserByPhoneAndPasswordCalls() []struct {
 		Phone    string
 		Password string
 	}
-	lockuserServiceMockUserByPhoneAndPassword.RLock()
+	mock.lockUserByPhoneAndPassword.RLock()
 	calls = mock.calls.UserByPhoneAndPassword
-	lockuserServiceMockUserByPhoneAndPassword.RUnlock()
+	mock.lockUserByPhoneAndPassword.RUnlock()
 	return calls
 }
-
-var (
-	lockauthRepositoryMockCreateSession            sync.RWMutex
-	lockauthRepositoryMockDeleteSessionByID        sync.RWMutex
-	lockauthRepositoryMockDeleteSessionByUserID    sync.RWMutex
-	lockauthRepositoryMockFindSessionByAccessToken sync.RWMutex
-	lockauthRepositoryMockFindSessionByUserID      sync.RWMutex
-)
 
 // Ensure, that authRepositoryMock does implement authRepository.
 // If this is not the case, regenerate this file with moq.
@@ -152,31 +143,31 @@ var _ authRepository = &authRepositoryMock{}
 
 // authRepositoryMock is a mock implementation of authRepository.
 //
-//     func TestSomethingThatUsesauthRepository(t *testing.T) {
+//	func TestSomethingThatUsesauthRepository(t *testing.T) {
 //
-//         // make and configure a mocked authRepository
-//         mockedauthRepository := &authRepositoryMock{
-//             CreateSessionFunc: func(userID uint) (string, error) {
-// 	               panic("mock out the CreateSession method")
-//             },
-//             DeleteSessionByIDFunc: func(id string) error {
-// 	               panic("mock out the DeleteSessionByID method")
-//             },
-//             DeleteSessionByUserIDFunc: func(id uint) error {
-// 	               panic("mock out the DeleteSessionByUserID method")
-//             },
-//             FindSessionByAccessTokenFunc: func(token string) (*Session, error) {
-// 	               panic("mock out the FindSessionByAccessToken method")
-//             },
-//             FindSessionByUserIDFunc: func(id uint) (*Session, error) {
-// 	               panic("mock out the FindSessionByUserID method")
-//             },
-//         }
+//		// make and configure a mocked authRepository
+//		mockedauthRepository := &authRepositoryMock{
+//			CreateSessionFunc: func(userID uint) (string, error) {
+//				panic("mock out the CreateSession method")
+//			},
+//			DeleteSessionByIDFunc: func(id string) error {
+//				panic("mock out the DeleteSessionByID method")
+//			},
+//			DeleteSessionByUserIDFunc: func(id uint) error {
+//				panic("mock out the DeleteSessionByUserID method")
+//			},
+//			FindSessionByAccessTokenFunc: func(token string) (*Session, error) {
+//				panic("mock out the FindSessionByAccessToken method")
+//			},
+//			FindSessionByUserIDFunc: func(id uint) (*Session, error) {
+//				panic("mock out the FindSessionByUserID method")
+//			},
+//		}
 //
-//         // use mockedauthRepository in code that requires authRepository
-//         // and then make assertions.
+//		// use mockedauthRepository in code that requires authRepository
+//		// and then make assertions.
 //
-//     }
+//	}
 type authRepositoryMock struct {
 	// CreateSessionFunc mocks the CreateSession method.
 	CreateSessionFunc func(userID uint) (string, error)
@@ -221,6 +212,11 @@ type authRepositoryMock struct {
 			ID uint
 		}
 	}
+	lockCreateSession            sync.RWMutex
+	lockDeleteSessionByID        sync.RWMutex
+	lockDeleteSessionByUserID    sync.RWMutex
+	lockFindSessionByAccessToken sync.RWMutex
+	lockFindSessionByUserID      sync.RWMutex
 }
 
 // CreateSession calls CreateSessionFunc.
@@ -233,24 +229,25 @@ func (mock *authRepositoryMock) CreateSession(userID uint) (string, error) {
 	}{
 		UserID: userID,
 	}
-	lockauthRepositoryMockCreateSession.Lock()
+	mock.lockCreateSession.Lock()
 	mock.calls.CreateSession = append(mock.calls.CreateSession, callInfo)
-	lockauthRepositoryMockCreateSession.Unlock()
+	mock.lockCreateSession.Unlock()
 	return mock.CreateSessionFunc(userID)
 }
 
 // CreateSessionCalls gets all the calls that were made to CreateSession.
 // Check the length with:
-//     len(mockedauthRepository.CreateSessionCalls())
+//
+//	len(mockedauthRepository.CreateSessionCalls())
 func (mock *authRepositoryMock) CreateSessionCalls() []struct {
 	UserID uint
 } {
 	var calls []struct {
 		UserID uint
 	}
-	lockauthRepositoryMockCreateSession.RLock()
+	mock.lockCreateSession.RLock()
 	calls = mock.calls.CreateSession
-	lockauthRepositoryMockCreateSession.RUnlock()
+	mock.lockCreateSession.RUnlock()
 	return calls
 }
 
@@ -264,24 +261,25 @@ func (mock *authRepositoryMock) DeleteSessionByID(id string) error {
 	}{
 		ID: id,
 	}
-	lockauthRepositoryMockDeleteSessionByID.Lock()
+	mock.lockDeleteSessionByID.Lock()
 	mock.calls.DeleteSessionByID = append(mock.calls.DeleteSessionByID, callInfo)
-	lockauthRepositoryMockDeleteSessionByID.Unlock()
+	mock.lockDeleteSessionByID.Unlock()
 	return mock.DeleteSessionByIDFunc(id)
 }
 
 // DeleteSessionByIDCalls gets all the calls that were made to DeleteSessionByID.
 // Check the length with:
-//     len(mockedauthRepository.DeleteSessionByIDCalls())
+//
+//	len(mockedauthRepository.DeleteSessionByIDCalls())
 func (mock *authRepositoryMock) DeleteSessionByIDCalls() []struct {
 	ID string
 } {
 	var calls []struct {
 		ID string
 	}
-	lockauthRepositoryMockDeleteSessionByID.RLock()
+	mock.lockDeleteSessionByID.RLock()
 	calls = mock.calls.DeleteSessionByID
-	lockauthRepositoryMockDeleteSessionByID.RUnlock()
+	mock.lockDeleteSessionByID.RUnlock()
 	return calls
 }
 
@@ -295,24 +293,25 @@ func (mock *authRepositoryMock) DeleteSessionByUserID(id uint) error {
 	}{
 		ID: id,
 	}
-	lockauthRepositoryMockDeleteSessionByUserID.Lock()
+	mock.lockDeleteSessionByUserID.Lock()
 	mock.calls.DeleteSessionByUserID = append(mock.calls.DeleteSessionByUserID, callInfo)
-	lockauthRepositoryMockDeleteSessionByUserID.Unlock()
+	mock.lockDeleteSessionByUserID.Unlock()
 	return mock.DeleteSessionByUserIDFunc(id)
 }
 
 // DeleteSessionByUserIDCalls gets all the calls that were made to DeleteSessionByUserID.
 // Check the length with:
-//     len(mockedauthRepository.DeleteSessionByUserIDCalls())
+//
+//	len(mockedauthRepository.DeleteSessionByUserIDCalls())
 func (mock *authRepositoryMock) DeleteSessionByUserIDCalls() []struct {
 	ID uint
 } {
 	var calls []struct {
 		ID uint
 	}
-	lockauthRepositoryMockDeleteSessionByUserID.RLock()
+	mock.lockDeleteSessionByUserID.RLock()
 	calls = mock.calls.DeleteSessionByUserID
-	lockauthRepositoryMockDeleteSessionByUserID.RUnlock()
+	mock.lockDeleteSessionByUserID.RUnlock()
 	return calls
 }
 
@@ -326,24 +325,25 @@ func (mock *authRepositoryMock) FindSessionByAccessToken(token string) (*Session
 	}{
 		Token: token,
 	}
-	lockauthRepositoryMockFindSessionByAccessToken.Lock()
+	mock.lockFindSessionByAccessToken.Lock()
 	mock.calls.FindSessionByAccessToken = append(mock.calls.FindSessionByAccessToken, callInfo)
-	lockauthRepositoryMockFindSessionByAccessToken.Unlock()
+	mock.lockFindSessionByAccessToken.Unlock()
 	return mock.FindSessionByAccessTokenFunc(token)
 }
 
 // FindSessionByAccessTokenCalls gets all the calls that were made to FindSessionByAccessToken.
 // Check the length with:
-//     len(mockedauthRepository.FindSessionByAccessTokenCalls())
+//
+//	len(mockedauthRepository.FindSessionByAccessTokenCalls())
 func (mock *authRepositoryMock) FindSessionByAccessTokenCalls() []struct {
 	Token string
 } {
 	var calls []struct {
 		Token string
 	}
-	lockauthRepositoryMockFindSessionByAccessToken.RLock()
+	mock.lockFindSessionByAccessToken.RLock()
 	calls = mock.calls.FindSessionByAccessToken
-	lockauthRepositoryMockFindSessionByAccessToken.RUnlock()
+	mock.lockFindSessionByAccessToken.RUnlock()
 	return calls
 }
 
@@ -357,23 +357,24 @@ func (mock *authRepositoryMock) FindSessionByUserID(id uint) (*Session, error) {
 	}{
 		ID: id,
 	}
-	lockauthRepositoryMockFindSessionByUserID.Lock()
+	mock.lockFindSessionByUserID.Lock()
 	mock.calls.FindSessionByUserID = append(mock.calls.FindSessionByUserID, callInfo)
-	lockauthRepositoryMockFindSessionByUserID.Unlock()
+	mock.lockFindSessionByUserID.Unlock()
 	return mock.FindSessionByUserIDFunc(id)
 }
 
 // FindSessionByUserIDCalls gets all the calls that were made to FindSessionByUserID.
 // Check the length with:
-//     len(mockedauthRepository.FindSessionByUserIDCalls())
+//
+//	len(mockedauthRepository.FindSessionByUserIDCalls())
 func (mock *authRepositoryMock) FindSessionByUserIDCalls() []struct {
 	ID uint
 } {
 	var calls []struct {
 		ID uint
 	}
-	lockauthRepositoryMockFindSessionByUserID.RLock()
+	mock.lockFindSessionByUserID.RLock()
 	calls = mock.calls.FindSessionByUserID
-	lockauthRepositoryMockFindSessionByUserID.RUnlock()
+	mock.lockFindSessionByUserID.RUnlock()
 	return calls
 }

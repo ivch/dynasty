@@ -9,33 +9,28 @@ import (
 	"sync"
 )
 
-var (
-	lockuserServiceMockUserByID               sync.RWMutex
-	lockuserServiceMockUserByPhoneAndPassword sync.RWMutex
-)
-
 // Ensure, that userServiceMock does implement userService.
 // If this is not the case, regenerate this file with moq.
 var _ userService = &userServiceMock{}
 
 // userServiceMock is a mock implementation of userService.
 //
-//     func TestSomethingThatUsesuserService(t *testing.T) {
+//	func TestSomethingThatUsesuserService(t *testing.T) {
 //
-//         // make and configure a mocked userService
-//         mockeduserService := &userServiceMock{
-//             UserByIDFunc: func(ctx context.Context, id uint) (*users.User, error) {
-// 	               panic("mock out the UserByID method")
-//             },
-//             UserByPhoneAndPasswordFunc: func(ctx context.Context, phone string, password string) (*users.User, error) {
-// 	               panic("mock out the UserByPhoneAndPassword method")
-//             },
-//         }
+//		// make and configure a mocked userService
+//		mockeduserService := &userServiceMock{
+//			UserByIDFunc: func(ctx context.Context, id uint) (*users.User, error) {
+//				panic("mock out the UserByID method")
+//			},
+//			UserByPhoneAndPasswordFunc: func(ctx context.Context, phone string, password string) (*users.User, error) {
+//				panic("mock out the UserByPhoneAndPassword method")
+//			},
+//		}
 //
-//         // use mockeduserService in code that requires userService
-//         // and then make assertions.
+//		// use mockeduserService in code that requires userService
+//		// and then make assertions.
 //
-//     }
+//	}
 type userServiceMock struct {
 	// UserByIDFunc mocks the UserByID method.
 	UserByIDFunc func(ctx context.Context, id uint) (*users.User, error)
@@ -62,6 +57,8 @@ type userServiceMock struct {
 			Password string
 		}
 	}
+	lockUserByID               sync.RWMutex
+	lockUserByPhoneAndPassword sync.RWMutex
 }
 
 // UserByID calls UserByIDFunc.
@@ -76,15 +73,16 @@ func (mock *userServiceMock) UserByID(ctx context.Context, id uint) (*users.User
 		Ctx: ctx,
 		ID:  id,
 	}
-	lockuserServiceMockUserByID.Lock()
+	mock.lockUserByID.Lock()
 	mock.calls.UserByID = append(mock.calls.UserByID, callInfo)
-	lockuserServiceMockUserByID.Unlock()
+	mock.lockUserByID.Unlock()
 	return mock.UserByIDFunc(ctx, id)
 }
 
 // UserByIDCalls gets all the calls that were made to UserByID.
 // Check the length with:
-//     len(mockeduserService.UserByIDCalls())
+//
+//	len(mockeduserService.UserByIDCalls())
 func (mock *userServiceMock) UserByIDCalls() []struct {
 	Ctx context.Context
 	ID  uint
@@ -93,9 +91,9 @@ func (mock *userServiceMock) UserByIDCalls() []struct {
 		Ctx context.Context
 		ID  uint
 	}
-	lockuserServiceMockUserByID.RLock()
+	mock.lockUserByID.RLock()
 	calls = mock.calls.UserByID
-	lockuserServiceMockUserByID.RUnlock()
+	mock.lockUserByID.RUnlock()
 	return calls
 }
 
@@ -113,15 +111,16 @@ func (mock *userServiceMock) UserByPhoneAndPassword(ctx context.Context, phone s
 		Phone:    phone,
 		Password: password,
 	}
-	lockuserServiceMockUserByPhoneAndPassword.Lock()
+	mock.lockUserByPhoneAndPassword.Lock()
 	mock.calls.UserByPhoneAndPassword = append(mock.calls.UserByPhoneAndPassword, callInfo)
-	lockuserServiceMockUserByPhoneAndPassword.Unlock()
+	mock.lockUserByPhoneAndPassword.Unlock()
 	return mock.UserByPhoneAndPasswordFunc(ctx, phone, password)
 }
 
 // UserByPhoneAndPasswordCalls gets all the calls that were made to UserByPhoneAndPassword.
 // Check the length with:
-//     len(mockeduserService.UserByPhoneAndPasswordCalls())
+//
+//	len(mockeduserService.UserByPhoneAndPasswordCalls())
 func (mock *userServiceMock) UserByPhoneAndPasswordCalls() []struct {
 	Ctx      context.Context
 	Phone    string
@@ -132,8 +131,8 @@ func (mock *userServiceMock) UserByPhoneAndPasswordCalls() []struct {
 		Phone    string
 		Password string
 	}
-	lockuserServiceMockUserByPhoneAndPassword.RLock()
+	mock.lockUserByPhoneAndPassword.RLock()
 	calls = mock.calls.UserByPhoneAndPassword
-	lockuserServiceMockUserByPhoneAndPassword.RUnlock()
+	mock.lockUserByPhoneAndPassword.RUnlock()
 	return calls
 }

@@ -312,7 +312,7 @@ func TestHTTP_My(t *testing.T) {
 			},
 			wantErr:  false,
 			wantCode: http.StatusOK,
-			want:     `{"data":[{"id":1,"type":"1","user_id":1,"time":1,"description":"1","status":"1"}]}`,
+			want:     `{"data":[{"id":1,"type":"1","rtype":0,"user_id":1,"time":1,"description":"1","status":"1"}]}`,
 		},
 		{
 			name:   "ok w/ images",
@@ -344,7 +344,7 @@ func TestHTTP_My(t *testing.T) {
 			},
 			wantErr:  false,
 			wantCode: http.StatusOK,
-			want:     `{"data":[{"id":1,"type":"1","user_id":1,"time":1,"description":"1","status":"1","images":[{"img":"a","thumb":"b"}],"created_at":"2020-01-01T01:01:01.000000001Z"}]}`,
+			want:     `{"data":[{"id":1,"type":"1","rtype":0,"user_id":1,"time":1,"description":"1","status":"1","images":[{"img":"a","thumb":"b"}],"created_at":"2020-01-01T01:01:01.000000001Z"}]}`,
 		},
 	}
 
@@ -730,7 +730,7 @@ func TestHTTP_GuardList(t *testing.T) {
 			},
 			wantErr:  false,
 			wantCode: http.StatusOK,
-			want:     `{"data":[{"id":1,"user_id":1,"type":"1","time":1,"description":"1","status":"1","user_name":" ","phone":"","address":", ","apartment":0,"created_at":"2020-01-01T01:01:01.000000001Z"}],"count":1}`,
+			want:     `{"data":[{"id":1,"user_id":1,"type":"1","rtype":0,"time":1,"description":"1","status":"1","user_name":" ","phone":"","address":", ","apartment":0,"created_at":"2020-01-01T01:01:01.000000001Z"}],"count":1}`,
 		},
 		{
 			name:  "ok w images",
@@ -762,7 +762,7 @@ func TestHTTP_GuardList(t *testing.T) {
 			},
 			wantErr:  false,
 			wantCode: http.StatusOK,
-			want:     `{"data":[{"id":1,"user_id":1,"type":"1","time":1,"description":"1","status":"1","user_name":" ","phone":"","address":", ","apartment":0,"images":[{"img":"a","thumb":"b"}],"created_at":"2020-01-01T01:01:01.000000001Z"}],"count":1}`,
+			want:     `{"data":[{"id":1,"user_id":1,"type":"1","rtype":0,"time":1,"description":"1","status":"1","user_name":" ","phone":"","address":", ","apartment":0,"images":[{"img":"a","thumb":"b"}],"created_at":"2020-01-01T01:01:01.000000001Z"}],"count":1}`,
 		},
 	}
 	for _, tt := range tests {

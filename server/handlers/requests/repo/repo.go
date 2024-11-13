@@ -43,6 +43,9 @@ func (r *Requests) Update(req *requests.UpdateRequest) error {
 	if req.Type != nil {
 		update["type"] = *req.Type
 	}
+	if req.Rtype != nil {
+		update["rtype"] = *req.Rtype
+	}
 
 	if req.Description != nil {
 		update["description"] = *req.Description
@@ -135,7 +138,7 @@ func buildGuardFilterQuery(db *gorm.DB, req *requests.RequestListFilter) *gorm.D
 	}
 
 	if req.Place == "kpp" {
-		q = q.Where("type IN (?)", []string{"taxi", "guest", "delivery"})
+		q = q.Where("type IN (?)", []string{"taxi", "guest", "delivery", "cargo"})
 	}
 
 	if req.Status != "all" {

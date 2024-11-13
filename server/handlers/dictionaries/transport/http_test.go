@@ -146,3 +146,37 @@ func TestHTTP_BuildingsList(t *testing.T) {
 		})
 	}
 }
+
+func TestHTTP_RequestTypesList(t *testing.T) {
+	tests := []struct {
+		name     string
+		svc      DictionaryService
+		wantErr  bool
+		want     string
+		wantCode int
+	}{
+		{
+			name:     "ok",
+			svc:      &DictionaryServiceMock{},
+			want:     `{"data":{"1":{"en":"Guest","key":"guest","ru":"Гость","ua":"Гість"},"2":{"en":"Taxi","key":"taxi","ru":"Такси","ua":"Таксі"},"3":{"en":"Delivery","key":"delivery","ru":"Доставка","ua":"Доставка"},"4":{"en":"37-b Unload Area","key":"cargo","ru":"37-Б Разгрузка","ua":"37-Б Розвантаження"}}}`,
+			wantCode: http.StatusOK,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := tt.svc
+			h := NewHTTPTransport(defaultLogger, svc, middlewares.NewIDCtx(defaultLogger).Middleware)
+			rr := httptest.NewRecorder()
+			rq, _ := http.NewRequest("GET", "/v1/request-types", nil)
+			h.ServeHTTP(rr, rq)
+			if (rr.Code != tt.wantCode) && tt.wantErr {
+				t.Errorf("Request error. status = %d, wantCode = %d, wantErr %v", rr.Code, tt.wantCode, tt.wantErr)
+			}
+
+			if !tt.wantErr && tt.want != strings.TrimSpace(rr.Body.String()) {
+				t.Errorf("Response error, got = %s, want = %s", rr.Body.String(), tt.want)
+			}
+		})
+	}
+}

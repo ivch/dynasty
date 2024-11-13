@@ -9,57 +9,46 @@ import (
 	"sync"
 )
 
-var (
-	lockUsersServiceMockAddFamilyMember    sync.RWMutex
-	lockUsersServiceMockDeleteFamilyMember sync.RWMutex
-	lockUsersServiceMockListFamilyMembers  sync.RWMutex
-	lockUsersServiceMockRecoveryCode       sync.RWMutex
-	lockUsersServiceMockRegister           sync.RWMutex
-	lockUsersServiceMockResetPassword      sync.RWMutex
-	lockUsersServiceMockUpdate             sync.RWMutex
-	lockUsersServiceMockUserByID           sync.RWMutex
-)
-
 // Ensure, that UsersServiceMock does implement UsersService.
 // If this is not the case, regenerate this file with moq.
 var _ UsersService = &UsersServiceMock{}
 
 // UsersServiceMock is a mock implementation of UsersService.
 //
-//     func TestSomethingThatUsesUsersService(t *testing.T) {
+//	func TestSomethingThatUsesUsersService(t *testing.T) {
 //
-//         // make and configure a mocked UsersService
-//         mockedUsersService := &UsersServiceMock{
-//             AddFamilyMemberFunc: func(ctx context.Context, r *users.User) (*users.User, error) {
-// 	               panic("mock out the AddFamilyMember method")
-//             },
-//             DeleteFamilyMemberFunc: func(ctx context.Context, ownerID uint, memberID uint) error {
-// 	               panic("mock out the DeleteFamilyMember method")
-//             },
-//             ListFamilyMembersFunc: func(ctx context.Context, id uint) ([]*users.User, error) {
-// 	               panic("mock out the ListFamilyMembers method")
-//             },
-//             RecoveryCodeFunc: func(ctx context.Context, r *users.User) error {
-// 	               panic("mock out the RecoveryCode method")
-//             },
-//             RegisterFunc: func(ctx context.Context, req *users.User) (*users.User, error) {
-// 	               panic("mock out the Register method")
-//             },
-//             ResetPasswordFunc: func(ctx context.Context, code string, r *users.UserUpdate) error {
-// 	               panic("mock out the ResetPassword method")
-//             },
-//             UpdateFunc: func(ctx context.Context, req *users.UserUpdate) error {
-// 	               panic("mock out the Update method")
-//             },
-//             UserByIDFunc: func(ctx context.Context, id uint) (*users.User, error) {
-// 	               panic("mock out the UserByID method")
-//             },
-//         }
+//		// make and configure a mocked UsersService
+//		mockedUsersService := &UsersServiceMock{
+//			AddFamilyMemberFunc: func(ctx context.Context, r *users.User) (*users.User, error) {
+//				panic("mock out the AddFamilyMember method")
+//			},
+//			DeleteFamilyMemberFunc: func(ctx context.Context, ownerID uint, memberID uint) error {
+//				panic("mock out the DeleteFamilyMember method")
+//			},
+//			ListFamilyMembersFunc: func(ctx context.Context, id uint) ([]*users.User, error) {
+//				panic("mock out the ListFamilyMembers method")
+//			},
+//			RecoveryCodeFunc: func(ctx context.Context, r *users.User) error {
+//				panic("mock out the RecoveryCode method")
+//			},
+//			RegisterFunc: func(ctx context.Context, req *users.User) (*users.User, error) {
+//				panic("mock out the Register method")
+//			},
+//			ResetPasswordFunc: func(ctx context.Context, code string, r *users.UserUpdate) error {
+//				panic("mock out the ResetPassword method")
+//			},
+//			UpdateFunc: func(ctx context.Context, req *users.UserUpdate) error {
+//				panic("mock out the Update method")
+//			},
+//			UserByIDFunc: func(ctx context.Context, id uint) (*users.User, error) {
+//				panic("mock out the UserByID method")
+//			},
+//		}
 //
-//         // use mockedUsersService in code that requires UsersService
-//         // and then make assertions.
+//		// use mockedUsersService in code that requires UsersService
+//		// and then make assertions.
 //
-//     }
+//	}
 type UsersServiceMock struct {
 	// AddFamilyMemberFunc mocks the AddFamilyMember method.
 	AddFamilyMemberFunc func(ctx context.Context, r *users.User) (*users.User, error)
@@ -148,6 +137,14 @@ type UsersServiceMock struct {
 			ID uint
 		}
 	}
+	lockAddFamilyMember    sync.RWMutex
+	lockDeleteFamilyMember sync.RWMutex
+	lockListFamilyMembers  sync.RWMutex
+	lockRecoveryCode       sync.RWMutex
+	lockRegister           sync.RWMutex
+	lockResetPassword      sync.RWMutex
+	lockUpdate             sync.RWMutex
+	lockUserByID           sync.RWMutex
 }
 
 // AddFamilyMember calls AddFamilyMemberFunc.
@@ -162,15 +159,16 @@ func (mock *UsersServiceMock) AddFamilyMember(ctx context.Context, r *users.User
 		Ctx: ctx,
 		R:   r,
 	}
-	lockUsersServiceMockAddFamilyMember.Lock()
+	mock.lockAddFamilyMember.Lock()
 	mock.calls.AddFamilyMember = append(mock.calls.AddFamilyMember, callInfo)
-	lockUsersServiceMockAddFamilyMember.Unlock()
+	mock.lockAddFamilyMember.Unlock()
 	return mock.AddFamilyMemberFunc(ctx, r)
 }
 
 // AddFamilyMemberCalls gets all the calls that were made to AddFamilyMember.
 // Check the length with:
-//     len(mockedUsersService.AddFamilyMemberCalls())
+//
+//	len(mockedUsersService.AddFamilyMemberCalls())
 func (mock *UsersServiceMock) AddFamilyMemberCalls() []struct {
 	Ctx context.Context
 	R   *users.User
@@ -179,9 +177,9 @@ func (mock *UsersServiceMock) AddFamilyMemberCalls() []struct {
 		Ctx context.Context
 		R   *users.User
 	}
-	lockUsersServiceMockAddFamilyMember.RLock()
+	mock.lockAddFamilyMember.RLock()
 	calls = mock.calls.AddFamilyMember
-	lockUsersServiceMockAddFamilyMember.RUnlock()
+	mock.lockAddFamilyMember.RUnlock()
 	return calls
 }
 
@@ -199,15 +197,16 @@ func (mock *UsersServiceMock) DeleteFamilyMember(ctx context.Context, ownerID ui
 		OwnerID:  ownerID,
 		MemberID: memberID,
 	}
-	lockUsersServiceMockDeleteFamilyMember.Lock()
+	mock.lockDeleteFamilyMember.Lock()
 	mock.calls.DeleteFamilyMember = append(mock.calls.DeleteFamilyMember, callInfo)
-	lockUsersServiceMockDeleteFamilyMember.Unlock()
+	mock.lockDeleteFamilyMember.Unlock()
 	return mock.DeleteFamilyMemberFunc(ctx, ownerID, memberID)
 }
 
 // DeleteFamilyMemberCalls gets all the calls that were made to DeleteFamilyMember.
 // Check the length with:
-//     len(mockedUsersService.DeleteFamilyMemberCalls())
+//
+//	len(mockedUsersService.DeleteFamilyMemberCalls())
 func (mock *UsersServiceMock) DeleteFamilyMemberCalls() []struct {
 	Ctx      context.Context
 	OwnerID  uint
@@ -218,9 +217,9 @@ func (mock *UsersServiceMock) DeleteFamilyMemberCalls() []struct {
 		OwnerID  uint
 		MemberID uint
 	}
-	lockUsersServiceMockDeleteFamilyMember.RLock()
+	mock.lockDeleteFamilyMember.RLock()
 	calls = mock.calls.DeleteFamilyMember
-	lockUsersServiceMockDeleteFamilyMember.RUnlock()
+	mock.lockDeleteFamilyMember.RUnlock()
 	return calls
 }
 
@@ -236,15 +235,16 @@ func (mock *UsersServiceMock) ListFamilyMembers(ctx context.Context, id uint) ([
 		Ctx: ctx,
 		ID:  id,
 	}
-	lockUsersServiceMockListFamilyMembers.Lock()
+	mock.lockListFamilyMembers.Lock()
 	mock.calls.ListFamilyMembers = append(mock.calls.ListFamilyMembers, callInfo)
-	lockUsersServiceMockListFamilyMembers.Unlock()
+	mock.lockListFamilyMembers.Unlock()
 	return mock.ListFamilyMembersFunc(ctx, id)
 }
 
 // ListFamilyMembersCalls gets all the calls that were made to ListFamilyMembers.
 // Check the length with:
-//     len(mockedUsersService.ListFamilyMembersCalls())
+//
+//	len(mockedUsersService.ListFamilyMembersCalls())
 func (mock *UsersServiceMock) ListFamilyMembersCalls() []struct {
 	Ctx context.Context
 	ID  uint
@@ -253,9 +253,9 @@ func (mock *UsersServiceMock) ListFamilyMembersCalls() []struct {
 		Ctx context.Context
 		ID  uint
 	}
-	lockUsersServiceMockListFamilyMembers.RLock()
+	mock.lockListFamilyMembers.RLock()
 	calls = mock.calls.ListFamilyMembers
-	lockUsersServiceMockListFamilyMembers.RUnlock()
+	mock.lockListFamilyMembers.RUnlock()
 	return calls
 }
 
@@ -271,15 +271,16 @@ func (mock *UsersServiceMock) RecoveryCode(ctx context.Context, r *users.User) e
 		Ctx: ctx,
 		R:   r,
 	}
-	lockUsersServiceMockRecoveryCode.Lock()
+	mock.lockRecoveryCode.Lock()
 	mock.calls.RecoveryCode = append(mock.calls.RecoveryCode, callInfo)
-	lockUsersServiceMockRecoveryCode.Unlock()
+	mock.lockRecoveryCode.Unlock()
 	return mock.RecoveryCodeFunc(ctx, r)
 }
 
 // RecoveryCodeCalls gets all the calls that were made to RecoveryCode.
 // Check the length with:
-//     len(mockedUsersService.RecoveryCodeCalls())
+//
+//	len(mockedUsersService.RecoveryCodeCalls())
 func (mock *UsersServiceMock) RecoveryCodeCalls() []struct {
 	Ctx context.Context
 	R   *users.User
@@ -288,9 +289,9 @@ func (mock *UsersServiceMock) RecoveryCodeCalls() []struct {
 		Ctx context.Context
 		R   *users.User
 	}
-	lockUsersServiceMockRecoveryCode.RLock()
+	mock.lockRecoveryCode.RLock()
 	calls = mock.calls.RecoveryCode
-	lockUsersServiceMockRecoveryCode.RUnlock()
+	mock.lockRecoveryCode.RUnlock()
 	return calls
 }
 
@@ -306,15 +307,16 @@ func (mock *UsersServiceMock) Register(ctx context.Context, req *users.User) (*u
 		Ctx: ctx,
 		Req: req,
 	}
-	lockUsersServiceMockRegister.Lock()
+	mock.lockRegister.Lock()
 	mock.calls.Register = append(mock.calls.Register, callInfo)
-	lockUsersServiceMockRegister.Unlock()
+	mock.lockRegister.Unlock()
 	return mock.RegisterFunc(ctx, req)
 }
 
 // RegisterCalls gets all the calls that were made to Register.
 // Check the length with:
-//     len(mockedUsersService.RegisterCalls())
+//
+//	len(mockedUsersService.RegisterCalls())
 func (mock *UsersServiceMock) RegisterCalls() []struct {
 	Ctx context.Context
 	Req *users.User
@@ -323,9 +325,9 @@ func (mock *UsersServiceMock) RegisterCalls() []struct {
 		Ctx context.Context
 		Req *users.User
 	}
-	lockUsersServiceMockRegister.RLock()
+	mock.lockRegister.RLock()
 	calls = mock.calls.Register
-	lockUsersServiceMockRegister.RUnlock()
+	mock.lockRegister.RUnlock()
 	return calls
 }
 
@@ -343,15 +345,16 @@ func (mock *UsersServiceMock) ResetPassword(ctx context.Context, code string, r 
 		Code: code,
 		R:    r,
 	}
-	lockUsersServiceMockResetPassword.Lock()
+	mock.lockResetPassword.Lock()
 	mock.calls.ResetPassword = append(mock.calls.ResetPassword, callInfo)
-	lockUsersServiceMockResetPassword.Unlock()
+	mock.lockResetPassword.Unlock()
 	return mock.ResetPasswordFunc(ctx, code, r)
 }
 
 // ResetPasswordCalls gets all the calls that were made to ResetPassword.
 // Check the length with:
-//     len(mockedUsersService.ResetPasswordCalls())
+//
+//	len(mockedUsersService.ResetPasswordCalls())
 func (mock *UsersServiceMock) ResetPasswordCalls() []struct {
 	Ctx  context.Context
 	Code string
@@ -362,9 +365,9 @@ func (mock *UsersServiceMock) ResetPasswordCalls() []struct {
 		Code string
 		R    *users.UserUpdate
 	}
-	lockUsersServiceMockResetPassword.RLock()
+	mock.lockResetPassword.RLock()
 	calls = mock.calls.ResetPassword
-	lockUsersServiceMockResetPassword.RUnlock()
+	mock.lockResetPassword.RUnlock()
 	return calls
 }
 
@@ -380,15 +383,16 @@ func (mock *UsersServiceMock) Update(ctx context.Context, req *users.UserUpdate)
 		Ctx: ctx,
 		Req: req,
 	}
-	lockUsersServiceMockUpdate.Lock()
+	mock.lockUpdate.Lock()
 	mock.calls.Update = append(mock.calls.Update, callInfo)
-	lockUsersServiceMockUpdate.Unlock()
+	mock.lockUpdate.Unlock()
 	return mock.UpdateFunc(ctx, req)
 }
 
 // UpdateCalls gets all the calls that were made to Update.
 // Check the length with:
-//     len(mockedUsersService.UpdateCalls())
+//
+//	len(mockedUsersService.UpdateCalls())
 func (mock *UsersServiceMock) UpdateCalls() []struct {
 	Ctx context.Context
 	Req *users.UserUpdate
@@ -397,9 +401,9 @@ func (mock *UsersServiceMock) UpdateCalls() []struct {
 		Ctx context.Context
 		Req *users.UserUpdate
 	}
-	lockUsersServiceMockUpdate.RLock()
+	mock.lockUpdate.RLock()
 	calls = mock.calls.Update
-	lockUsersServiceMockUpdate.RUnlock()
+	mock.lockUpdate.RUnlock()
 	return calls
 }
 
@@ -415,15 +419,16 @@ func (mock *UsersServiceMock) UserByID(ctx context.Context, id uint) (*users.Use
 		Ctx: ctx,
 		ID:  id,
 	}
-	lockUsersServiceMockUserByID.Lock()
+	mock.lockUserByID.Lock()
 	mock.calls.UserByID = append(mock.calls.UserByID, callInfo)
-	lockUsersServiceMockUserByID.Unlock()
+	mock.lockUserByID.Unlock()
 	return mock.UserByIDFunc(ctx, id)
 }
 
 // UserByIDCalls gets all the calls that were made to UserByID.
 // Check the length with:
-//     len(mockedUsersService.UserByIDCalls())
+//
+//	len(mockedUsersService.UserByIDCalls())
 func (mock *UsersServiceMock) UserByIDCalls() []struct {
 	Ctx context.Context
 	ID  uint
@@ -432,8 +437,8 @@ func (mock *UsersServiceMock) UserByIDCalls() []struct {
 		Ctx context.Context
 		ID  uint
 	}
-	lockUsersServiceMockUserByID.RLock()
+	mock.lockUserByID.RLock()
 	calls = mock.calls.UserByID
-	lockUsersServiceMockUserByID.RUnlock()
+	mock.lockUserByID.RUnlock()
 	return calls
 }

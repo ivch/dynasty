@@ -3,6 +3,7 @@ package transport
 import (
 	"time"
 
+	"github.com/ivch/dynasty/server/handlers/requests"
 	"github.com/microcosm-cc/bluemonday"
 )
 
@@ -14,10 +15,11 @@ type errorResponse struct {
 }
 
 type RequestCreateRequest struct {
-	Type        string `json:"type"`
-	Time        int64  `json:"time"`
-	UserID      uint   `json:"user_id"`
-	Description string `json:"description"`
+	Type        string               `json:"type"`
+	Rtype       requests.RequestType `json:"rtype"`
+	Time        int64                `json:"time"`
+	UserID      uint                 `json:"user_id"`
+	Description string               `json:"description"`
 }
 
 func (r *RequestCreateRequest) Sanitize(p *bluemonday.Policy) {
@@ -30,10 +32,11 @@ type RequestCreateResponse struct {
 
 type RequestUpdateRequest struct {
 	ID          uint
-	Type        *string `json:"type,omitempty"`
-	Time        *int64  `json:"time,omitempty"`
-	Description *string `json:"description,omitempty"`
-	Status      *string `json:"status,omitempty"`
+	Type        *string               `json:"type,omitempty"`
+	Rtype       *requests.RequestType `json:"rtype,omitempty"`
+	Time        *int64                `json:"time,omitempty"`
+	Description *string               `json:"description,omitempty"`
+	Status      *string               `json:"status,omitempty"`
 }
 
 func (r *RequestUpdateRequest) Sanitize(p *bluemonday.Policy) {
@@ -51,6 +54,7 @@ type ListByUserResponse struct {
 type RequestByIDResponse struct {
 	ID          uint                `json:"id"`
 	Type        string              `json:"type"`
+	Rtype       int                 `json:"rtype"`
 	UserID      uint                `json:"user_id"`
 	Time        int64               `json:"time"`
 	Description string              `json:"description"`
@@ -69,18 +73,19 @@ type DeleteImageRequest struct {
 }
 
 type RequestForGuard struct {
-	ID          uint                `json:"id"`
-	UserID      uint                `json:"user_id" gorm:"-"`
-	Type        string              `json:"type"`
-	Time        int64               `json:"time"`
-	Description string              `json:"description,omitempty"`
-	Status      string              `json:"status"`
-	UserName    string              `json:"user_name"`
-	Phone       string              `json:"phone"`
-	Address     string              `json:"address"`
-	Apartment   uint                `json:"apartment"`
-	Images      []map[string]string `json:"images,omitempty"`
-	CreatedAt   *time.Time          `json:"created_at,omitempty"`
+	ID          uint                 `json:"id"`
+	UserID      uint                 `json:"user_id" gorm:"-"`
+	Type        string               `json:"type"`
+	Rtype       requests.RequestType `json:"rtype"`
+	Time        int64                `json:"time"`
+	Description string               `json:"description,omitempty"`
+	Status      string               `json:"status"`
+	UserName    string               `json:"user_name"`
+	Phone       string               `json:"phone"`
+	Address     string               `json:"address"`
+	Apartment   uint                 `json:"apartment"`
+	Images      []map[string]string  `json:"images,omitempty"`
+	CreatedAt   *time.Time           `json:"created_at,omitempty"`
 }
 
 type RequestGuardListResponse struct {
