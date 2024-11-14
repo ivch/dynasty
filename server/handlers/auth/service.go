@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-
 	"github.com/ivch/dynasty/common/errs"
 	"github.com/ivch/dynasty/common/logger"
 	users "github.com/ivch/dynasty/server/handlers/users/transport"
@@ -150,7 +149,7 @@ func (s *Service) generateAccessToken(u *users.UserByIDResponse) (string, error)
 		Role: u.Role,
 		StandardClaims: jwt.StandardClaims{
 			Audience:  "dynapp",
-			ExpiresAt: time.Now().Add(29 * 24 * time.Hour).Unix(), // 29 days us a tmp fix due to broken ios client
+			ExpiresAt: time.Now().Add(3 * 30 * 24 * time.Hour).Unix(), // 29 days us a tmp fix due to broken ios client
 			Issuer:    "auth.dynapp",
 			IssuedAt:  time.Now().Unix(),
 		},

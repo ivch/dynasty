@@ -299,8 +299,8 @@
 
     function actionButton(status, id) {
         let buttons = {
-            "new": `<button type='button' class='btn btn-success actionButton float-right' data-action='closed' data-id='${id}'>Закрыть</button>`,
-            "closed": `<button type='button' class='btn btn-secondary actionButton float-right' data-action='new' data-id='${id}'>Открыть</button>`,
+            "new": `<button type='button' class='btn btn-success actionButton float-right' data-action='closed' data-id='${id}'>Закрити</button>`,
+            "closed": `<button type='button' class='btn btn-secondary actionButton float-right' data-action='new' data-id='${id}'>Відкрити</button>`,
         };
         return buttons[status]
     }
