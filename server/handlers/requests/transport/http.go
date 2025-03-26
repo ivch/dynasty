@@ -251,6 +251,7 @@ func (h *HTTPTransport) ListByUser(w http.ResponseWriter, r *http.Request) {
 		result[i] = &RequestByIDResponse{
 			ID:          res[i].ID,
 			Type:        res[i].Type,
+			Rtype:       int(res[i].Rtype),
 			UserID:      res[i].UserID,
 			Time:        res[i].Time,
 			Description: res[i].Description,
