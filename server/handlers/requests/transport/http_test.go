@@ -1000,3 +1000,86 @@ func TestHTTP_DeleteImage(t *testing.T) {
 		})
 	}
 }
+
+func TestHTTP_GuardStats24h(t *testing.T) {
+	tests := []struct {
+		name     string
+		svc      RequestsService
+		wantErr  bool
+		wantCode int
+		want     string
+	}{
+		{
+			name: "error service",
+			svc: &RequestsServiceMock{
+				GuardStats24hFunc: func(_ context.Context) (*requests.RequestStats, error) {
+					return nil, errTestError
+				},
+			},
+			wantErr:  true,
+			wantCode: http.StatusInternalServerError,
+		},
+		{
+			name: "ok with data",
+			svc: &RequestsServiceMock{
+				GuardStats24hFunc: func(_ context.Context) (*requests.RequestStats, error) {
+					return &requests.RequestStats{
+						Total:  10,
+						Open:   5,
+						Closed: 5,
+					}, nil
+				},
+			},
+			wantErr:  false,
+			wantCode: http.StatusOK,
+			want:     `{"total":10,"closed":5,"open":5}`,
+		},
+		{
+			name: "ok with zeros",
+			svc: &RequestsServiceMock{
+				GuardStats24hFunc: func(_ context.Context) (*requests.RequestStats, error) {
+					return &requests.RequestStats{
+						Total:  0,
+						Open:   0,
+						Closed: 0,
+					}, nil
+				},
+			},
+			wantErr:  false,
+			wantCode: http.StatusOK,
+			want:     `{"total":0,"closed":0,"open":0}`,
+		},
+		{
+			name: "ok with partial data",
+			svc: &RequestsServiceMock{
+				GuardStats24hFunc: func(_ context.Context) (*requests.RequestStats, error) {
+					return &requests.RequestStats{
+						Total:  2,
+						Open:   1,
+						Closed: 1,
+					}, nil
+				},
+			},
+			wantErr:  false,
+			wantCode: http.StatusOK,
+			want:     `{"total":2,"closed":1,"open":1}`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := tt.svc
+			h := NewHTTPTransport(defaultLogger, svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
+			rr := httptest.NewRecorder()
+			rq, _ := http.NewRequest("GET", "/v1/guard/stats24h", nil)
+			h.ServeHTTP(rr, rq)
+			if (rr.Code != tt.wantCode) && tt.wantErr {
+				t.Errorf("Request error. status = %d, expected %v", rr.Code, tt.wantCode)
+			}
+
+			if !tt.wantErr && tt.want != strings.TrimSpace(rr.Body.String()) {
+				t.Errorf("Response error, got = %s, want = %s", rr.Body.String(), tt.want)
+			}
+		})
+	}
+}

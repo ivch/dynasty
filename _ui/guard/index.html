@@ -1,115 +1,103 @@
 <!doctype html>
-<html lang="en">
+<html lang="uk">
 <head>
     <link rel="icon" type="image/x-icon" href="/ui/assets/img/favicon.ico"/>
-    <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
     <meta http-equiv="refresh" content="60"/>
 
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="/ui/assets/css/bootstrap.css">
+    <!-- Dynasty Design System CSS -->
+    <link rel="stylesheet" href="/ui/assets/css/guard-ds.css">
 
     <title>Система заявок | ЖК Династія</title>
-    <style>
-        nav.navbar {
-            background: rgb(34, 193, 195);
-            background: linear-gradient(0deg, rgba(34, 193, 195, 1) 0%, rgba(31, 153, 145, 1) 100%);
-        }
-
-        nav.navbar a {
-            color: #f5f5f5 !important;
-        }
-
-        ul.pagination a {
-            color: #434652;
-        }
-
-        /*tag {*/
-        /*    color: #1A92B0;*/
-        /*    color: #1f9991;*/
-        /*    color: #434652;*/
-        /*    color: #f5f5f5;*/
-        /*    color: #434652;*/
-        /*}*/
-
-        .itemsStatusFilter, .itemsTypeFilter {
-            width: 95%;
-        }
-
-        .itemsStatusFilter.active, .itemsTypeFilter.active {
-            background-color: #1A92B0 !important;
-        }
-
-        #itemsTableBody .btn-primary {
-            background-color: #1A92B0 !important;
-        }
-
-        #modal-image {
-            max-width: 400px;
-            max-height: 600px;
-        }
-    </style>
 </head>
 <body>
-<nav class="navbar navbar-light">
-    <a class="navbar-brand" href="/ui/guard">
-        <img src="/ui/assets/img/logo.png" width="30" height="30" class="d-inline-block align-top" alt="">
-        ЖК Династія
+<!-- Navbar -->
+<nav class="guard-navbar">
+    <a href="/ui/guard" class="guard-brand">
+        <img src="/ui/assets/img/logo.png" width="30" height="30" alt="ЖК Династія">
+        <span>ЖК Династія</span>
     </a>
+    <span class="guard-navbar__sub">Система заявок · КПП</span>
+    <span class="guard-navbar__refresh">Оновлення кожні 60 с</span>
 </nav>
-<div class="container mt-2">
-    <ul class="nav nav-pills nav-fill justify-content-center">
-        <li class="nav-item">
-            <a class="nav-link itemsTypeFilter" data-value="kpp" href="#">тільки для КПП</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link itemsStatusFilter" href="#" data-value="new">тільки відкриті</a>
-        </li>
-        <li class="text-left w-auto">
-            <div class="input-group input-group-sm text-left mt-2 ml-2">
-                <input type="text" class="form-control" placeholder="квартира" id="searchByApt">
-                <div class="input-group-append">
-                    <button class="btn btn-secondary" type="button" id="searchByAptBtn">[ X ]</button>
-                </div>
-            </div>
-        </li>
-    </ul>
-    <div class="row justify-content-center mt-2">
-        <div class="col-12">
-            <table class="shadow table table-hover">
-                <tbody id="itemsTableBody">
-                </tbody>
-            </table>
+
+<!-- Main Container -->
+<div class="guard-container">
+    <!-- Summary Strip -->
+    <div class="guard-summary" id="guardSummary">
+        <div class="guard-summary__stat">
+            <span class="guard-summary__n guard-summary__n--open" id="summaryOpen">-</span>
+            <span class="guard-summary__l">Відкритих</span>
         </div>
-        <nav id="itemsPager">
-            <ul class="pagination pagination-lg"></ul>
-        </nav>
+        <div class="guard-summary__divider"></div>
+        <div class="guard-summary__stat">
+            <span class="guard-summary__n" id="summaryClosed">-</span>
+            <span class="guard-summary__l">Закритих</span>
+        </div>
+        <div class="guard-summary__divider"></div>
+        <div class="guard-summary__stat">
+            <span class="guard-summary__n" id="summaryTotal">-</span>
+            <span class="guard-summary__l">Усього сьогодні</span>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="guard-filterbar">
+        <div class="guard-pills">
+            <button class="guard-pill itemsTypeFilter" data-value="kpp">Тільки для КПП</button>
+            <button class="guard-pill itemsStatusFilter" data-value="new">Тільки відкриті</button>
+        </div>
+        <div class="guard-search">
+            <div class="guard-input-group">
+                <span class="guard-input-icon">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <path d="M13 13L9 9M1 5.5C1 6.95869 1.57946 8.35764 2.61091 9.38909C3.64236 10.4205 5.04131 11 6.5 11C7.95869 11 9.35764 10.4205 10.3891 9.38909C11.4205 8.35764 12 6.95869 12 5.5C12 4.04131 11.4205 2.64236 10.3891 1.61091C9.35764 0.579463 7.95869 0 6.5 0C5.04131 0 3.64236 0.579463 2.61091 1.61091C1.57946 2.64236 1 4.04131 1 5.5V5.5Z" stroke="currentColor" stroke-linecap="round"/>
+                    </svg>
+                </span>
+                <input type="text" class="guard-input" placeholder="Квартира" id="searchByApt" maxlength="4">
+                <button class="guard-input-clear" id="searchByAptBtn" style="display: none;">✕</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Table -->
+    <div class="guard-table-wrap">
+        <table class="guard-table">
+            <tbody id="itemsTableBody">
+                <!-- Rows inserted by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pager -->
+    <div class="guard-pager" id="itemsPager" style="display: none;">
+        <ul class="guard-pager__list"></ul>
     </div>
 </div>
 
-<div class="modal" id="imageModalContainer" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
-     aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-body">
-                <img id="modal-image" class="rounded mx-auto d-block" src=""/>
-            </div>
+<!-- Photo Modal -->
+<div class="guard-modal" id="guardModal">
+    <div class="guard-modal__dialog">
+        <button class="guard-modal__close" id="modalClose">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M1 1L13 13M1 13L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+        <div class="guard-modal__photo">
+            <img class="guard-modal__img" id="modalImage" src="" alt=""/>
         </div>
     </div>
 </div>
 
+<!-- Toast Notification -->
+<div class="guard-toast" id="guardToast"></div>
 
 <script type="application/javascript" src="/ui/assets/js/jquery.js"></script>
-<script type="application/javascript" src="/ui/assets/js/popper.js"></script>
-<script type="application/javascript" src="/ui/assets/js/bootstrap.js"></script>
-
 <script type="application/javascript">
     const getQueryParams = (hash) => {
         let queryParams = {};
         let params = hash.split(';');
-
         for (let i = 0; i < params.length; i++) {
             let pair = params[i].split('=');
             queryParams[pair[0]] = decodeURIComponent(pair[1]);
@@ -119,7 +107,7 @@
 
     let pageURI = {{.PageURI}};
     let apiHost = {{.APIHost}};
-    let reqType = ""; //,{"taxi": "Таксі", "guest": "Гости", "delivery": "Доставка", "noise": "Шум", "complain": "Жалоба"};
+    let reqType = {};
     let queryParams = getQueryParams(window.location.hash.substr(1));
     let currPage = typeof queryParams["page"] === "undefined" ? 1 : parseInt(queryParams["page"]);
     let limit = {{.PagerLimit}};
@@ -127,19 +115,20 @@
     let reqTypeFilter = !localStorage.getItem('reqType') ? 'kpp' : localStorage.getItem('reqType');
 
     $(document).ready(function () {
-        loadRequestTypes()
+        loadRequestTypes();
+        load24hStats();
 
+        // Set active filter pills
         if (reqStatusFilter === 'new') {
-            $(`.itemsStatusFilter`).addClass('active');
+            $('.itemsStatusFilter').addClass('is-active');
         }
-
         if (reqTypeFilter === 'kpp') {
-            $(`.itemsTypeFilter`).addClass('active');
+            $('.itemsTypeFilter').addClass('is-active');
         }
 
+        // Action button click handler
         $('#itemsTableBody').on('click', '.actionButton', function (e) {
             e.preventDefault();
-
             let id = $(this).attr('data-id');
             let status = $(this).attr('data-action');
             let endpoint = `${apiHost}/requests/v1/guard/request/${id}`;
@@ -150,69 +139,115 @@
                 url: endpoint,
                 data: `{"status":"${status}"}`
             }).done(function () {
-                window.location.reload();
+                showToast(status === 'closed' ? 'Заявку закрито' : 'Заявку відкрито');
+                setTimeout(() => window.location.reload(), 600);
             });
         });
 
-        $('#itemsPager').on('click', 'a.page-link', function () {
-            if ($(this).parent().hasClass('active')) return;
+        // Pager click handler
+        $('#itemsPager').on('click', '.guard-pager__link', function () {
+            if ($(this).parent().hasClass('is-active')) return;
             queryParams["page"] = $(this).attr('data-value');
             updateLocationHash();
             loadItems();
         });
 
+        // Status filter toggle
         $('.itemsStatusFilter').on('click', function (e) {
             e.preventDefault();
-            newStatus = reqStatusFilter === 'new' ? 'all' : 'new';
+            let newStatus = reqStatusFilter === 'new' ? 'all' : 'new';
             localStorage.setItem('reqStatus', newStatus);
             window.location = pageURI;
         });
 
+        // Type filter toggle
         $('.itemsTypeFilter').on('click', function (e) {
             e.preventDefault();
-            newTypeFilter = reqTypeFilter === 'kpp' ? 'all' : 'kpp';
+            let newTypeFilter = reqTypeFilter === 'kpp' ? 'all' : 'kpp';
             localStorage.setItem('reqType', newTypeFilter);
             window.location = pageURI;
+        });
+
+        // Apartment search input
+        let searchByAptInput = document.getElementById('searchByApt');
+        searchByAptInput.value = !localStorage.getItem('apt') ? '' : localStorage.getItem('apt');
+
+        // Show clear button if input has value
+        if (searchByAptInput.value) {
+            $('#searchByAptBtn').show();
+        }
+
+        searchByAptInput.addEventListener("keyup", event => {
+            if (event.isComposing || event.keyCode === 229) return;
+
+            let str = searchByAptInput.value;
+            if (str.length > 4) {
+                searchByAptInput.value = str.substring(0, 4);
+                return;
+            }
+
+            // Show/hide clear button
+            $('#searchByAptBtn').toggle(str.length > 0);
+
+            localStorage.setItem('apt', str);
+            queryParams['page'] = 1;
+            updateLocationHash();
+            loadItems();
+        });
+
+        // Clear search button
+        document.getElementById('searchByAptBtn').addEventListener('click', ev => {
+            document.getElementById('searchByApt').value = '';
+            localStorage.setItem('apt', '');
+            $('#searchByAptBtn').hide();
+            queryParams['page'] = 1;
+            updateLocationHash();
+            loadItems();
+        });
+
+        // Image thumbnail click
+        $('#itemsTableBody').on('click', '.guard-thumb', function (e) {
+            e.preventDefault();
+            let src = $(this).attr('data-full-img');
+            $('#modalImage').attr('src', src);
+            $('#guardModal').addClass('is-open');
+        });
+
+        // Modal close
+        $('#modalClose, #guardModal').on('click', function (e) {
+            if (e.target === this) {
+                $('#guardModal').removeClass('is-open');
+            }
         });
 
         loadItems();
     });
 
-    let searchByAptInput = document.getElementById('searchByApt');
-    searchByAptInput.value = !localStorage.getItem('apt') ? '' : localStorage.getItem('apt');
-    searchByAptInput.addEventListener("keyup", event => {
-        if (event.isComposing || event.keyCode === 229) {
-            return;
-        }
-
-        let str = searchByAptInput.value;
-        if (str.length > 3) {
-            searchByAptInput.value = str.substring(0, 4);
-            return;
-        }
-
-        localStorage.setItem('apt', str);
-        queryParams['page'] = 1;
-        updateLocationHash();
-        loadItems();
-    });
-
-    document.getElementById('searchByAptBtn').addEventListener('click', ev => {
-        document.getElementById('searchByApt').value = '';
-        localStorage.setItem('apt', '');
-        queryParams['page'] = 1;
-        updateLocationHash();
-        loadItems();
-    });
+    function load24hStats() {
+        let endpoint = `${apiHost}/requests/v1/guard/stats24h`;
+        $.get(endpoint).done(function (data) {
+            $('#summaryOpen').text(data.open);
+            $('#summaryClosed').text(data.closed);
+            $('#summaryTotal').text(data.total);
+        }).fail(function () {
+            $('#summaryOpen').text('0');
+            $('#summaryClosed').text('0');
+            $('#summaryTotal').text('0');
+        });
+    }
 
     function loadRequestTypes() {
-        reqStatusFilter = !localStorage.getItem('reqStatus') ? 'new' : localStorage.getItem('reqStatus');
         let endpoint = `${apiHost}/dictionary/v1/request-types`;
-        $.get(endpoint, function () {
-        }).done(function (data) {
+        $.get(endpoint).done(function (data) {
             reqType = data["data"];
         }).fail(function () {
-            // TODO
+            // Fallback types
+            reqType = {
+                1: {ua: "Гість", en: "Guest"},
+                2: {ua: "Таксі", en: "Taxi"},
+                3: {ua: "Доставка", en: "Delivery"},
+                4: {ua: "37-Б Розвантаження", en: "Cargo"}
+            };
         });
     }
 
@@ -224,117 +259,126 @@
         let apt = !localStorage.getItem('apt') ? '' : localStorage.getItem('apt');
         let endpoint = `${apiHost}/requests/v1/guard/list?offset=${offset}&limit=${limit}&status=${reqStatusFilter}&place=${reqTypeFilter}&apartment=${apt}`;
 
-        $.get(endpoint, function () {
-        }).done(function (data) {
+        $.get(endpoint).done(function (data) {
             renderItems(data);
             renderPager(data.count);
-
-            postRenderActions();
-
         }).fail(function () {
-            // TODO
+            $('#itemsTableBody').html('<tr><td class="guard-empty">Помилка завантаження даних.</td></tr>');
         });
-    }
-
-    function postRenderActions() {
-        $('.contacts-popover').popover({
-            container: 'body',
-            trigger: 'hover',
-        });
-
-        $('.imageButton').on('click', function (e) {
-            e.preventDefault();
-            let src = $(this).attr('data-full-img');
-
-            $('#modal-image').attr('src', src)
-            $('#imageModalContainer').modal('show');
-        })
     }
 
     function renderItems(items) {
         let table = $('#itemsTableBody');
         table.empty();
 
-        if (items.data.length === 0) return;
+        if (!items.data || items.data.length === 0) {
+            table.append('<tr><td class="guard-empty">Немає заявок за обраними фільтрами.</td></tr>');
+            return;
+        }
+
         items.data.forEach(function (item) {
             let date = new Date(item.time * 1000);
-            let images = "";
+            let dateStr = formatDate(date);
+            let images = renderImages(item.images || []);
+            let description = typeof item.description !== "undefined" && item.description ?
+                `<div class="guard-row__desc">${item.description}</div>` : '';
 
-            if (item.hasOwnProperty('images')) {
-                images = renderImages(item.images);
-            }
+            let statusChip = item.status === 'closed' ? '<span class="guard-row__status-closed">Закрито</span>' : '';
+            let rowClass = item.status === 'closed' ? 'is-closed' : '';
 
-            if(typeof item.description === "undefined"){
-                item.description = '';
-            }
+            let badgeColor = getBadgeColor(item.rtype);
+            let typeName = reqType[item.rtype] ? reqType[item.rtype]["ua"] : "Невідомо";
 
-            let cargoMark = "";
-            // if (item.type === "cargo") {
-            //     cargoMark = "<span class='badge badge-danger float-left'>!</span>";
-            // }
-            table.append("<tr>" +
-                "<td>" +
-                "<h4><span class='badge badge-info float-left'>" + reqType[item.rtype]["ua"] + "</span>" + cargoMark + "</h4><br/>" +
-                "<b>" + item.address + " # " + item.apartment + "</b> | " + item.user_name + ": " + item.phone +
-                "<br/>" + item.description +
-                "<br/>" + images +
-                "</td>" +
-                "<td>" + actionButton(item.status, item.id) + "</td>" +
-                "</tr>");
+            table.append(`
+                <tr class="${rowClass}">
+                    <td class="guard-row__main">
+                        <div class="guard-row__head">
+                            <span class="guard-badge" style="background: ${badgeColor};">${typeName}</span>
+                            <span class="guard-row__when">${dateStr}</span>
+                            ${statusChip}
+                        </div>
+                        <div class="guard-row__addr">
+                            <strong>${item.address} <span class="guard-row__apt">#${item.apartment}</span></strong>
+                            <span class="guard-row__dim">${item.user_name} · ${item.phone}</span>
+                        </div>
+                        ${description}
+                        ${images}
+                    </td>
+                    <td class="guard-row__actions">${actionButton(item.status, item.id)}</td>
+                </tr>
+            `);
         });
     }
 
+    function formatDate(date) {
+        let day = String(date.getDate()).padStart(2, '0');
+        let month = String(date.getMonth() + 1).padStart(2, '0');
+        let year = date.getFullYear();
+        let hours = String(date.getHours()).padStart(2, '0');
+        let minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${day}.${month}.${year}, ${hours}:${minutes}`;
+    }
+
+    function getBadgeColor(rtype) {
+        const colors = {
+            1: '#17A2B8',  // guest
+            2: '#F0A500',  // taxi
+            3: '#4A90A4',  // delivery
+            4: '#C0392B'   // cargo
+        };
+        return colors[rtype] || '#6c757d';
+    }
+
     function renderImages(images) {
-        if (images.length === 0) {
-            return
-        }
+        if (!images || images.length === 0) return '';
 
-        imgBlock = "";
+        let imgBlock = '<div class="guard-row__imgs">';
         images.forEach(function (item) {
-            imgBlock += "<img src='" + item.thumb + "' class='rounded float-right img-thumbnail imageButton' width='64' data-full-img='" + item.img + "'>";
-        })
-
+            imgBlock += `
+                <div class="guard-thumb" data-full-img="${item.img}">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M2.5 15L7.5 10L10 12.5L15 7.5M17.5 2.5H2.5V17.5H17.5V2.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+            `;
+        });
+        imgBlock += '</div>';
         return imgBlock;
     }
 
     function actionButton(status, id) {
-        let buttons = {
-            "new": `<button type='button' class='btn btn-success actionButton float-right' data-action='closed' data-id='${id}'>Закрити</button>`,
-            "closed": `<button type='button' class='btn btn-secondary actionButton float-right' data-action='new' data-id='${id}'>Відкрити</button>`,
-        };
-        return buttons[status]
+        if (status === "new") {
+            return `<button type='button' class='guard-btn guard-btn--success actionButton' data-action='closed' data-id='${id}'>Закрити</button>`;
+        } else {
+            return `<button type='button' class='guard-btn guard-btn--secondary actionButton' data-action='new' data-id='${id}'>Відкрити</button>`;
+        }
     }
 
     function renderPager(count) {
-        let container = $("#itemsPager ul");
-        container.empty();
+        let container = $("#itemsPager");
+        let list = container.find('.guard-pager__list');
+        list.empty();
 
-        if (count <= limit) return;
+        if (count <= limit) {
+            container.hide();
+            return;
+        }
 
+        container.show();
         let pagesTotal = Math.ceil(count / limit);
 
-        container.innerHTML = '';
         for (let i = 1; i <= pagesTotal; i++) {
-            container.append(renderPagerLink(i));
+            list.append(renderPagerLink(i));
         }
     }
 
     function renderPagerLink(page) {
-        let el = document.createElement("li");
-        let link = document.createElement('a');
-
-        link.setAttribute('class', 'page-link');
-        link.setAttribute('data-value', page);
-        link.textContent = page;
-
-        el.setAttribute('class', 'page-item');
-        el.append(link);
-
-        if (page === currPage) {
-            el.classList.add('active');
-        }
-
-        return el
+        let activeClass = page === currPage ? 'is-active' : '';
+        return `
+            <li class="guard-pager__item ${activeClass}">
+                <a class="guard-pager__link" data-value="${page}">${page}</a>
+            </li>
+        `;
     }
 
     function updateLocationHash() {
@@ -345,7 +389,11 @@
         window.location.hash = '#' + parts.join(';');
     }
 
-
+    function showToast(message) {
+        let toast = $('#guardToast');
+        toast.text(message).addClass('is-visible');
+        setTimeout(() => toast.removeClass('is-visible'), 1800);
+    }
 </script>
 </body>
 </html>

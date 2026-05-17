@@ -188,3 +188,23 @@ func (r *Requests) updateRequestHistory(tx *gorm.DB, requestID uint, rec fmt.Str
 		Where("id = ?", requestID).
 		Update("history", gorm.Expr("array_append(history, ?)", rec.String())).Error
 }
+
+func (r *Requests) GetStats24h() (total, open, closed int, err error) {
+	from := time.Now().Add(-24 * time.Hour)
+
+	// Get total count
+	if err = r.db.Model(&requests.Request{}).
+		Where("created_at >= ?", from).
+		Count(&total).Error; err != nil {
+		return 0, 0, 0, err
+	}
+
+	// Get open count
+	if err = r.db.Model(&requests.Request{}).
+		Where("created_at >= ? AND status = ?", from, "new").
+		Count(&open).Error; err != nil {
+		return 0, 0, 0, err
+	}
+
+	return total, open, total - open, nil
+}

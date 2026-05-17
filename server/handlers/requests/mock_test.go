@@ -36,6 +36,9 @@ var _ requestsRepository = &requestsRepositoryMock{}
 //			GetRequestByIDAndUserFunc: func(id uint, userID uint) (*Request, error) {
 //				panic("mock out the GetRequestByIDAndUser method")
 //			},
+//			GetStats24hFunc: func() (int, int, int, error) {
+//				panic("mock out the GetStats24h method")
+//			},
 //			ListByUserFunc: func(r *RequestListFilter) ([]*Request, error) {
 //				panic("mock out the ListByUser method")
 //			},
@@ -72,6 +75,9 @@ type requestsRepositoryMock struct {
 
 	// GetRequestByIDAndUserFunc mocks the GetRequestByIDAndUser method.
 	GetRequestByIDAndUserFunc func(id uint, userID uint) (*Request, error)
+
+	// GetStats24hFunc mocks the GetStats24h method.
+	GetStats24hFunc func() (int, int, int, error)
 
 	// ListByUserFunc mocks the ListByUser method.
 	ListByUserFunc func(r *RequestListFilter) ([]*Request, error)
@@ -129,6 +135,9 @@ type requestsRepositoryMock struct {
 			// UserID is the userID argument value.
 			UserID uint
 		}
+		// GetStats24h holds details about calls to the GetStats24h method.
+		GetStats24h []struct {
+		}
 		// ListByUser holds details about calls to the ListByUser method.
 		ListByUser []struct {
 			// R is the r argument value.
@@ -158,6 +167,7 @@ type requestsRepositoryMock struct {
 	lockDelete                sync.RWMutex
 	lockDeleteImage           sync.RWMutex
 	lockGetRequestByIDAndUser sync.RWMutex
+	lockGetStats24h           sync.RWMutex
 	lockListByUser            sync.RWMutex
 	lockListForGuard          sync.RWMutex
 	lockUpdate                sync.RWMutex
@@ -377,6 +387,33 @@ func (mock *requestsRepositoryMock) GetRequestByIDAndUserCalls() []struct {
 	mock.lockGetRequestByIDAndUser.RLock()
 	calls = mock.calls.GetRequestByIDAndUser
 	mock.lockGetRequestByIDAndUser.RUnlock()
+	return calls
+}
+
+// GetStats24h calls GetStats24hFunc.
+func (mock *requestsRepositoryMock) GetStats24h() (int, int, int, error) {
+	if mock.GetStats24hFunc == nil {
+		panic("requestsRepositoryMock.GetStats24hFunc: method is nil but requestsRepository.GetStats24h was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockGetStats24h.Lock()
+	mock.calls.GetStats24h = append(mock.calls.GetStats24h, callInfo)
+	mock.lockGetStats24h.Unlock()
+	return mock.GetStats24hFunc()
+}
+
+// GetStats24hCalls gets all the calls that were made to GetStats24h.
+// Check the length with:
+//
+//	len(mockedrequestsRepository.GetStats24hCalls())
+func (mock *requestsRepositoryMock) GetStats24hCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockGetStats24h.RLock()
+	calls = mock.calls.GetStats24h
+	mock.lockGetStats24h.RUnlock()
 	return calls
 }
 

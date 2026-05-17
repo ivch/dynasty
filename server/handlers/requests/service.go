@@ -75,6 +75,7 @@ type requestsRepository interface {
 	CountForGuard(req *RequestListFilter) (int, error)
 	AddImage(userID, requestID uint, filename string) error
 	DeleteImage(userID, requestID uint, filename string) error
+	GetStats24h() (total, open, closed int, err error)
 }
 
 type s3Client interface {
