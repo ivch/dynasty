@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta http-equiv="refresh" content="60">
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+  <title>Система заявок | ЖК Династія</title>
+  <link rel="stylesheet" href="guard.css">
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script src="data.js"></script>
+  <script type="text/babel" src="NavBar.jsx"></script>
+  <script type="text/babel" src="FilterBar.jsx"></script>
+  <script type="text/babel" src="RequestTypeBadge.jsx"></script>
+  <script type="text/babel" src="RequestRow.jsx"></script>
+  <script type="text/babel" src="Pager.jsx"></script>
+  <script type="text/babel" src="PhotoModal.jsx"></script>
+
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+
+    const PER_PAGE = 5;
+
+    function GuardApp() {
+      const [statusFilter, setStatusFilter] = useState(() =>
+        localStorage.getItem("reqStatus") || "new"
+      );
+      const [typeFilter, setTypeFilter] = useState(() =>
+        localStorage.getItem("reqType") || "kpp"
+      );
+      const [aptQuery, setAptQuery] = useState(() =>
+        localStorage.getItem("apt") || ""
+      );
+      const [page, setPage]         = useState(1);
+      const [requests, setRequests] = useState(window.GUARD_DATA.requests);
+      const [photoSrc, setPhotoSrc] = useState(null);
+      const [toast, setToast]       = useState(null);
+
+      const filtered = useMemo(() => {
+        let r = requests;
+        if (statusFilter === "new") r = r.filter(x => x.status === "new");
+        if (typeFilter === "kpp")   r = r.filter(x => x.rtype !== 4);
+        if (aptQuery.trim())        r = r.filter(x => String(x.apartment).startsWith(aptQuery.trim()));
+        return r;
+      }, [requests, statusFilter, typeFilter, aptQuery]);
+
+      const totalPages  = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+      const visible     = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+
+      const openCount   = requests.filter(x => x.status === "new").length;
+      const closedCount = requests.filter(x => x.status === "closed").length;
+      const totalCount  = requests.length;
+
+      const showToast = (msg) => {
+        setToast(msg);
+        setTimeout(() => setToast(null), 1800);
+      };
+
+      const onToggle = (key) => {
+        setPage(1);
+        if (key === "status") {
+          const next = statusFilter === "new" ? "all" : "new";
+          localStorage.setItem("reqStatus", next);
+          setStatusFilter(next);
+        }
+        if (key === "type") {
+          const next = typeFilter === "kpp" ? "all" : "kpp";
+          localStorage.setItem("reqType", next);
+          setTypeFilter(next);
+        }
+      };
+
+      const onSearch = (val) => {
+        const v = val.slice(0, 4);
+        localStorage.setItem("apt", v);
+        setAptQuery(v);
+        setPage(1);
+      };
+
+      const onClearSearch = () => {
+        localStorage.setItem("apt", "");
+        setAptQuery("");
+        setPage(1);
+      };
+
+      const onAction = (id, nextStatus) => {
+        setRequests(rs => rs.map(r => r.id === id ? { ...r, status: nextStatus } : r));
+        showToast(nextStatus === "closed" ? "Заявку закрито" : "Заявку відкрито");
+        setPage(1);
+      };
+
+      return (
+        <>
+          <NavBar />
+          <div className="guard-container">
+
+            <div className="guard-summary">
+              <div className="guard-summary__stat">
+                <span className="guard-summary__n guard-summary__n--open">{openCount}</span>
+                <span className="guard-summary__l">Відкритих</span>
+              </div>
+              <div className="guard-summary__divider"></div>
+              <div className="guard-summary__stat">
+                <span className="guard-summary__n">{closedCount}</span>
+                <span className="guard-summary__l">Закритих</span>
+              </div>
+              <div className="guard-summary__divider"></div>
+              <div className="guard-summary__stat">
+                <span className="guard-summary__n">{totalCount}</span>
+                <span className="guard-summary__l">Усього сьогодні</span>
+              </div>
+            </div>
+
+            <FilterBar
+              statusFilter={statusFilter}
+              typeFilter={typeFilter}
+              aptQuery={aptQuery}
+              onToggle={onToggle}
+              onSearch={onSearch}
+              onClearSearch={onClearSearch}
+            />
+
+            <div className="guard-table-wrap">
+              <table className="guard-table">
+                <tbody>
+                  {visible.length === 0 ? (
+                    <tr>
+                      <td className="guard-empty">Немає заявок за обраними фільтрами.</td>
+                    </tr>
+                  ) : visible.map(r => (
+                    <RequestRow
+                      key={r.id}
+                      req={r}
+                      onAction={onAction}
+                      onImageClick={(img) => setPhotoSrc(img)}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <Pager currentPage={page} totalPages={totalPages} onPage={setPage} />
+          </div>
+
+          <PhotoModal
+            open={photoSrc !== null}
+            src={photoSrc}
+            onClose={() => setPhotoSrc(null)}
+          />
+
+          {toast && <div className="guard-toast">{toast}</div>}
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<GuardApp />);
+  </script>
+</body>
+</html>

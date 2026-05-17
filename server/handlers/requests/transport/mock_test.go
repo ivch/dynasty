@@ -34,6 +34,9 @@ var _ RequestsService = &RequestsServiceMock{}
 //			GuardRequestListFunc: func(ctx context.Context, r *requests.RequestListFilter) ([]*requests.Request, int, error) {
 //				panic("mock out the GuardRequestList method")
 //			},
+//			GuardStats24hFunc: func(ctx context.Context) (*requests.RequestStats, error) {
+//				panic("mock out the GuardStats24h method")
+//			},
 //			GuardUpdateRequestFunc: func(ctx context.Context, r *requests.Request) error {
 //				panic("mock out the GuardUpdateRequest method")
 //			},
@@ -67,6 +70,9 @@ type RequestsServiceMock struct {
 
 	// GuardRequestListFunc mocks the GuardRequestList method.
 	GuardRequestListFunc func(ctx context.Context, r *requests.RequestListFilter) ([]*requests.Request, int, error)
+
+	// GuardStats24hFunc mocks the GuardStats24h method.
+	GuardStats24hFunc func(ctx context.Context) (*requests.RequestStats, error)
 
 	// GuardUpdateRequestFunc mocks the GuardUpdateRequest method.
 	GuardUpdateRequestFunc func(ctx context.Context, r *requests.Request) error
@@ -117,6 +123,11 @@ type RequestsServiceMock struct {
 			// R is the r argument value.
 			R *requests.RequestListFilter
 		}
+		// GuardStats24h holds details about calls to the GuardStats24h method.
+		GuardStats24h []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+		}
 		// GuardUpdateRequest holds details about calls to the GuardUpdateRequest method.
 		GuardUpdateRequest []struct {
 			// Ctx is the ctx argument value.
@@ -151,6 +162,7 @@ type RequestsServiceMock struct {
 	lockDeleteImage        sync.RWMutex
 	lockGet                sync.RWMutex
 	lockGuardRequestList   sync.RWMutex
+	lockGuardStats24h      sync.RWMutex
 	lockGuardUpdateRequest sync.RWMutex
 	lockMy                 sync.RWMutex
 	lockUpdate             sync.RWMutex
@@ -334,6 +346,38 @@ func (mock *RequestsServiceMock) GuardRequestListCalls() []struct {
 	mock.lockGuardRequestList.RLock()
 	calls = mock.calls.GuardRequestList
 	mock.lockGuardRequestList.RUnlock()
+	return calls
+}
+
+// GuardStats24h calls GuardStats24hFunc.
+func (mock *RequestsServiceMock) GuardStats24h(ctx context.Context) (*requests.RequestStats, error) {
+	if mock.GuardStats24hFunc == nil {
+		panic("RequestsServiceMock.GuardStats24hFunc: method is nil but RequestsService.GuardStats24h was just called")
+	}
+	callInfo := struct {
+		Ctx context.Context
+	}{
+		Ctx: ctx,
+	}
+	mock.lockGuardStats24h.Lock()
+	mock.calls.GuardStats24h = append(mock.calls.GuardStats24h, callInfo)
+	mock.lockGuardStats24h.Unlock()
+	return mock.GuardStats24hFunc(ctx)
+}
+
+// GuardStats24hCalls gets all the calls that were made to GuardStats24h.
+// Check the length with:
+//
+//	len(mockedRequestsService.GuardStats24hCalls())
+func (mock *RequestsServiceMock) GuardStats24hCalls() []struct {
+	Ctx context.Context
+} {
+	var calls []struct {
+		Ctx context.Context
+	}
+	mock.lockGuardStats24h.RLock()
+	calls = mock.calls.GuardStats24h
+	mock.lockGuardStats24h.RUnlock()
 	return calls
 }
 

@@ -67,3 +67,9 @@ type HistoryRecord struct {
 func (h *HistoryRecord) String() string {
 	return fmt.Sprintf("%s@%s@%d", h.Time.Format("2006-01-02 15:04"), h.Action, h.UserID)
 }
+
+type RequestStats struct {
+	Total  int `json:"total"`
+	Open   int `json:"open"`
+	Closed int `json:"closed"`
+}

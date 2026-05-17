@@ -96,3 +96,9 @@ type RequestGuardListResponse struct {
 type GuardUpdateRequest struct {
 	Status string `json:"status"`
 }
+
+type GuardStats24hResponse struct {
+	Total  int `json:"total"`
+	Closed int `json:"closed"`
+	Open   int `json:"open"`
+}

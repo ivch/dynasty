@@ -28,6 +28,7 @@ type RequestsService interface {
 
 	GuardRequestList(ctx context.Context, r *requests.RequestListFilter) ([]*requests.Request, int, error)
 	GuardUpdateRequest(ctx context.Context, r *requests.Request) error
+	GuardStats24h(ctx context.Context) (*requests.RequestStats, error)
 }
 
 type HTTPTransport struct {
@@ -60,6 +61,7 @@ func (h *HTTPTransport) attachRoutes() {
 
 	h.router.Get("/v1/guard/list", h.GuardList)
 	h.router.Put("/v1/guard/request/{id}", h.GuardUpdateRequest)
+	h.router.Get("/v1/guard/stats24h", h.GuardStats24h)
 }
 
 func (h *HTTPTransport) Create(w http.ResponseWriter, r *http.Request) {
@@ -456,6 +458,22 @@ func (h *HTTPTransport) GuardUpdateRequest(w http.ResponseWriter, r *http.Reques
 	}
 
 	h.sendHTTPResponse(r.Context(), w, nil)
+}
+
+func (h *HTTPTransport) GuardStats24h(w http.ResponseWriter, r *http.Request) {
+	stats, err := h.svc.GuardStats24h(r.Context())
+	if err != nil {
+		h.sendError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	result := GuardStats24hResponse{
+		Total:  stats.Total,
+		Closed: stats.Closed,
+		Open:   stats.Open,
+	}
+
+	h.sendHTTPResponse(r.Context(), w, result)
 }
 
 func getIDFromQuery(r *http.Request) (uint, error) {
