@@ -3,7 +3,7 @@ package transport_test
 import (
 	"context"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -25,7 +25,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	defaultLogger = logger.NewStdLog(logger.WithWriter(ioutil.Discard))
+	defaultLogger = logger.NewStdLog(logger.WithWriter(io.Discard))
 	os.Exit(m.Run())
 }
 

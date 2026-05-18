@@ -3,7 +3,7 @@ package users_test
 import (
 	"context"
 	"errors"
-	"io/ioutil"
+	"io"
 	"os"
 	"reflect"
 	"testing"
@@ -19,7 +19,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	defaultLogger = logger.NewStdLog(logger.WithWriter(ioutil.Discard))
+	defaultLogger = logger.NewStdLog(logger.WithWriter(io.Discard))
 	os.Exit(m.Run())
 }
 

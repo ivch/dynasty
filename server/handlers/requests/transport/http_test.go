@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
@@ -33,7 +32,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	defaultLogger = logger.NewStdLog(logger.WithWriter(ioutil.Discard))
+	defaultLogger = logger.NewStdLog(logger.WithWriter(io.Discard))
 	os.Exit(m.Run())
 }
 

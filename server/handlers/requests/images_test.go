@@ -2,7 +2,7 @@ package requests_test
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"strings"
@@ -23,7 +23,7 @@ func TestService_UploadImage(t *testing.T) {
 			_ = f.Close() // Error ignored in test helper
 		}()
 
-		fileBytes, err := ioutil.ReadAll(f)
+		fileBytes, err := io.ReadAll(f)
 		if err != nil {
 			log.Fatal(err)
 		}
