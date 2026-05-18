@@ -14,11 +14,14 @@ import (
 
 func TestService_UploadImage(t *testing.T) {
 	loadFile := func(filename string) []byte {
+		// #nosec G304 -- Test file helper, filename is controlled by test code not user input
 		f, err := os.Open(filename)
 		if err != nil {
 			log.Fatal(err)
 		}
-		defer f.Close()
+		defer func() {
+			_ = f.Close() // Error ignored in test helper
+		}()
 
 		fileBytes, err := ioutil.ReadAll(f)
 		if err != nil {

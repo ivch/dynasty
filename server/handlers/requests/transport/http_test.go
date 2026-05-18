@@ -894,7 +894,9 @@ func TestHTTP_UploadImage(t *testing.T) {
 					t.Fatal(err)
 				}
 				contentHeader = writer.FormDataContentType()
-				writer.Close()
+				if err := writer.Close(); err != nil {
+					t.Fatal(err)
+				}
 			}
 
 			rq, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("/v1/request/%s/file", tt.req), bb)

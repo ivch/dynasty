@@ -1,32 +1,42 @@
 version: "2"
+
 run:
   build-tags:
     - integration
     - pg_integration
+
 output:
+  formats:
+    text:
+      colors: true
   sort-order:
     - linter
     - severity
     - file
+
 linters:
   enable:
     - asasalint
     - asciicheck
     - bodyclose
     - copyloopvar
-    - exptostd
+    - errcheck
     - gosec
+    - govet
+    - ineffassign
     - perfsprint
     - predeclared
     - revive
     - rowserrcheck
     - spancheck
     - sqlclosecheck
+    - staticcheck
     - testifylint
     - testpackage
     - unconvert
+    - unused
     - usestdlibvars
-    - usetesting
+
   settings:
     goconst:
       ignore-string-values:
@@ -49,23 +59,22 @@ linters:
         - -SA1019
         - -SA1029
         - -ST1003
-        - -QF1001
   exclusions:
-    presets:
-      - comments
-      - common-false-positives
-      - legacy
-      - std-error-handling
+    rules:
+      - path: _test\.go
+        linters:
+          - errcheck
+      - linters:
+          - staticcheck
+        text: "ST1000:"
     paths:
-      - .*_gen\.go$
-      - mock\_.*\.go$
-      - third_party$
-      - builtin$
-      - examples$
+      - third_party
+      - builtin
+      - examples
+      - ".*_gen\\.go$"
+      - "mock_.*\\.go$"
+
 issues:
   max-issues-per-linter: 0
+  max-same-issues: 0
   new: false
-formatters:
-  enable:
-    - gofmt
-    - goimports

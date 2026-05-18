@@ -83,7 +83,6 @@ func (s *Service) UserByPhoneAndPassword(_ context.Context, phone, password stri
 	return u, nil
 }
 
-// nolint: gocyclo,funlen
 func (s *Service) Register(ctx context.Context, r *User) (*User, error) {
 	user, err := s.repo.GetUserByEmail(r.Email)
 	if err != nil {

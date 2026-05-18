@@ -67,7 +67,7 @@ func NewHTTPHandler(apiHost, pageURI string, pagerLimit int) http.Handler {
 		}
 
 		ext := filepath.Ext(cleanFilename)
-		// #nosec G703 -- Path traversal is prevented by multiple layers of validation above:
+		// #nosec G703 G304 -- Path traversal is prevented by multiple layers of validation above:
 		// 1. filename is cleaned with filepath.Clean()
 		// 2. absolute paths are rejected
 		// 3. paths containing ".." are rejected
@@ -77,7 +77,9 @@ func NewHTTPHandler(apiHost, pageURI string, pagerLimit int) http.Handler {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		defer fp.Close()
+		defer func() {
+			_ = fp.Close() // Error ignored - file is read-only, failure to close is non-critical
+		}()
 
 		switch ext {
 		case ".js":
@@ -92,12 +94,15 @@ func NewHTTPHandler(apiHost, pageURI string, pagerLimit int) http.Handler {
 	})
 
 	r.Get("/docs/oferta", func(w http.ResponseWriter, r *http.Request) {
+		// #nosec G304 -- Static file path, no user input
 		fp, err := os.Open("../_ui/oferta.html")
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		defer fp.Close()
+		defer func() {
+			_ = fp.Close() // Error ignored - file is read-only, failure to close is non-critical
+		}()
 
 		w.Header().Add("Content-Type", "text/html")
 		if _, err := io.Copy(w, fp); err != nil {
