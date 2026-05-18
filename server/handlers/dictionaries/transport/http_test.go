@@ -1,9 +1,9 @@
-package transport
+package transport_test
 
 import (
 	"context"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -12,6 +12,7 @@ import (
 
 	"github.com/ivch/dynasty/common/logger"
 	"github.com/ivch/dynasty/server/handlers/dictionaries"
+	"github.com/ivch/dynasty/server/handlers/dictionaries/transport"
 	"github.com/ivch/dynasty/server/middlewares"
 )
 
@@ -21,7 +22,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	defaultLogger = logger.NewStdLog(logger.WithWriter(ioutil.Discard))
+	defaultLogger = logger.NewStdLog(logger.WithWriter(io.Discard))
 	os.Exit(m.Run())
 }
 
@@ -29,7 +30,7 @@ func TestHTTP_EntriesList(t *testing.T) {
 	tests := []struct {
 		name     string
 		req      string
-		svc      DictionaryService
+		svc      transport.DictionaryService
 		wantErr  bool
 		want     string
 		wantCode int
@@ -49,7 +50,7 @@ func TestHTTP_EntriesList(t *testing.T) {
 		{
 			name: "error service error",
 			req:  "1",
-			svc: &DictionaryServiceMock{
+			svc: &transport.DictionaryServiceMock{
 				EntriesListFunc: func(_ context.Context, _ uint) ([]*dictionaries.Entry, error) {
 					return nil, errTestError
 				},
@@ -60,7 +61,7 @@ func TestHTTP_EntriesList(t *testing.T) {
 		{
 			name: "ok",
 			req:  "1",
-			svc: &DictionaryServiceMock{
+			svc: &transport.DictionaryServiceMock{
 				EntriesListFunc: func(_ context.Context, _ uint) ([]*dictionaries.Entry, error) {
 					return []*dictionaries.Entry{
 						{
@@ -78,9 +79,9 @@ func TestHTTP_EntriesList(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := NewHTTPTransport(defaultLogger, svc, middlewares.NewIDCtx(defaultLogger).Middleware)
+			h := transport.NewHTTPTransport(defaultLogger, svc, middlewares.NewIDCtx(defaultLogger).Middleware)
 			rr := httptest.NewRecorder()
-			rq, _ := http.NewRequest("GET", "/v1/building/"+tt.req+"/entries", nil)
+			rq, _ := http.NewRequest(http.MethodGet, "/v1/building/"+tt.req+"/entries", nil)
 			h.ServeHTTP(rr, rq)
 			if (rr.Code != tt.wantCode) && tt.wantErr {
 				t.Errorf("Request error. status = %d, wantCode = %d, wantErr %v", rr.Code, tt.wantCode, tt.wantErr)
@@ -96,14 +97,14 @@ func TestHTTP_EntriesList(t *testing.T) {
 func TestHTTP_BuildingsList(t *testing.T) {
 	tests := []struct {
 		name     string
-		svc      DictionaryService
+		svc      transport.DictionaryService
 		wantErr  bool
 		want     string
 		wantCode int
 	}{
 		{
 			name: "error service error",
-			svc: &DictionaryServiceMock{
+			svc: &transport.DictionaryServiceMock{
 				BuildingsListFunc: func(_ context.Context) ([]*dictionaries.Building, error) {
 					return nil, errTestError
 				},
@@ -113,7 +114,7 @@ func TestHTTP_BuildingsList(t *testing.T) {
 		},
 		{
 			name: "ok",
-			svc: &DictionaryServiceMock{
+			svc: &transport.DictionaryServiceMock{
 				BuildingsListFunc: func(_ context.Context) ([]*dictionaries.Building, error) {
 					return []*dictionaries.Building{
 						{
@@ -132,9 +133,9 @@ func TestHTTP_BuildingsList(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := NewHTTPTransport(defaultLogger, svc, middlewares.NewIDCtx(defaultLogger).Middleware)
+			h := transport.NewHTTPTransport(defaultLogger, svc, middlewares.NewIDCtx(defaultLogger).Middleware)
 			rr := httptest.NewRecorder()
-			rq, _ := http.NewRequest("GET", "/v1/buildings", nil)
+			rq, _ := http.NewRequest(http.MethodGet, "/v1/buildings", nil)
 			h.ServeHTTP(rr, rq)
 			if (rr.Code != tt.wantCode) && tt.wantErr {
 				t.Errorf("Request error. status = %d, wantCode = %d, wantErr %v", rr.Code, tt.wantCode, tt.wantErr)
@@ -150,14 +151,14 @@ func TestHTTP_BuildingsList(t *testing.T) {
 func TestHTTP_RequestTypesList(t *testing.T) {
 	tests := []struct {
 		name     string
-		svc      DictionaryService
+		svc      transport.DictionaryService
 		wantErr  bool
 		want     string
 		wantCode int
 	}{
 		{
 			name:     "ok",
-			svc:      &DictionaryServiceMock{},
+			svc:      &transport.DictionaryServiceMock{},
 			want:     `{"data":{"1":{"en":"Guest","key":"guest","ru":"Гость","ua":"Гість"},"2":{"en":"Taxi","key":"taxi","ru":"Такси","ua":"Таксі"},"3":{"en":"Delivery","key":"delivery","ru":"Доставка","ua":"Доставка"},"4":{"en":"37-b Unload Area","key":"cargo","ru":"37-Б Разгрузка","ua":"37-Б Розвантаження"}}}`,
 			wantCode: http.StatusOK,
 		},
@@ -166,9 +167,9 @@ func TestHTTP_RequestTypesList(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := NewHTTPTransport(defaultLogger, svc, middlewares.NewIDCtx(defaultLogger).Middleware)
+			h := transport.NewHTTPTransport(defaultLogger, svc, middlewares.NewIDCtx(defaultLogger).Middleware)
 			rr := httptest.NewRecorder()
-			rq, _ := http.NewRequest("GET", "/v1/request-types", nil)
+			rq, _ := http.NewRequest(http.MethodGet, "/v1/request-types", nil)
 			h.ServeHTTP(rr, rq)
 			if (rr.Code != tt.wantCode) && tt.wantErr {
 				t.Errorf("Request error. status = %d, wantCode = %d, wantErr %v", rr.Code, tt.wantCode, tt.wantErr)

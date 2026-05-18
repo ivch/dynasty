@@ -24,8 +24,8 @@ const (
 	allowedFileType      = "image/jpeg"
 	requestsPerDay       = 20
 	filesPerRequest      = 3
-	imgPathPrefix        = "req/i/"
-	thumbPathPrefix      = "req/t/"
+	ImgPathPrefix        = "req/i/"
+	ThumbPathPrefix      = "req/t/"
 	defaultS3ACL         = "public-read"
 )
 
@@ -64,7 +64,7 @@ var (
 	}
 )
 
-type requestsRepository interface {
+type RequestsRepository interface {
 	Create(req *Request) error
 	GetRequestByIDAndUser(id, userID uint) (*Request, error)
 	Update(update *UpdateRequest) error
@@ -78,20 +78,20 @@ type requestsRepository interface {
 	GetStats24h() (total, open, closed int, err error)
 }
 
-type s3Client interface {
+type S3Client interface {
 	PutObject(input *s3.PutObjectInput) (*s3.PutObjectOutput, error)
 	DeleteObject(input *s3.DeleteObjectInput) (*s3.DeleteObjectOutput, error)
 }
 
 type Service struct {
-	repo     requestsRepository
-	s3Client s3Client
+	repo     RequestsRepository
+	s3Client S3Client
 	s3Space  string
 	cdnHost  string
 	log      logger.Logger
 }
 
-func New(log logger.Logger, repo requestsRepository, s3Client s3Client, s3Space, cdnHost string) *Service {
+func New(log logger.Logger, repo RequestsRepository, s3Client S3Client, s3Space, cdnHost string) *Service {
 	s := Service{repo: repo, s3Space: s3Space, s3Client: s3Client, cdnHost: cdnHost, log: log}
 
 	return &s

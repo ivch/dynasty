@@ -3,8 +3,8 @@ package users
 import "time"
 
 const (
-	defaultUserRole    = 4
-	predefinedUserRole = 5
+	DefaultUserRole    = 4
+	PredefinedUserRole = 5
 )
 
 type User struct {

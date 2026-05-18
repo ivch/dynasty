@@ -49,11 +49,11 @@ type Logger interface {
 // Takes variadic options which will be applied to StdLog.
 func NewStdLog(opts ...Option) *StdLog {
 	l := &StdLog{
-		err: log.New(os.Stderr, "\033[31mERR\033[0m: ", log.Ldate|log.Ltime),
-		wrn: log.New(os.Stderr, "\033[33mWRN\033[0m: ", log.Ldate|log.Ltime),
-		inf: log.New(os.Stderr, "\033[32mINF\033[0m: ", log.Ldate|log.Ltime),
-		dbg: log.New(os.Stderr, "\033[35mDBG\033[0m: ", log.Ldate|log.Ltime),
-		lvl: INF,
+		Err: log.New(os.Stderr, "\033[31mERR\033[0m: ", log.Ldate|log.Ltime),
+		Wrn: log.New(os.Stderr, "\033[33mWRN\033[0m: ", log.Ldate|log.Ltime),
+		Inf: log.New(os.Stderr, "\033[32mINF\033[0m: ", log.Ldate|log.Ltime),
+		Dbg: log.New(os.Stderr, "\033[35mDBG\033[0m: ", log.Ldate|log.Ltime),
+		Lvl: INF,
 	}
 	for _, opt := range opts {
 		opt(l)
@@ -63,52 +63,52 @@ func NewStdLog(opts ...Option) *StdLog {
 
 // StdLog represents standard library logger with levels.
 type StdLog struct {
-	err, wrn, inf, dbg *log.Logger
-	lvl                Level
+	Err, Wrn, Inf, Dbg *log.Logger
+	Lvl                Level
 }
 
 func (l *StdLog) Debug(format string, v ...interface{}) {
-	if l.lvl < DBG {
+	if l.Lvl < DBG {
 		return
 	}
-	l.dbg.Printf(format, v...)
+	l.Dbg.Printf(format, v...)
 }
 
 func (l *StdLog) Info(format string, v ...interface{}) {
-	if l.lvl < INF {
+	if l.Lvl < INF {
 		return
 	}
-	l.inf.Printf(format, v...)
+	l.Inf.Printf(format, v...)
 }
 
 func (l *StdLog) Warn(format string, v ...interface{}) {
-	if l.lvl < WRN {
+	if l.Lvl < WRN {
 		return
 	}
-	l.wrn.Printf(format, v...)
+	l.Wrn.Printf(format, v...)
 }
 
 func (l *StdLog) Error(format string, v ...interface{}) {
-	if l.lvl < ERR {
+	if l.Lvl < ERR {
 		return
 	}
-	l.err.Printf(format, v...)
+	l.Err.Printf(format, v...)
 }
 
 type Option func(l *StdLog)
 
 func WithWriter(w io.Writer) Option {
 	return func(l *StdLog) {
-		l.err.SetOutput(w)
-		l.wrn.SetOutput(w)
-		l.inf.SetOutput(w)
-		l.dbg.SetOutput(w)
+		l.Err.SetOutput(w)
+		l.Wrn.SetOutput(w)
+		l.Inf.SetOutput(w)
+		l.Dbg.SetOutput(w)
 	}
 }
 
 func WithLevel(level Level) Option {
 	return func(l *StdLog) {
-		l.lvl = level
+		l.Lvl = level
 	}
 }
 

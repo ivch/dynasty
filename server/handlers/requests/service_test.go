@@ -1,47 +1,46 @@
-package requests
+package requests_test
 
 import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"reflect"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/microcosm-cc/bluemonday"
 
 	"github.com/ivch/dynasty/common/logger"
+	"github.com/ivch/dynasty/server/handlers/requests"
 )
 
 var (
 	defaultLogger *logger.StdLog
 	errTestError  = errors.New("some err")
-	defaultPolicy = bluemonday.StrictPolicy()
 )
 
 func TestMain(m *testing.M) {
-	defaultLogger = logger.NewStdLog(logger.WithWriter(ioutil.Discard))
+	defaultLogger = logger.NewStdLog(logger.WithWriter(io.Discard))
 	os.Exit(m.Run())
 }
 
 func TestService_Get(t *testing.T) {
 	tests := []struct {
 		name    string
-		repo    requestsRepository
-		req     *Request
+		repo    requests.RequestsRepository
+		req     *requests.Request
 		wantErr bool
-		want    *Request
+		want    *requests.Request
 	}{
 		{
 			name: "error no request",
-			repo: &requestsRepositoryMock{
-				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*Request, error) {
+			repo: &requests.RequestsRepositoryMock{
+				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*requests.Request, error) {
 					return nil, errTestError
 				},
 			},
-			req: &Request{
+			req: &requests.Request{
 				UserID: 1,
 				ID:     1,
 			},
@@ -49,9 +48,9 @@ func TestService_Get(t *testing.T) {
 		},
 		{
 			name: "ok",
-			repo: &requestsRepositoryMock{
-				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*Request, error) {
-					return &Request{
+			repo: &requests.RequestsRepositoryMock{
+				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*requests.Request, error) {
+					return &requests.Request{
 						ID:          1,
 						Type:        "1",
 						UserID:      1,
@@ -62,12 +61,12 @@ func TestService_Get(t *testing.T) {
 					}, nil
 				},
 			},
-			req: &Request{
+			req: &requests.Request{
 				UserID: 1,
 				ID:     1,
 			},
 			wantErr: false,
-			want: &Request{
+			want: &requests.Request{
 				ID:          1,
 				Type:        "1",
 				UserID:      1,
@@ -77,8 +76,8 @@ func TestService_Get(t *testing.T) {
 				Images:      []string{"a"},
 				ImagesURL: []map[string]string{
 					{
-						"img":   fmt.Sprintf("cdnHost/%s%s", imgPathPrefix, "a"),
-						"thumb": fmt.Sprintf("cdnHost/%s%s", thumbPathPrefix, "a"),
+						"img":   fmt.Sprintf("cdnHost/%s%s", requests.ImgPathPrefix, "a"),
+						"thumb": fmt.Sprintf("cdnHost/%s%s", requests.ThumbPathPrefix, "a"),
 					},
 				},
 			},
@@ -87,7 +86,7 @@ func TestService_Get(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.repo, nil, "", "cdnHost")
+			s := requests.New(defaultLogger, tt.repo, nil, "", "cdnHost")
 			got, err := s.Get(context.Background(), tt.req)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Get() error = %v, wantErr %v", err, tt.wantErr)
@@ -103,18 +102,18 @@ func TestService_Get(t *testing.T) {
 func TestService_Update(t *testing.T) {
 	tests := []struct {
 		name    string
-		repo    requestsRepository
-		req     *UpdateRequest
+		repo    requests.RequestsRepository
+		req     *requests.UpdateRequest
 		wantErr bool
 	}{
 		{
 			name: "error no request",
-			repo: &requestsRepositoryMock{
-				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*Request, error) {
+			repo: &requests.RequestsRepositoryMock{
+				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*requests.Request, error) {
 					return nil, errTestError
 				},
 			},
-			req: &UpdateRequest{
+			req: &requests.UpdateRequest{
 				ID:     1,
 				UserID: 1,
 			},
@@ -122,20 +121,20 @@ func TestService_Update(t *testing.T) {
 		},
 		{
 			name: "error type not updated",
-			repo: &requestsRepositoryMock{
-				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*Request, error) {
-					return &Request{
+			repo: &requests.RequestsRepositoryMock{
+				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*requests.Request, error) {
+					return &requests.Request{
 						Type: "1",
 					}, nil
 				},
-				UpdateFunc: func(req *UpdateRequest) error {
+				UpdateFunc: func(req *requests.UpdateRequest) error {
 					if *req.Type != "2" {
 						return errTestError
 					}
 					return nil
 				},
 			},
-			req: &UpdateRequest{
+			req: &requests.UpdateRequest{
 				ID:     1,
 				UserID: 1,
 				Type:   func(s string) *string { return &s }("1"),
@@ -144,20 +143,20 @@ func TestService_Update(t *testing.T) {
 		},
 		{
 			name: "error description not updated",
-			repo: &requestsRepositoryMock{
-				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*Request, error) {
-					return &Request{
+			repo: &requests.RequestsRepositoryMock{
+				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*requests.Request, error) {
+					return &requests.Request{
 						Description: "1",
 					}, nil
 				},
-				UpdateFunc: func(req *UpdateRequest) error {
+				UpdateFunc: func(req *requests.UpdateRequest) error {
 					if *req.Description != "2" {
 						return errTestError
 					}
 					return nil
 				},
 			},
-			req: &UpdateRequest{
+			req: &requests.UpdateRequest{
 				ID:          1,
 				UserID:      1,
 				Description: func(s string) *string { return &s }("1"),
@@ -166,20 +165,20 @@ func TestService_Update(t *testing.T) {
 		},
 		{
 			name: "error status not updated",
-			repo: &requestsRepositoryMock{
-				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*Request, error) {
-					return &Request{
+			repo: &requests.RequestsRepositoryMock{
+				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*requests.Request, error) {
+					return &requests.Request{
 						Status: "1",
 					}, nil
 				},
-				UpdateFunc: func(req *UpdateRequest) error {
+				UpdateFunc: func(req *requests.UpdateRequest) error {
 					if *req.Status != "2" {
 						return errTestError
 					}
 					return nil
 				},
 			},
-			req: &UpdateRequest{
+			req: &requests.UpdateRequest{
 				ID:     1,
 				UserID: 1,
 				Status: func(s string) *string { return &s }("1"),
@@ -188,20 +187,20 @@ func TestService_Update(t *testing.T) {
 		},
 		{
 			name: "error time not updated",
-			repo: &requestsRepositoryMock{
-				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*Request, error) {
-					return &Request{
+			repo: &requests.RequestsRepositoryMock{
+				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*requests.Request, error) {
+					return &requests.Request{
 						Time: 1,
 					}, nil
 				},
-				UpdateFunc: func(req *UpdateRequest) error {
+				UpdateFunc: func(req *requests.UpdateRequest) error {
 					if *req.Time != 2 {
 						return errTestError
 					}
 					return nil
 				},
 			},
-			req: &UpdateRequest{
+			req: &requests.UpdateRequest{
 				ID:     1,
 				UserID: 1,
 				Time:   func(s int64) *int64 { return &s }(1),
@@ -210,17 +209,17 @@ func TestService_Update(t *testing.T) {
 		},
 		{
 			name: "ok",
-			repo: &requestsRepositoryMock{
-				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*Request, error) {
-					return &Request{
+			repo: &requests.RequestsRepositoryMock{
+				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*requests.Request, error) {
+					return &requests.Request{
 						Type: "1",
 					}, nil
 				},
-				UpdateFunc: func(req *UpdateRequest) error {
+				UpdateFunc: func(req *requests.UpdateRequest) error {
 					return nil
 				},
 			},
-			req: &UpdateRequest{
+			req: &requests.UpdateRequest{
 				ID:     1,
 				UserID: 1,
 			},
@@ -230,7 +229,7 @@ func TestService_Update(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.repo, nil, "", "")
+			s := requests.New(defaultLogger, tt.repo, nil, "", "")
 			err := s.Update(context.Background(), tt.req)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
@@ -243,19 +242,19 @@ func TestService_Update(t *testing.T) {
 func TestService_My(t *testing.T) {
 	tests := []struct {
 		name    string
-		repo    requestsRepository
-		req     *RequestListFilter
+		repo    requests.RequestsRepository
+		req     *requests.RequestListFilter
 		wantErr bool
-		want    []*Request
+		want    []*requests.Request
 	}{
 		{
 			name: "error from db",
-			repo: &requestsRepositoryMock{
-				ListByUserFunc: func(_ *RequestListFilter) ([]*Request, error) {
+			repo: &requests.RequestsRepositoryMock{
+				ListByUserFunc: func(_ *requests.RequestListFilter) ([]*requests.Request, error) {
 					return nil, errTestError
 				},
 			},
-			req: &RequestListFilter{
+			req: &requests.RequestListFilter{
 				UserID: 1,
 				Offset: 0,
 				Limit:  1,
@@ -264,9 +263,9 @@ func TestService_My(t *testing.T) {
 		},
 		{
 			name: "ok",
-			repo: &requestsRepositoryMock{
-				ListByUserFunc: func(_ *RequestListFilter) ([]*Request, error) {
-					return []*Request{
+			repo: &requests.RequestsRepositoryMock{
+				ListByUserFunc: func(_ *requests.RequestListFilter) ([]*requests.Request, error) {
+					return []*requests.Request{
 						{
 							ID:          1,
 							Type:        "1",
@@ -279,13 +278,13 @@ func TestService_My(t *testing.T) {
 					}, nil
 				},
 			},
-			req: &RequestListFilter{
+			req: &requests.RequestListFilter{
 				UserID: 1,
 				Offset: 0,
 				Limit:  1,
 			},
 			wantErr: false,
-			want: []*Request{
+			want: []*requests.Request{
 				{
 					ID:          1,
 					Type:        "1",
@@ -296,8 +295,8 @@ func TestService_My(t *testing.T) {
 					Images:      []string{"a"},
 					ImagesURL: []map[string]string{
 						{
-							"img":   fmt.Sprintf("cdnHost/%s%s", imgPathPrefix, "a"),
-							"thumb": fmt.Sprintf("cdnHost/%s%s", thumbPathPrefix, "a"),
+							"img":   fmt.Sprintf("cdnHost/%s%s", requests.ImgPathPrefix, "a"),
+							"thumb": fmt.Sprintf("cdnHost/%s%s", requests.ThumbPathPrefix, "a"),
 						},
 					},
 				},
@@ -307,7 +306,7 @@ func TestService_My(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.repo, nil, "", "cdnHost")
+			s := requests.New(defaultLogger, tt.repo, nil, "", "cdnHost")
 			got, err := s.My(context.Background(), tt.req)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("My() error = %v, wantErr %v", err, tt.wantErr)
@@ -323,20 +322,20 @@ func TestService_My(t *testing.T) {
 func TestService_Create(t *testing.T) {
 	tests := []struct {
 		name    string
-		repo    requestsRepository
-		req     *Request
+		repo    requests.RequestsRepository
+		req     *requests.Request
 		wantErr bool
-		want    *Request
+		want    *requests.Request
 	}{
 		{
 			name: "error req limit exceeded",
-			repo: &requestsRepositoryMock{
-				ListByUserFunc: func(r *RequestListFilter) ([]*Request, error) {
-					res := make([]*Request, 22)
+			repo: &requests.RequestsRepositoryMock{
+				ListByUserFunc: func(r *requests.RequestListFilter) ([]*requests.Request, error) {
+					res := make([]*requests.Request, 22)
 					return res, nil
 				},
 			},
-			req: &Request{
+			req: &requests.Request{
 				Type:        "",
 				Time:        0,
 				UserID:      0,
@@ -346,16 +345,16 @@ func TestService_Create(t *testing.T) {
 		},
 		{
 			name: "error from db",
-			repo: &requestsRepositoryMock{
-				ListByUserFunc: func(r *RequestListFilter) ([]*Request, error) {
-					res := make([]*Request, 1)
+			repo: &requests.RequestsRepositoryMock{
+				ListByUserFunc: func(r *requests.RequestListFilter) ([]*requests.Request, error) {
+					res := make([]*requests.Request, 1)
 					return res, nil
 				},
-				CreateFunc: func(_ *Request) error {
+				CreateFunc: func(_ *requests.Request) error {
 					return errTestError
 				},
 			},
-			req: &Request{
+			req: &requests.Request{
 				Type:        "",
 				Time:        0,
 				UserID:      0,
@@ -365,31 +364,31 @@ func TestService_Create(t *testing.T) {
 		},
 		{
 			name: "ok",
-			repo: &requestsRepositoryMock{
-				ListByUserFunc: func(r *RequestListFilter) ([]*Request, error) {
-					res := make([]*Request, 1)
+			repo: &requests.RequestsRepositoryMock{
+				ListByUserFunc: func(r *requests.RequestListFilter) ([]*requests.Request, error) {
+					res := make([]*requests.Request, 1)
 					return res, nil
 				},
-				CreateFunc: func(req *Request) error {
+				CreateFunc: func(req *requests.Request) error {
 					req.ID = 1
 					req.Status = "new"
 					return nil
 				},
 			},
-			req: &Request{
+			req: &requests.Request{
 				Type:        "",
 				Time:        0,
 				UserID:      0,
 				Description: "",
 			},
 			wantErr: false,
-			want:    &Request{ID: 1, Status: "new"},
+			want:    &requests.Request{ID: 1, Status: "new"},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.repo, nil, "", "")
+			s := requests.New(defaultLogger, tt.repo, nil, "", "")
 			got, err := s.Create(context.Background(), tt.req)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Create() error = %v, wantErr %v", err, tt.wantErr)
@@ -406,19 +405,19 @@ func TestService_Create(t *testing.T) {
 func TestService_Delete(t *testing.T) {
 	tests := []struct {
 		name    string
-		repo    requestsRepository
-		s3cli   s3Client
-		req     *Request
+		repo    requests.RequestsRepository
+		s3cli   requests.S3Client
+		req     *requests.Request
 		wantErr bool
 	}{
 		{
 			name: "error finding request",
-			repo: &requestsRepositoryMock{
-				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*Request, error) {
+			repo: &requests.RequestsRepositoryMock{
+				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*requests.Request, error) {
 					return nil, errTestError
 				},
 			},
-			req: &Request{
+			req: &requests.Request{
 				UserID: 1,
 				ID:     1,
 			},
@@ -426,15 +425,15 @@ func TestService_Delete(t *testing.T) {
 		},
 		{
 			name: "error deleting request",
-			repo: &requestsRepositoryMock{
-				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*Request, error) {
-					return &Request{ID: 1}, nil
+			repo: &requests.RequestsRepositoryMock{
+				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*requests.Request, error) {
+					return &requests.Request{ID: 1}, nil
 				},
 				DeleteFunc: func(_ uint, _ uint) error {
 					return errTestError
 				},
 			},
-			req: &Request{
+			req: &requests.Request{
 				UserID: 1,
 				ID:     1,
 			},
@@ -442,15 +441,15 @@ func TestService_Delete(t *testing.T) {
 		},
 		{
 			name: "ok w/o images",
-			repo: &requestsRepositoryMock{
-				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*Request, error) {
-					return &Request{ID: 1}, nil
+			repo: &requests.RequestsRepositoryMock{
+				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*requests.Request, error) {
+					return &requests.Request{ID: 1}, nil
 				},
 				DeleteFunc: func(_ uint, _ uint) error {
 					return nil
 				},
 			},
-			req: &Request{
+			req: &requests.Request{
 				UserID: 1,
 				ID:     1,
 			},
@@ -458,19 +457,19 @@ func TestService_Delete(t *testing.T) {
 		},
 		{
 			name: "error deleting with files",
-			repo: &requestsRepositoryMock{
-				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*Request, error) {
-					return &Request{ID: 1, Images: []string{"a"}}, nil
+			repo: &requests.RequestsRepositoryMock{
+				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*requests.Request, error) {
+					return &requests.Request{ID: 1, Images: []string{"a"}}, nil
 				},
 				DeleteFunc: func(_ uint, _ uint) error {
 					return errTestError
 				},
 			},
-			req: &Request{
+			req: &requests.Request{
 				UserID: 1,
 				ID:     1,
 			},
-			s3cli: &s3ClientMock{
+			s3cli: &requests.S3ClientMock{
 				DeleteObjectFunc: func(input *s3.DeleteObjectInput) (*s3.DeleteObjectOutput, error) {
 					return nil, nil
 				},
@@ -479,19 +478,19 @@ func TestService_Delete(t *testing.T) {
 		},
 		{
 			name: "ok with files",
-			repo: &requestsRepositoryMock{
-				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*Request, error) {
-					return &Request{ID: 1, Images: []string{"a"}}, nil
+			repo: &requests.RequestsRepositoryMock{
+				GetRequestByIDAndUserFunc: func(_ uint, _ uint) (*requests.Request, error) {
+					return &requests.Request{ID: 1, Images: []string{"a"}}, nil
 				},
 				DeleteFunc: func(_ uint, _ uint) error {
 					return nil
 				},
 			},
-			req: &Request{
+			req: &requests.Request{
 				UserID: 1,
 				ID:     1,
 			},
-			s3cli: &s3ClientMock{
+			s3cli: &requests.S3ClientMock{
 				DeleteObjectFunc: func(input *s3.DeleteObjectInput) (*s3.DeleteObjectOutput, error) {
 					return nil, nil
 				},
@@ -502,7 +501,7 @@ func TestService_Delete(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.repo, tt.s3cli, "", "")
+			s := requests.New(defaultLogger, tt.repo, tt.s3cli, "", "")
 			err := s.Delete(context.Background(), tt.req)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Delete() error = %v, wantErr %v", err, tt.wantErr)

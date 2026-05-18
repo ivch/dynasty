@@ -60,15 +60,15 @@ func main() {
 
 	log := logger.NewStdLog(logger.WithLevel(lvl))
 	db, err := gorm.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		cfg.DB.Host, cfg.DB.Port, cfg.DB.User, cfg.DB.Password, cfg.DB.Database, cfg.DB.SSL))
+		cfg.DB.Host, cfg.DB.Port, cfg.User, cfg.Password, cfg.Database, cfg.SSL))
 	if err != nil {
 		stdLog.Fatalf("cannot connect to db: %s", err.Error())
 	}
 
 	s3Config := &aws.Config{
-		Credentials: credentials.NewStaticCredentials(cfg.S3.Key, cfg.S3.Secret, ""),
-		Endpoint:    aws.String(cfg.S3.Endpoint),
-		Region:      aws.String(cfg.S3.Region),
+		Credentials: credentials.NewStaticCredentials(cfg.Key, cfg.Secret, ""),
+		Endpoint:    aws.String(cfg.Endpoint),
+		Region:      aws.String(cfg.Region),
 	}
 
 	newSession, err := session.NewSession(s3Config)
@@ -78,20 +78,20 @@ func main() {
 	s3Client := s3.New(newSession)
 	p := bluemonday.StrictPolicy()
 
-	mailSender := email.New(cfg.TplPath, cfg.SMTP.Host, cfg.SMTP.Port, cfg.SMTP.Pass, cfg.SMTP.From)
+	mailSender := email.New(cfg.TplPath, cfg.SMTP.Host, cfg.SMTP.Port, cfg.Pass, cfg.From)
 
 	healthChecker := health.NewMultiChecker()
 	healthTransport := health.NewHTTPTransport(healthChecker)
 
-	userService := svcUsers.New(log, repoUsers.New(db), cfg.UserService.VerifyRegCode, cfg.UserService.MembersLimit, mailSender)
+	userService := svcUsers.New(log, repoUsers.New(db), cfg.VerifyRegCode, cfg.MembersLimit, mailSender)
 	usersTransport := transportUsers.NewHTTPTransport(log, userService, p)
-	authService := svcAuth.New(log, repoAuth.New(db), clientUsers.New(userService), cfg.AuthService.JWTSecret)
+	authService := svcAuth.New(log, repoAuth.New(db), clientUsers.New(userService), cfg.JWTSecret)
 	authTransport := transportAuth.NewHTTPTransport(log, authService)
 	dictService := svcDict.New(log, repoDict.New(db))
 	dictTransport := transportDict.NewHTTPTransport(log, dictService)
-	reqsSvc := svcReqs.New(log, repoReqs.New(db), s3Client, cfg.RequestService.S3SpaceName, cfg.RequestService.CDNHost)
+	reqsSvc := svcReqs.New(log, repoReqs.New(db), s3Client, cfg.S3SpaceName, cfg.CDNHost)
 	reqsTransport := transportReqs.NewHTTPTransport(log, reqsSvc, p)
-	uiTransport := transportUI.NewHTTPHandler(cfg.GuardUI.APIHost, cfg.GuardUI.PageURI, cfg.GuardUI.PagerLimit)
+	uiTransport := transportUI.NewHTTPHandler(cfg.APIHost, cfg.PageURI, cfg.PagerLimit)
 
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
@@ -103,7 +103,7 @@ func main() {
 	}()
 
 	srv, err := server.New(
-		fmt.Sprintf(":%s", cfg.HTTPPort),
+		":"+cfg.HTTPPort,
 		log,
 		map[string]http.Handler{
 			"/health":     healthTransport,
@@ -114,7 +114,7 @@ func main() {
 			"/ui":         uiTransport,
 		})
 	if err != nil {
-		stdLog.Fatal(fmt.Errorf("failed to create server: %w \n", err))
+		stdLog.Fatal(fmt.Errorf("failed to create server: %w", err))
 	}
 
 	log.Info("server started to listen on :%s", cfg.HTTPPort)

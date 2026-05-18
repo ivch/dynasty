@@ -100,7 +100,7 @@ func (r *Requests) UpdateForGuard(id uint, status string) error {
 		if err := r.updateRequestHistory(tx, id, &requests.HistoryRecord{
 			Time:   time.Now(),
 			UserID: 0,
-			Action: fmt.Sprintf("guard changed status: %s", status),
+			Action: "guard changed status: " + status,
 		}); err != nil {
 			return err
 		}
@@ -158,7 +158,7 @@ func (r *Requests) AddImage(userID, requestID uint, filename string) error {
 		if err := r.updateRequestHistory(tx, requestID, &requests.HistoryRecord{
 			Time:   time.Now(),
 			UserID: userID,
-			Action: fmt.Sprintf("uploaded image: %s", filename),
+			Action: "uploaded image: %s" + filename,
 		}); err != nil {
 			return err
 		}
@@ -173,7 +173,7 @@ func (r *Requests) DeleteImage(userID, requestID uint, filename string) error {
 		if err := r.updateRequestHistory(tx, requestID, &requests.HistoryRecord{
 			Time:   time.Now(),
 			UserID: userID,
-			Action: fmt.Sprintf("deleted image: %s", filename),
+			Action: "deleted image: %s" + filename,
 		}); err != nil {
 			return err
 		}

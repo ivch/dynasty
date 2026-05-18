@@ -1,14 +1,15 @@
-package dictionaries
+package dictionaries_test
 
 import (
 	"context"
 	"errors"
-	"io/ioutil"
+	"io"
 	"os"
 	"reflect"
 	"testing"
 
 	"github.com/ivch/dynasty/common/logger"
+	"github.com/ivch/dynasty/server/handlers/dictionaries"
 )
 
 var (
@@ -17,22 +18,22 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	defaultLogger = logger.NewStdLog(logger.WithWriter(ioutil.Discard))
+	defaultLogger = logger.NewStdLog(logger.WithWriter(io.Discard))
 	os.Exit(m.Run())
 }
 
 func TestService_EntriesList(t *testing.T) {
 	tests := []struct {
 		name    string
-		repo    dictRepository
+		repo    dictionaries.DictRepository
 		req     uint
 		wantErr bool
-		want    []*Entry
+		want    []*dictionaries.Entry
 	}{
 		{
 			name: "error from repo",
-			repo: &dictRepositoryMock{
-				EntriesByBuildingFunc: func(_ uint) ([]*Entry, error) {
+			repo: &dictionaries.DictRepositoryMock{
+				EntriesByBuildingFunc: func(_ uint) ([]*dictionaries.Entry, error) {
 					return nil, errTestError
 				},
 			},
@@ -40,9 +41,9 @@ func TestService_EntriesList(t *testing.T) {
 		},
 		{
 			name: "ok",
-			repo: &dictRepositoryMock{
-				EntriesByBuildingFunc: func(id uint) ([]*Entry, error) {
-					return []*Entry{
+			repo: &dictionaries.DictRepositoryMock{
+				EntriesByBuildingFunc: func(id uint) ([]*dictionaries.Entry, error) {
+					return []*dictionaries.Entry{
 						{
 							ID:   1,
 							Name: "1",
@@ -52,7 +53,7 @@ func TestService_EntriesList(t *testing.T) {
 			},
 			req:     10,
 			wantErr: false,
-			want: []*Entry{
+			want: []*dictionaries.Entry{
 				{
 					ID:   1,
 					Name: "1",
@@ -63,7 +64,7 @@ func TestService_EntriesList(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.repo)
+			s := dictionaries.New(defaultLogger, tt.repo)
 			got, err := s.EntriesList(context.Background(), tt.req)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("EntriesList() error = %v, wantErr %v", err, tt.wantErr)
@@ -79,14 +80,14 @@ func TestService_EntriesList(t *testing.T) {
 func TestService_BuildingsList(t *testing.T) {
 	tests := []struct {
 		name    string
-		repo    dictRepository
+		repo    dictionaries.DictRepository
 		wantErr bool
-		want    []*Building
+		want    []*dictionaries.Building
 	}{
 		{
 			name: "error from repo",
-			repo: &dictRepositoryMock{
-				BuildingsListFunc: func() ([]*Building, error) {
+			repo: &dictionaries.DictRepositoryMock{
+				BuildingsListFunc: func() ([]*dictionaries.Building, error) {
 					return nil, errTestError
 				},
 			},
@@ -94,9 +95,9 @@ func TestService_BuildingsList(t *testing.T) {
 		},
 		{
 			name: "ok",
-			repo: &dictRepositoryMock{
-				BuildingsListFunc: func() ([]*Building, error) {
-					return []*Building{
+			repo: &dictionaries.DictRepositoryMock{
+				BuildingsListFunc: func() ([]*dictionaries.Building, error) {
+					return []*dictionaries.Building{
 						{
 							ID:      1,
 							Name:    "1",
@@ -106,7 +107,7 @@ func TestService_BuildingsList(t *testing.T) {
 				},
 			},
 			wantErr: false,
-			want: []*Building{
+			want: []*dictionaries.Building{
 				{
 					ID:      1,
 					Name:    "1",
@@ -118,7 +119,7 @@ func TestService_BuildingsList(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.repo)
+			s := dictionaries.New(defaultLogger, tt.repo)
 			got, err := s.BuildingsList(context.Background())
 			if (err != nil) != tt.wantErr {
 				t.Errorf("BuildingsList() error = %v, wantErr %v", err, tt.wantErr)

@@ -8,16 +8,16 @@ import (
 	"sync"
 )
 
-// Ensure, that requestsRepositoryMock does implement requestsRepository.
+// Ensure, that RequestsRepositoryMock does implement RequestsRepository.
 // If this is not the case, regenerate this file with moq.
-var _ requestsRepository = &requestsRepositoryMock{}
+var _ RequestsRepository = &RequestsRepositoryMock{}
 
-// requestsRepositoryMock is a mock implementation of requestsRepository.
+// RequestsRepositoryMock is a mock implementation of RequestsRepository.
 //
-//	func TestSomethingThatUsesrequestsRepository(t *testing.T) {
+//	func TestSomethingThatUsesRequestsRepository(t *testing.T) {
 //
-//		// make and configure a mocked requestsRepository
-//		mockedrequestsRepository := &requestsRepositoryMock{
+//		// make and configure a mocked RequestsRepository
+//		mockedRequestsRepository := &RequestsRepositoryMock{
 //			AddImageFunc: func(userID uint, requestID uint, filename string) error {
 //				panic("mock out the AddImage method")
 //			},
@@ -53,11 +53,11 @@ var _ requestsRepository = &requestsRepositoryMock{}
 //			},
 //		}
 //
-//		// use mockedrequestsRepository in code that requires requestsRepository
+//		// use mockedRequestsRepository in code that requires RequestsRepository
 //		// and then make assertions.
 //
 //	}
-type requestsRepositoryMock struct {
+type RequestsRepositoryMock struct {
 	// AddImageFunc mocks the AddImage method.
 	AddImageFunc func(userID uint, requestID uint, filename string) error
 
@@ -175,9 +175,9 @@ type requestsRepositoryMock struct {
 }
 
 // AddImage calls AddImageFunc.
-func (mock *requestsRepositoryMock) AddImage(userID uint, requestID uint, filename string) error {
+func (mock *RequestsRepositoryMock) AddImage(userID uint, requestID uint, filename string) error {
 	if mock.AddImageFunc == nil {
-		panic("requestsRepositoryMock.AddImageFunc: method is nil but requestsRepository.AddImage was just called")
+		panic("RequestsRepositoryMock.AddImageFunc: method is nil but RequestsRepository.AddImage was just called")
 	}
 	callInfo := struct {
 		UserID    uint
@@ -197,8 +197,8 @@ func (mock *requestsRepositoryMock) AddImage(userID uint, requestID uint, filena
 // AddImageCalls gets all the calls that were made to AddImage.
 // Check the length with:
 //
-//	len(mockedrequestsRepository.AddImageCalls())
-func (mock *requestsRepositoryMock) AddImageCalls() []struct {
+//	len(mockedRequestsRepository.AddImageCalls())
+func (mock *RequestsRepositoryMock) AddImageCalls() []struct {
 	UserID    uint
 	RequestID uint
 	Filename  string
@@ -215,9 +215,9 @@ func (mock *requestsRepositoryMock) AddImageCalls() []struct {
 }
 
 // CountForGuard calls CountForGuardFunc.
-func (mock *requestsRepositoryMock) CountForGuard(req *RequestListFilter) (int, error) {
+func (mock *RequestsRepositoryMock) CountForGuard(req *RequestListFilter) (int, error) {
 	if mock.CountForGuardFunc == nil {
-		panic("requestsRepositoryMock.CountForGuardFunc: method is nil but requestsRepository.CountForGuard was just called")
+		panic("RequestsRepositoryMock.CountForGuardFunc: method is nil but RequestsRepository.CountForGuard was just called")
 	}
 	callInfo := struct {
 		Req *RequestListFilter
@@ -233,8 +233,8 @@ func (mock *requestsRepositoryMock) CountForGuard(req *RequestListFilter) (int, 
 // CountForGuardCalls gets all the calls that were made to CountForGuard.
 // Check the length with:
 //
-//	len(mockedrequestsRepository.CountForGuardCalls())
-func (mock *requestsRepositoryMock) CountForGuardCalls() []struct {
+//	len(mockedRequestsRepository.CountForGuardCalls())
+func (mock *RequestsRepositoryMock) CountForGuardCalls() []struct {
 	Req *RequestListFilter
 } {
 	var calls []struct {
@@ -247,9 +247,9 @@ func (mock *requestsRepositoryMock) CountForGuardCalls() []struct {
 }
 
 // Create calls CreateFunc.
-func (mock *requestsRepositoryMock) Create(req *Request) error {
+func (mock *RequestsRepositoryMock) Create(req *Request) error {
 	if mock.CreateFunc == nil {
-		panic("requestsRepositoryMock.CreateFunc: method is nil but requestsRepository.Create was just called")
+		panic("RequestsRepositoryMock.CreateFunc: method is nil but RequestsRepository.Create was just called")
 	}
 	callInfo := struct {
 		Req *Request
@@ -265,8 +265,8 @@ func (mock *requestsRepositoryMock) Create(req *Request) error {
 // CreateCalls gets all the calls that were made to Create.
 // Check the length with:
 //
-//	len(mockedrequestsRepository.CreateCalls())
-func (mock *requestsRepositoryMock) CreateCalls() []struct {
+//	len(mockedRequestsRepository.CreateCalls())
+func (mock *RequestsRepositoryMock) CreateCalls() []struct {
 	Req *Request
 } {
 	var calls []struct {
@@ -279,9 +279,9 @@ func (mock *requestsRepositoryMock) CreateCalls() []struct {
 }
 
 // Delete calls DeleteFunc.
-func (mock *requestsRepositoryMock) Delete(id uint, userID uint) error {
+func (mock *RequestsRepositoryMock) Delete(id uint, userID uint) error {
 	if mock.DeleteFunc == nil {
-		panic("requestsRepositoryMock.DeleteFunc: method is nil but requestsRepository.Delete was just called")
+		panic("RequestsRepositoryMock.DeleteFunc: method is nil but RequestsRepository.Delete was just called")
 	}
 	callInfo := struct {
 		ID     uint
@@ -299,8 +299,8 @@ func (mock *requestsRepositoryMock) Delete(id uint, userID uint) error {
 // DeleteCalls gets all the calls that were made to Delete.
 // Check the length with:
 //
-//	len(mockedrequestsRepository.DeleteCalls())
-func (mock *requestsRepositoryMock) DeleteCalls() []struct {
+//	len(mockedRequestsRepository.DeleteCalls())
+func (mock *RequestsRepositoryMock) DeleteCalls() []struct {
 	ID     uint
 	UserID uint
 } {
@@ -315,9 +315,9 @@ func (mock *requestsRepositoryMock) DeleteCalls() []struct {
 }
 
 // DeleteImage calls DeleteImageFunc.
-func (mock *requestsRepositoryMock) DeleteImage(userID uint, requestID uint, filename string) error {
+func (mock *RequestsRepositoryMock) DeleteImage(userID uint, requestID uint, filename string) error {
 	if mock.DeleteImageFunc == nil {
-		panic("requestsRepositoryMock.DeleteImageFunc: method is nil but requestsRepository.DeleteImage was just called")
+		panic("RequestsRepositoryMock.DeleteImageFunc: method is nil but RequestsRepository.DeleteImage was just called")
 	}
 	callInfo := struct {
 		UserID    uint
@@ -337,8 +337,8 @@ func (mock *requestsRepositoryMock) DeleteImage(userID uint, requestID uint, fil
 // DeleteImageCalls gets all the calls that were made to DeleteImage.
 // Check the length with:
 //
-//	len(mockedrequestsRepository.DeleteImageCalls())
-func (mock *requestsRepositoryMock) DeleteImageCalls() []struct {
+//	len(mockedRequestsRepository.DeleteImageCalls())
+func (mock *RequestsRepositoryMock) DeleteImageCalls() []struct {
 	UserID    uint
 	RequestID uint
 	Filename  string
@@ -355,9 +355,9 @@ func (mock *requestsRepositoryMock) DeleteImageCalls() []struct {
 }
 
 // GetRequestByIDAndUser calls GetRequestByIDAndUserFunc.
-func (mock *requestsRepositoryMock) GetRequestByIDAndUser(id uint, userID uint) (*Request, error) {
+func (mock *RequestsRepositoryMock) GetRequestByIDAndUser(id uint, userID uint) (*Request, error) {
 	if mock.GetRequestByIDAndUserFunc == nil {
-		panic("requestsRepositoryMock.GetRequestByIDAndUserFunc: method is nil but requestsRepository.GetRequestByIDAndUser was just called")
+		panic("RequestsRepositoryMock.GetRequestByIDAndUserFunc: method is nil but RequestsRepository.GetRequestByIDAndUser was just called")
 	}
 	callInfo := struct {
 		ID     uint
@@ -375,8 +375,8 @@ func (mock *requestsRepositoryMock) GetRequestByIDAndUser(id uint, userID uint) 
 // GetRequestByIDAndUserCalls gets all the calls that were made to GetRequestByIDAndUser.
 // Check the length with:
 //
-//	len(mockedrequestsRepository.GetRequestByIDAndUserCalls())
-func (mock *requestsRepositoryMock) GetRequestByIDAndUserCalls() []struct {
+//	len(mockedRequestsRepository.GetRequestByIDAndUserCalls())
+func (mock *RequestsRepositoryMock) GetRequestByIDAndUserCalls() []struct {
 	ID     uint
 	UserID uint
 } {
@@ -391,9 +391,9 @@ func (mock *requestsRepositoryMock) GetRequestByIDAndUserCalls() []struct {
 }
 
 // GetStats24h calls GetStats24hFunc.
-func (mock *requestsRepositoryMock) GetStats24h() (int, int, int, error) {
+func (mock *RequestsRepositoryMock) GetStats24h() (int, int, int, error) {
 	if mock.GetStats24hFunc == nil {
-		panic("requestsRepositoryMock.GetStats24hFunc: method is nil but requestsRepository.GetStats24h was just called")
+		panic("RequestsRepositoryMock.GetStats24hFunc: method is nil but RequestsRepository.GetStats24h was just called")
 	}
 	callInfo := struct {
 	}{}
@@ -406,8 +406,8 @@ func (mock *requestsRepositoryMock) GetStats24h() (int, int, int, error) {
 // GetStats24hCalls gets all the calls that were made to GetStats24h.
 // Check the length with:
 //
-//	len(mockedrequestsRepository.GetStats24hCalls())
-func (mock *requestsRepositoryMock) GetStats24hCalls() []struct {
+//	len(mockedRequestsRepository.GetStats24hCalls())
+func (mock *RequestsRepositoryMock) GetStats24hCalls() []struct {
 } {
 	var calls []struct {
 	}
@@ -418,9 +418,9 @@ func (mock *requestsRepositoryMock) GetStats24hCalls() []struct {
 }
 
 // ListByUser calls ListByUserFunc.
-func (mock *requestsRepositoryMock) ListByUser(r *RequestListFilter) ([]*Request, error) {
+func (mock *RequestsRepositoryMock) ListByUser(r *RequestListFilter) ([]*Request, error) {
 	if mock.ListByUserFunc == nil {
-		panic("requestsRepositoryMock.ListByUserFunc: method is nil but requestsRepository.ListByUser was just called")
+		panic("RequestsRepositoryMock.ListByUserFunc: method is nil but RequestsRepository.ListByUser was just called")
 	}
 	callInfo := struct {
 		R *RequestListFilter
@@ -436,8 +436,8 @@ func (mock *requestsRepositoryMock) ListByUser(r *RequestListFilter) ([]*Request
 // ListByUserCalls gets all the calls that were made to ListByUser.
 // Check the length with:
 //
-//	len(mockedrequestsRepository.ListByUserCalls())
-func (mock *requestsRepositoryMock) ListByUserCalls() []struct {
+//	len(mockedRequestsRepository.ListByUserCalls())
+func (mock *RequestsRepositoryMock) ListByUserCalls() []struct {
 	R *RequestListFilter
 } {
 	var calls []struct {
@@ -450,9 +450,9 @@ func (mock *requestsRepositoryMock) ListByUserCalls() []struct {
 }
 
 // ListForGuard calls ListForGuardFunc.
-func (mock *requestsRepositoryMock) ListForGuard(req *RequestListFilter) ([]*Request, error) {
+func (mock *RequestsRepositoryMock) ListForGuard(req *RequestListFilter) ([]*Request, error) {
 	if mock.ListForGuardFunc == nil {
-		panic("requestsRepositoryMock.ListForGuardFunc: method is nil but requestsRepository.ListForGuard was just called")
+		panic("RequestsRepositoryMock.ListForGuardFunc: method is nil but RequestsRepository.ListForGuard was just called")
 	}
 	callInfo := struct {
 		Req *RequestListFilter
@@ -468,8 +468,8 @@ func (mock *requestsRepositoryMock) ListForGuard(req *RequestListFilter) ([]*Req
 // ListForGuardCalls gets all the calls that were made to ListForGuard.
 // Check the length with:
 //
-//	len(mockedrequestsRepository.ListForGuardCalls())
-func (mock *requestsRepositoryMock) ListForGuardCalls() []struct {
+//	len(mockedRequestsRepository.ListForGuardCalls())
+func (mock *RequestsRepositoryMock) ListForGuardCalls() []struct {
 	Req *RequestListFilter
 } {
 	var calls []struct {
@@ -482,9 +482,9 @@ func (mock *requestsRepositoryMock) ListForGuardCalls() []struct {
 }
 
 // Update calls UpdateFunc.
-func (mock *requestsRepositoryMock) Update(update *UpdateRequest) error {
+func (mock *RequestsRepositoryMock) Update(update *UpdateRequest) error {
 	if mock.UpdateFunc == nil {
-		panic("requestsRepositoryMock.UpdateFunc: method is nil but requestsRepository.Update was just called")
+		panic("RequestsRepositoryMock.UpdateFunc: method is nil but RequestsRepository.Update was just called")
 	}
 	callInfo := struct {
 		Update *UpdateRequest
@@ -500,8 +500,8 @@ func (mock *requestsRepositoryMock) Update(update *UpdateRequest) error {
 // UpdateCalls gets all the calls that were made to Update.
 // Check the length with:
 //
-//	len(mockedrequestsRepository.UpdateCalls())
-func (mock *requestsRepositoryMock) UpdateCalls() []struct {
+//	len(mockedRequestsRepository.UpdateCalls())
+func (mock *RequestsRepositoryMock) UpdateCalls() []struct {
 	Update *UpdateRequest
 } {
 	var calls []struct {
@@ -514,9 +514,9 @@ func (mock *requestsRepositoryMock) UpdateCalls() []struct {
 }
 
 // UpdateForGuard calls UpdateForGuardFunc.
-func (mock *requestsRepositoryMock) UpdateForGuard(id uint, status string) error {
+func (mock *RequestsRepositoryMock) UpdateForGuard(id uint, status string) error {
 	if mock.UpdateForGuardFunc == nil {
-		panic("requestsRepositoryMock.UpdateForGuardFunc: method is nil but requestsRepository.UpdateForGuard was just called")
+		panic("RequestsRepositoryMock.UpdateForGuardFunc: method is nil but RequestsRepository.UpdateForGuard was just called")
 	}
 	callInfo := struct {
 		ID     uint
@@ -534,8 +534,8 @@ func (mock *requestsRepositoryMock) UpdateForGuard(id uint, status string) error
 // UpdateForGuardCalls gets all the calls that were made to UpdateForGuard.
 // Check the length with:
 //
-//	len(mockedrequestsRepository.UpdateForGuardCalls())
-func (mock *requestsRepositoryMock) UpdateForGuardCalls() []struct {
+//	len(mockedRequestsRepository.UpdateForGuardCalls())
+func (mock *RequestsRepositoryMock) UpdateForGuardCalls() []struct {
 	ID     uint
 	Status string
 } {
@@ -549,16 +549,16 @@ func (mock *requestsRepositoryMock) UpdateForGuardCalls() []struct {
 	return calls
 }
 
-// Ensure, that s3ClientMock does implement s3Client.
+// Ensure, that S3ClientMock does implement S3Client.
 // If this is not the case, regenerate this file with moq.
-var _ s3Client = &s3ClientMock{}
+var _ S3Client = &S3ClientMock{}
 
-// s3ClientMock is a mock implementation of s3Client.
+// S3ClientMock is a mock implementation of S3Client.
 //
-//	func TestSomethingThatUsess3Client(t *testing.T) {
+//	func TestSomethingThatUsesS3Client(t *testing.T) {
 //
-//		// make and configure a mocked s3Client
-//		mockeds3Client := &s3ClientMock{
+//		// make and configure a mocked S3Client
+//		mockedS3Client := &S3ClientMock{
 //			DeleteObjectFunc: func(input *s3.DeleteObjectInput) (*s3.DeleteObjectOutput, error) {
 //				panic("mock out the DeleteObject method")
 //			},
@@ -567,11 +567,11 @@ var _ s3Client = &s3ClientMock{}
 //			},
 //		}
 //
-//		// use mockeds3Client in code that requires s3Client
+//		// use mockedS3Client in code that requires S3Client
 //		// and then make assertions.
 //
 //	}
-type s3ClientMock struct {
+type S3ClientMock struct {
 	// DeleteObjectFunc mocks the DeleteObject method.
 	DeleteObjectFunc func(input *s3.DeleteObjectInput) (*s3.DeleteObjectOutput, error)
 
@@ -596,9 +596,9 @@ type s3ClientMock struct {
 }
 
 // DeleteObject calls DeleteObjectFunc.
-func (mock *s3ClientMock) DeleteObject(input *s3.DeleteObjectInput) (*s3.DeleteObjectOutput, error) {
+func (mock *S3ClientMock) DeleteObject(input *s3.DeleteObjectInput) (*s3.DeleteObjectOutput, error) {
 	if mock.DeleteObjectFunc == nil {
-		panic("s3ClientMock.DeleteObjectFunc: method is nil but s3Client.DeleteObject was just called")
+		panic("S3ClientMock.DeleteObjectFunc: method is nil but S3Client.DeleteObject was just called")
 	}
 	callInfo := struct {
 		Input *s3.DeleteObjectInput
@@ -614,8 +614,8 @@ func (mock *s3ClientMock) DeleteObject(input *s3.DeleteObjectInput) (*s3.DeleteO
 // DeleteObjectCalls gets all the calls that were made to DeleteObject.
 // Check the length with:
 //
-//	len(mockeds3Client.DeleteObjectCalls())
-func (mock *s3ClientMock) DeleteObjectCalls() []struct {
+//	len(mockedS3Client.DeleteObjectCalls())
+func (mock *S3ClientMock) DeleteObjectCalls() []struct {
 	Input *s3.DeleteObjectInput
 } {
 	var calls []struct {
@@ -628,9 +628,9 @@ func (mock *s3ClientMock) DeleteObjectCalls() []struct {
 }
 
 // PutObject calls PutObjectFunc.
-func (mock *s3ClientMock) PutObject(input *s3.PutObjectInput) (*s3.PutObjectOutput, error) {
+func (mock *S3ClientMock) PutObject(input *s3.PutObjectInput) (*s3.PutObjectOutput, error) {
 	if mock.PutObjectFunc == nil {
-		panic("s3ClientMock.PutObjectFunc: method is nil but s3Client.PutObject was just called")
+		panic("S3ClientMock.PutObjectFunc: method is nil but S3Client.PutObject was just called")
 	}
 	callInfo := struct {
 		Input *s3.PutObjectInput
@@ -646,8 +646,8 @@ func (mock *s3ClientMock) PutObject(input *s3.PutObjectInput) (*s3.PutObjectOutp
 // PutObjectCalls gets all the calls that were made to PutObject.
 // Check the length with:
 //
-//	len(mockeds3Client.PutObjectCalls())
-func (mock *s3ClientMock) PutObjectCalls() []struct {
+//	len(mockedS3Client.PutObjectCalls())
+func (mock *S3ClientMock) PutObjectCalls() []struct {
 	Input *s3.PutObjectInput
 } {
 	var calls []struct {

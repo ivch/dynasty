@@ -49,15 +49,15 @@ cover:
 .PHONY: gen
 gen:
 	go install github.com/matryer/moq@latest
-	${GOPATH}/bin/moq -out server/handlers/users/mock_test.go server/handlers/users userRepository mailSender
+	${GOPATH}/bin/moq -out server/handlers/users/mock_test.go server/handlers/users UserRepository MailSender
 	${GOPATH}/bin/moq -out server/handlers/users/transport/mock_test.go server/handlers/users/transport UsersService
-	${GOPATH}/bin/moq -out common/clients/users/mock_test.go common/clients/users userService
+	${GOPATH}/bin/moq -out common/clients/users/mock_test.go common/clients/users UserService
 	${GOPATH}/bin/moq -out server/handlers/auth/transport/mock_test.go server/handlers/auth/transport AuthService
-	${GOPATH}/bin/moq -out server/handlers/auth/mock_test.go server/handlers/auth userService authRepository
-	${GOPATH}/bin/moq -out server/handlers/dictionaries/mock_test.go server/handlers/dictionaries dictRepository
+	${GOPATH}/bin/moq -out server/handlers/auth/mock_test.go server/handlers/auth UserService Repository
+	${GOPATH}/bin/moq -out server/handlers/dictionaries/mock_test.go server/handlers/dictionaries DictRepository
 	${GOPATH}/bin/moq -out server/handlers/dictionaries/transport/mock_test.go server/handlers/dictionaries/transport DictionaryService
 	${GOPATH}/bin/moq -out server/handlers/requests/transport/mock_test.go server/handlers/requests/transport RequestsService
-	${GOPATH}/bin/moq -out server/handlers/requests/mock_test.go server/handlers/requests requestsRepository s3Client
+	${GOPATH}/bin/moq -out server/handlers/requests/mock_test.go server/handlers/requests RequestsRepository S3Client
 
 .PHONY: tag
 tag:

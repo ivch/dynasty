@@ -41,7 +41,7 @@ func (s *Service) AddFamilyMember(_ context.Context, r *User) (*User, error) {
 		Phone:      r.Phone,
 		Building:   owner.Building,
 		Apartment:  owner.Apartment,
-		Role:       defaultUserRole,
+		Role:       DefaultUserRole,
 		BuildingID: owner.BuildingID,
 		EntryID:    owner.EntryID,
 		RegCode:    regCode,
@@ -101,7 +101,7 @@ func (s *Service) registerFamilyMember(_ context.Context, request *User, member 
 		return nil, errs.FamilyMemberWrongAddress
 	}
 
-	pwd, err := hashAndSalt(request.Password)
+	pwd, err := HashAndSalt(request.Password)
 	if err != nil {
 		s.log.Error("error hashing password: %w", err)
 		return nil, err

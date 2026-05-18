@@ -7,16 +7,16 @@ import (
 	"sync"
 )
 
-// Ensure, that userRepositoryMock does implement userRepository.
+// Ensure, that UserRepositoryMock does implement UserRepository.
 // If this is not the case, regenerate this file with moq.
-var _ userRepository = &userRepositoryMock{}
+var _ UserRepository = &UserRepositoryMock{}
 
-// userRepositoryMock is a mock implementation of userRepository.
+// UserRepositoryMock is a mock implementation of UserRepository.
 //
-//	func TestSomethingThatUsesuserRepository(t *testing.T) {
+//	func TestSomethingThatUsesUserRepository(t *testing.T) {
 //
-//		// make and configure a mocked userRepository
-//		mockeduserRepository := &userRepositoryMock{
+//		// make and configure a mocked UserRepository
+//		mockedUserRepository := &UserRepositoryMock{
 //			CountRecoveryCodesByUserIn24hFunc: func(userID uint) (int, error) {
 //				panic("mock out the CountRecoveryCodesByUserIn24h method")
 //			},
@@ -64,11 +64,11 @@ var _ userRepository = &userRepositoryMock{}
 //			},
 //		}
 //
-//		// use mockeduserRepository in code that requires userRepository
+//		// use mockedUserRepository in code that requires UserRepository
 //		// and then make assertions.
 //
 //	}
-type userRepositoryMock struct {
+type UserRepositoryMock struct {
 	// CountRecoveryCodesByUserIn24hFunc mocks the CountRecoveryCodesByUserIn24h method.
 	CountRecoveryCodesByUserIn24hFunc func(userID uint) (int, error)
 
@@ -212,9 +212,9 @@ type userRepositoryMock struct {
 }
 
 // CountRecoveryCodesByUserIn24h calls CountRecoveryCodesByUserIn24hFunc.
-func (mock *userRepositoryMock) CountRecoveryCodesByUserIn24h(userID uint) (int, error) {
+func (mock *UserRepositoryMock) CountRecoveryCodesByUserIn24h(userID uint) (int, error) {
 	if mock.CountRecoveryCodesByUserIn24hFunc == nil {
-		panic("userRepositoryMock.CountRecoveryCodesByUserIn24hFunc: method is nil but userRepository.CountRecoveryCodesByUserIn24h was just called")
+		panic("UserRepositoryMock.CountRecoveryCodesByUserIn24hFunc: method is nil but UserRepository.CountRecoveryCodesByUserIn24h was just called")
 	}
 	callInfo := struct {
 		UserID uint
@@ -230,8 +230,8 @@ func (mock *userRepositoryMock) CountRecoveryCodesByUserIn24h(userID uint) (int,
 // CountRecoveryCodesByUserIn24hCalls gets all the calls that were made to CountRecoveryCodesByUserIn24h.
 // Check the length with:
 //
-//	len(mockeduserRepository.CountRecoveryCodesByUserIn24hCalls())
-func (mock *userRepositoryMock) CountRecoveryCodesByUserIn24hCalls() []struct {
+//	len(mockedUserRepository.CountRecoveryCodesByUserIn24hCalls())
+func (mock *UserRepositoryMock) CountRecoveryCodesByUserIn24hCalls() []struct {
 	UserID uint
 } {
 	var calls []struct {
@@ -244,9 +244,9 @@ func (mock *userRepositoryMock) CountRecoveryCodesByUserIn24hCalls() []struct {
 }
 
 // CreateRecoverCode calls CreateRecoverCodeFunc.
-func (mock *userRepositoryMock) CreateRecoverCode(c *PasswordRecovery) error {
+func (mock *UserRepositoryMock) CreateRecoverCode(c *PasswordRecovery) error {
 	if mock.CreateRecoverCodeFunc == nil {
-		panic("userRepositoryMock.CreateRecoverCodeFunc: method is nil but userRepository.CreateRecoverCode was just called")
+		panic("UserRepositoryMock.CreateRecoverCodeFunc: method is nil but UserRepository.CreateRecoverCode was just called")
 	}
 	callInfo := struct {
 		C *PasswordRecovery
@@ -262,8 +262,8 @@ func (mock *userRepositoryMock) CreateRecoverCode(c *PasswordRecovery) error {
 // CreateRecoverCodeCalls gets all the calls that were made to CreateRecoverCode.
 // Check the length with:
 //
-//	len(mockeduserRepository.CreateRecoverCodeCalls())
-func (mock *userRepositoryMock) CreateRecoverCodeCalls() []struct {
+//	len(mockedUserRepository.CreateRecoverCodeCalls())
+func (mock *UserRepositoryMock) CreateRecoverCodeCalls() []struct {
 	C *PasswordRecovery
 } {
 	var calls []struct {
@@ -276,9 +276,9 @@ func (mock *userRepositoryMock) CreateRecoverCodeCalls() []struct {
 }
 
 // CreateUser calls CreateUserFunc.
-func (mock *userRepositoryMock) CreateUser(user *User) error {
+func (mock *UserRepositoryMock) CreateUser(user *User) error {
 	if mock.CreateUserFunc == nil {
-		panic("userRepositoryMock.CreateUserFunc: method is nil but userRepository.CreateUser was just called")
+		panic("UserRepositoryMock.CreateUserFunc: method is nil but UserRepository.CreateUser was just called")
 	}
 	callInfo := struct {
 		User *User
@@ -294,8 +294,8 @@ func (mock *userRepositoryMock) CreateUser(user *User) error {
 // CreateUserCalls gets all the calls that were made to CreateUser.
 // Check the length with:
 //
-//	len(mockeduserRepository.CreateUserCalls())
-func (mock *userRepositoryMock) CreateUserCalls() []struct {
+//	len(mockedUserRepository.CreateUserCalls())
+func (mock *UserRepositoryMock) CreateUserCalls() []struct {
 	User *User
 } {
 	var calls []struct {
@@ -308,9 +308,9 @@ func (mock *userRepositoryMock) CreateUserCalls() []struct {
 }
 
 // DeleteUser calls DeleteUserFunc.
-func (mock *userRepositoryMock) DeleteUser(u *User) error {
+func (mock *UserRepositoryMock) DeleteUser(u *User) error {
 	if mock.DeleteUserFunc == nil {
-		panic("userRepositoryMock.DeleteUserFunc: method is nil but userRepository.DeleteUser was just called")
+		panic("UserRepositoryMock.DeleteUserFunc: method is nil but UserRepository.DeleteUser was just called")
 	}
 	callInfo := struct {
 		U *User
@@ -326,8 +326,8 @@ func (mock *userRepositoryMock) DeleteUser(u *User) error {
 // DeleteUserCalls gets all the calls that were made to DeleteUser.
 // Check the length with:
 //
-//	len(mockeduserRepository.DeleteUserCalls())
-func (mock *userRepositoryMock) DeleteUserCalls() []struct {
+//	len(mockedUserRepository.DeleteUserCalls())
+func (mock *UserRepositoryMock) DeleteUserCalls() []struct {
 	U *User
 } {
 	var calls []struct {
@@ -340,9 +340,9 @@ func (mock *userRepositoryMock) DeleteUserCalls() []struct {
 }
 
 // FindUserByApartment calls FindUserByApartmentFunc.
-func (mock *userRepositoryMock) FindUserByApartment(building uint, apt uint) (*User, error) {
+func (mock *UserRepositoryMock) FindUserByApartment(building uint, apt uint) (*User, error) {
 	if mock.FindUserByApartmentFunc == nil {
-		panic("userRepositoryMock.FindUserByApartmentFunc: method is nil but userRepository.FindUserByApartment was just called")
+		panic("UserRepositoryMock.FindUserByApartmentFunc: method is nil but UserRepository.FindUserByApartment was just called")
 	}
 	callInfo := struct {
 		Building uint
@@ -360,8 +360,8 @@ func (mock *userRepositoryMock) FindUserByApartment(building uint, apt uint) (*U
 // FindUserByApartmentCalls gets all the calls that were made to FindUserByApartment.
 // Check the length with:
 //
-//	len(mockeduserRepository.FindUserByApartmentCalls())
-func (mock *userRepositoryMock) FindUserByApartmentCalls() []struct {
+//	len(mockedUserRepository.FindUserByApartmentCalls())
+func (mock *UserRepositoryMock) FindUserByApartmentCalls() []struct {
 	Building uint
 	Apt      uint
 } {
@@ -376,9 +376,9 @@ func (mock *userRepositoryMock) FindUserByApartmentCalls() []struct {
 }
 
 // GetFamilyMembers calls GetFamilyMembersFunc.
-func (mock *userRepositoryMock) GetFamilyMembers(ownerID uint) ([]*User, error) {
+func (mock *UserRepositoryMock) GetFamilyMembers(ownerID uint) ([]*User, error) {
 	if mock.GetFamilyMembersFunc == nil {
-		panic("userRepositoryMock.GetFamilyMembersFunc: method is nil but userRepository.GetFamilyMembers was just called")
+		panic("UserRepositoryMock.GetFamilyMembersFunc: method is nil but UserRepository.GetFamilyMembers was just called")
 	}
 	callInfo := struct {
 		OwnerID uint
@@ -394,8 +394,8 @@ func (mock *userRepositoryMock) GetFamilyMembers(ownerID uint) ([]*User, error) 
 // GetFamilyMembersCalls gets all the calls that were made to GetFamilyMembers.
 // Check the length with:
 //
-//	len(mockeduserRepository.GetFamilyMembersCalls())
-func (mock *userRepositoryMock) GetFamilyMembersCalls() []struct {
+//	len(mockedUserRepository.GetFamilyMembersCalls())
+func (mock *UserRepositoryMock) GetFamilyMembersCalls() []struct {
 	OwnerID uint
 } {
 	var calls []struct {
@@ -408,9 +408,9 @@ func (mock *userRepositoryMock) GetFamilyMembersCalls() []struct {
 }
 
 // GetRecoveryCode calls GetRecoveryCodeFunc.
-func (mock *userRepositoryMock) GetRecoveryCode(c *PasswordRecovery) (*PasswordRecovery, error) {
+func (mock *UserRepositoryMock) GetRecoveryCode(c *PasswordRecovery) (*PasswordRecovery, error) {
 	if mock.GetRecoveryCodeFunc == nil {
-		panic("userRepositoryMock.GetRecoveryCodeFunc: method is nil but userRepository.GetRecoveryCode was just called")
+		panic("UserRepositoryMock.GetRecoveryCodeFunc: method is nil but UserRepository.GetRecoveryCode was just called")
 	}
 	callInfo := struct {
 		C *PasswordRecovery
@@ -426,8 +426,8 @@ func (mock *userRepositoryMock) GetRecoveryCode(c *PasswordRecovery) (*PasswordR
 // GetRecoveryCodeCalls gets all the calls that were made to GetRecoveryCode.
 // Check the length with:
 //
-//	len(mockeduserRepository.GetRecoveryCodeCalls())
-func (mock *userRepositoryMock) GetRecoveryCodeCalls() []struct {
+//	len(mockedUserRepository.GetRecoveryCodeCalls())
+func (mock *UserRepositoryMock) GetRecoveryCodeCalls() []struct {
 	C *PasswordRecovery
 } {
 	var calls []struct {
@@ -440,9 +440,9 @@ func (mock *userRepositoryMock) GetRecoveryCodeCalls() []struct {
 }
 
 // GetRegCode calls GetRegCodeFunc.
-func (mock *userRepositoryMock) GetRegCode() (string, error) {
+func (mock *UserRepositoryMock) GetRegCode() (string, error) {
 	if mock.GetRegCodeFunc == nil {
-		panic("userRepositoryMock.GetRegCodeFunc: method is nil but userRepository.GetRegCode was just called")
+		panic("UserRepositoryMock.GetRegCodeFunc: method is nil but UserRepository.GetRegCode was just called")
 	}
 	callInfo := struct {
 	}{}
@@ -455,8 +455,8 @@ func (mock *userRepositoryMock) GetRegCode() (string, error) {
 // GetRegCodeCalls gets all the calls that were made to GetRegCode.
 // Check the length with:
 //
-//	len(mockeduserRepository.GetRegCodeCalls())
-func (mock *userRepositoryMock) GetRegCodeCalls() []struct {
+//	len(mockedUserRepository.GetRegCodeCalls())
+func (mock *UserRepositoryMock) GetRegCodeCalls() []struct {
 } {
 	var calls []struct {
 	}
@@ -467,9 +467,9 @@ func (mock *userRepositoryMock) GetRegCodeCalls() []struct {
 }
 
 // GetUserByEmail calls GetUserByEmailFunc.
-func (mock *userRepositoryMock) GetUserByEmail(email string) (*User, error) {
+func (mock *UserRepositoryMock) GetUserByEmail(email string) (*User, error) {
 	if mock.GetUserByEmailFunc == nil {
-		panic("userRepositoryMock.GetUserByEmailFunc: method is nil but userRepository.GetUserByEmail was just called")
+		panic("UserRepositoryMock.GetUserByEmailFunc: method is nil but UserRepository.GetUserByEmail was just called")
 	}
 	callInfo := struct {
 		Email string
@@ -485,8 +485,8 @@ func (mock *userRepositoryMock) GetUserByEmail(email string) (*User, error) {
 // GetUserByEmailCalls gets all the calls that were made to GetUserByEmail.
 // Check the length with:
 //
-//	len(mockeduserRepository.GetUserByEmailCalls())
-func (mock *userRepositoryMock) GetUserByEmailCalls() []struct {
+//	len(mockedUserRepository.GetUserByEmailCalls())
+func (mock *UserRepositoryMock) GetUserByEmailCalls() []struct {
 	Email string
 } {
 	var calls []struct {
@@ -499,9 +499,9 @@ func (mock *userRepositoryMock) GetUserByEmailCalls() []struct {
 }
 
 // GetUserByID calls GetUserByIDFunc.
-func (mock *userRepositoryMock) GetUserByID(id uint) (*User, error) {
+func (mock *UserRepositoryMock) GetUserByID(id uint) (*User, error) {
 	if mock.GetUserByIDFunc == nil {
-		panic("userRepositoryMock.GetUserByIDFunc: method is nil but userRepository.GetUserByID was just called")
+		panic("UserRepositoryMock.GetUserByIDFunc: method is nil but UserRepository.GetUserByID was just called")
 	}
 	callInfo := struct {
 		ID uint
@@ -517,8 +517,8 @@ func (mock *userRepositoryMock) GetUserByID(id uint) (*User, error) {
 // GetUserByIDCalls gets all the calls that were made to GetUserByID.
 // Check the length with:
 //
-//	len(mockeduserRepository.GetUserByIDCalls())
-func (mock *userRepositoryMock) GetUserByIDCalls() []struct {
+//	len(mockedUserRepository.GetUserByIDCalls())
+func (mock *UserRepositoryMock) GetUserByIDCalls() []struct {
 	ID uint
 } {
 	var calls []struct {
@@ -531,9 +531,9 @@ func (mock *userRepositoryMock) GetUserByIDCalls() []struct {
 }
 
 // GetUserByPhone calls GetUserByPhoneFunc.
-func (mock *userRepositoryMock) GetUserByPhone(phone string) (*User, error) {
+func (mock *UserRepositoryMock) GetUserByPhone(phone string) (*User, error) {
 	if mock.GetUserByPhoneFunc == nil {
-		panic("userRepositoryMock.GetUserByPhoneFunc: method is nil but userRepository.GetUserByPhone was just called")
+		panic("UserRepositoryMock.GetUserByPhoneFunc: method is nil but UserRepository.GetUserByPhone was just called")
 	}
 	callInfo := struct {
 		Phone string
@@ -549,8 +549,8 @@ func (mock *userRepositoryMock) GetUserByPhone(phone string) (*User, error) {
 // GetUserByPhoneCalls gets all the calls that were made to GetUserByPhone.
 // Check the length with:
 //
-//	len(mockeduserRepository.GetUserByPhoneCalls())
-func (mock *userRepositoryMock) GetUserByPhoneCalls() []struct {
+//	len(mockedUserRepository.GetUserByPhoneCalls())
+func (mock *UserRepositoryMock) GetUserByPhoneCalls() []struct {
 	Phone string
 } {
 	var calls []struct {
@@ -563,9 +563,9 @@ func (mock *userRepositoryMock) GetUserByPhoneCalls() []struct {
 }
 
 // ResetPassword calls ResetPasswordFunc.
-func (mock *userRepositoryMock) ResetPassword(codeID uint, req *UserUpdate) error {
+func (mock *UserRepositoryMock) ResetPassword(codeID uint, req *UserUpdate) error {
 	if mock.ResetPasswordFunc == nil {
-		panic("userRepositoryMock.ResetPasswordFunc: method is nil but userRepository.ResetPassword was just called")
+		panic("UserRepositoryMock.ResetPasswordFunc: method is nil but UserRepository.ResetPassword was just called")
 	}
 	callInfo := struct {
 		CodeID uint
@@ -583,8 +583,8 @@ func (mock *userRepositoryMock) ResetPassword(codeID uint, req *UserUpdate) erro
 // ResetPasswordCalls gets all the calls that were made to ResetPassword.
 // Check the length with:
 //
-//	len(mockeduserRepository.ResetPasswordCalls())
-func (mock *userRepositoryMock) ResetPasswordCalls() []struct {
+//	len(mockedUserRepository.ResetPasswordCalls())
+func (mock *UserRepositoryMock) ResetPasswordCalls() []struct {
 	CodeID uint
 	Req    *UserUpdate
 } {
@@ -599,9 +599,9 @@ func (mock *userRepositoryMock) ResetPasswordCalls() []struct {
 }
 
 // UpdateUser calls UpdateUserFunc.
-func (mock *userRepositoryMock) UpdateUser(u *UserUpdate) error {
+func (mock *UserRepositoryMock) UpdateUser(u *UserUpdate) error {
 	if mock.UpdateUserFunc == nil {
-		panic("userRepositoryMock.UpdateUserFunc: method is nil but userRepository.UpdateUser was just called")
+		panic("UserRepositoryMock.UpdateUserFunc: method is nil but UserRepository.UpdateUser was just called")
 	}
 	callInfo := struct {
 		U *UserUpdate
@@ -617,8 +617,8 @@ func (mock *userRepositoryMock) UpdateUser(u *UserUpdate) error {
 // UpdateUserCalls gets all the calls that were made to UpdateUser.
 // Check the length with:
 //
-//	len(mockeduserRepository.UpdateUserCalls())
-func (mock *userRepositoryMock) UpdateUserCalls() []struct {
+//	len(mockedUserRepository.UpdateUserCalls())
+func (mock *UserRepositoryMock) UpdateUserCalls() []struct {
 	U *UserUpdate
 } {
 	var calls []struct {
@@ -631,9 +631,9 @@ func (mock *userRepositoryMock) UpdateUserCalls() []struct {
 }
 
 // UseRegCode calls UseRegCodeFunc.
-func (mock *userRepositoryMock) UseRegCode(code string) error {
+func (mock *UserRepositoryMock) UseRegCode(code string) error {
 	if mock.UseRegCodeFunc == nil {
-		panic("userRepositoryMock.UseRegCodeFunc: method is nil but userRepository.UseRegCode was just called")
+		panic("UserRepositoryMock.UseRegCodeFunc: method is nil but UserRepository.UseRegCode was just called")
 	}
 	callInfo := struct {
 		Code string
@@ -649,8 +649,8 @@ func (mock *userRepositoryMock) UseRegCode(code string) error {
 // UseRegCodeCalls gets all the calls that were made to UseRegCode.
 // Check the length with:
 //
-//	len(mockeduserRepository.UseRegCodeCalls())
-func (mock *userRepositoryMock) UseRegCodeCalls() []struct {
+//	len(mockedUserRepository.UseRegCodeCalls())
+func (mock *UserRepositoryMock) UseRegCodeCalls() []struct {
 	Code string
 } {
 	var calls []struct {
@@ -663,9 +663,9 @@ func (mock *userRepositoryMock) UseRegCodeCalls() []struct {
 }
 
 // ValidateRegCode calls ValidateRegCodeFunc.
-func (mock *userRepositoryMock) ValidateRegCode(code string) error {
+func (mock *UserRepositoryMock) ValidateRegCode(code string) error {
 	if mock.ValidateRegCodeFunc == nil {
-		panic("userRepositoryMock.ValidateRegCodeFunc: method is nil but userRepository.ValidateRegCode was just called")
+		panic("UserRepositoryMock.ValidateRegCodeFunc: method is nil but UserRepository.ValidateRegCode was just called")
 	}
 	callInfo := struct {
 		Code string
@@ -681,8 +681,8 @@ func (mock *userRepositoryMock) ValidateRegCode(code string) error {
 // ValidateRegCodeCalls gets all the calls that were made to ValidateRegCode.
 // Check the length with:
 //
-//	len(mockeduserRepository.ValidateRegCodeCalls())
-func (mock *userRepositoryMock) ValidateRegCodeCalls() []struct {
+//	len(mockedUserRepository.ValidateRegCodeCalls())
+func (mock *UserRepositoryMock) ValidateRegCodeCalls() []struct {
 	Code string
 } {
 	var calls []struct {
@@ -694,26 +694,26 @@ func (mock *userRepositoryMock) ValidateRegCodeCalls() []struct {
 	return calls
 }
 
-// Ensure, that mailSenderMock does implement mailSender.
+// Ensure, that MailSenderMock does implement MailSender.
 // If this is not the case, regenerate this file with moq.
-var _ mailSender = &mailSenderMock{}
+var _ MailSender = &MailSenderMock{}
 
-// mailSenderMock is a mock implementation of mailSender.
+// MailSenderMock is a mock implementation of MailSender.
 //
-//	func TestSomethingThatUsesmailSender(t *testing.T) {
+//	func TestSomethingThatUsesMailSender(t *testing.T) {
 //
-//		// make and configure a mocked mailSender
-//		mockedmailSender := &mailSenderMock{
+//		// make and configure a mocked MailSender
+//		mockedMailSender := &MailSenderMock{
 //			SendRecoveryCodeEmailFunc: func(to string, username string, code string) error {
 //				panic("mock out the SendRecoveryCodeEmail method")
 //			},
 //		}
 //
-//		// use mockedmailSender in code that requires mailSender
+//		// use mockedMailSender in code that requires MailSender
 //		// and then make assertions.
 //
 //	}
-type mailSenderMock struct {
+type MailSenderMock struct {
 	// SendRecoveryCodeEmailFunc mocks the SendRecoveryCodeEmail method.
 	SendRecoveryCodeEmailFunc func(to string, username string, code string) error
 
@@ -733,9 +733,9 @@ type mailSenderMock struct {
 }
 
 // SendRecoveryCodeEmail calls SendRecoveryCodeEmailFunc.
-func (mock *mailSenderMock) SendRecoveryCodeEmail(to string, username string, code string) error {
+func (mock *MailSenderMock) SendRecoveryCodeEmail(to string, username string, code string) error {
 	if mock.SendRecoveryCodeEmailFunc == nil {
-		panic("mailSenderMock.SendRecoveryCodeEmailFunc: method is nil but mailSender.SendRecoveryCodeEmail was just called")
+		panic("MailSenderMock.SendRecoveryCodeEmailFunc: method is nil but MailSender.SendRecoveryCodeEmail was just called")
 	}
 	callInfo := struct {
 		To       string
@@ -755,8 +755,8 @@ func (mock *mailSenderMock) SendRecoveryCodeEmail(to string, username string, co
 // SendRecoveryCodeEmailCalls gets all the calls that were made to SendRecoveryCodeEmail.
 // Check the length with:
 //
-//	len(mockedmailSender.SendRecoveryCodeEmailCalls())
-func (mock *mailSenderMock) SendRecoveryCodeEmailCalls() []struct {
+//	len(mockedMailSender.SendRecoveryCodeEmailCalls())
+func (mock *MailSenderMock) SendRecoveryCodeEmailCalls() []struct {
 	To       string
 	Username string
 	Code     string

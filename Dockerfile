@@ -2,7 +2,7 @@
 # STEP 1 build executable binary
 ################################
 
-FROM golang:1.22 as builder
+FROM golang:1.26.3 AS builder
 
 RUN apt update && apt install -y make gcc musl-dev git ca-certificates && update-ca-certificates && mkdir -p /app
 

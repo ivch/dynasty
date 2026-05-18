@@ -10,16 +10,16 @@ import (
 )
 
 type Client struct {
-	svc userService
+	svc UserService
 }
 
-func New(svc userService) *Client {
+func New(svc UserService) *Client {
 	return &Client{
 		svc: svc,
 	}
 }
 
-type userService interface {
+type UserService interface {
 	UserByPhoneAndPassword(ctx context.Context, phone, password string) (*users.User, error)
 	UserByID(ctx context.Context, id uint) (*users.User, error)
 }

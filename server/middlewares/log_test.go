@@ -1,16 +1,18 @@
-package middlewares
+package middlewares_test
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"testing"
+
+	"github.com/ivch/dynasty/server/middlewares"
 )
 
 func TestLogging_Middleware(t *testing.T) {
 	logMock := &mockLogger{}
-	m := &Logging{
-		log: logMock,
+	m := &middlewares.Logging{
+		Log: logMock,
 	}
 	next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusAccepted)

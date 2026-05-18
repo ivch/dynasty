@@ -9,11 +9,11 @@ import (
 )
 
 // NewLogging returns new instance of Logging struct.
-func NewLogging(log logger.Logger) *Logging { return &Logging{log: log} }
+func NewLogging(log logger.Logger) *Logging { return &Logging{Log: log} }
 
 // Logging holds properties for middleware.
 type Logging struct {
-	log logger.Logger
+	Log logger.Logger
 }
 
 // Middleware Middleware implements server.Middleware interface adding
@@ -28,7 +28,7 @@ func (m *Logging) Middleware(next http.Handler) http.Handler {
 		ww := NewResponseWrapper(w)
 		next.ServeHTTP(ww, r)
 		duration := time.Since(start).Milliseconds()
-		m.log.Info("%s - - \"%s %s %s\" %d %d", r.RemoteAddr, r.Method, r.RequestURI, r.Proto, ww.Code(), duration)
+		m.Log.Info("%s - - \"%s %s %s\" %d %d", r.RemoteAddr, r.Method, r.RequestURI, r.Proto, ww.Code(), duration)
 	}
 	return http.HandlerFunc(fn)
 }

@@ -1,15 +1,16 @@
-package users
+package users_test
 
 import (
 	"context"
 	"errors"
-	"io/ioutil"
+	"io"
 	"os"
 	"reflect"
 	"testing"
 	"time"
 
 	"github.com/ivch/dynasty/common/logger"
+	"github.com/ivch/dynasty/server/handlers/users"
 )
 
 var (
@@ -18,7 +19,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	defaultLogger = logger.NewStdLog(logger.WithWriter(ioutil.Discard))
+	defaultLogger = logger.NewStdLog(logger.WithWriter(io.Discard))
 	os.Exit(m.Run())
 }
 
@@ -26,154 +27,154 @@ func TestService_Register(t *testing.T) {
 	type params struct {
 		verifyRegCode bool
 		maxMembers    int
-		repo          userRepository
+		repo          users.UserRepository
 	}
 
 	tests := []struct {
 		name    string
 		params  params
-		input   *User
+		input   *users.User
 		wantErr bool
-		want    *User
+		want    *users.User
 	}{
 		{
 			name: "error getUserByEmail",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByEmailFunc: func(_ string) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*users.User, error) {
 						return nil, errTestError
 					},
 				},
 			},
-			input:   &User{},
+			input:   &users.User{},
 			wantErr: true,
 			want:    nil,
 		},
 		{
 			name: "error email in use",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByEmailFunc: func(_ string) (*User, error) {
-						return &User{}, nil
+				repo: &users.UserRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*users.User, error) {
+						return &users.User{}, nil
 					},
 				},
 			},
-			input:   &User{},
+			input:   &users.User{},
 			wantErr: true,
 			want:    nil,
 		},
 		{
 			name: "error failed to check user",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByEmailFunc: func(_ string) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
 						return nil, errTestError
 					},
 				},
 			},
-			input:   &User{},
+			input:   &users.User{},
 			wantErr: true,
 			want:    nil,
 		},
 		{
 			name: "error user exists",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByEmailFunc: func(_ string) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
-						return &User{
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
+						return &users.User{
 							ID: 1,
 						}, nil
 					},
 				},
 			},
-			input:   &User{},
+			input:   &users.User{},
 			wantErr: true,
 			want:    nil,
 		},
 		{
 			name: "error failed to find user by apartment",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByEmailFunc: func(_ string) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					FindUserByApartmentFunc: func(_ uint, _ uint) (*User, error) {
+					FindUserByApartmentFunc: func(_ uint, _ uint) (*users.User, error) {
 						return nil, errTestError
 					},
 				},
 			},
-			input:   &User{},
+			input:   &users.User{},
 			wantErr: true,
 		},
 		{
 			name: "error master account already exists",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByEmailFunc: func(_ string) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					FindUserByApartmentFunc: func(_ uint, _ uint) (*User, error) {
-						return &User{}, nil
+					FindUserByApartmentFunc: func(_ uint, _ uint) (*users.User, error) {
+						return &users.User{}, nil
 					},
 				},
 			},
-			input:   &User{},
+			input:   &users.User{},
 			wantErr: true,
 		},
 		{
 			name: "error wrong reg code",
 			params: params{
 				verifyRegCode: true,
-				repo: &userRepositoryMock{
-					GetUserByEmailFunc: func(_ string) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					FindUserByApartmentFunc: func(_ uint, _ uint) (*User, error) {
-						return &User{}, nil
+					FindUserByApartmentFunc: func(_ uint, _ uint) (*users.User, error) {
+						return &users.User{}, nil
 					},
 					ValidateRegCodeFunc: func(_ string) error {
 						return errTestError
 					},
 				},
 			},
-			input:   &User{},
+			input:   &users.User{},
 			wantErr: true,
 			want:    nil,
 		},
 		{
 			name: "error user not created",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByEmailFunc: func(_ string) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					FindUserByApartmentFunc: func(_ uint, _ uint) (*User, error) {
+					FindUserByApartmentFunc: func(_ uint, _ uint) (*users.User, error) {
 						return nil, nil
 					},
-					CreateUserFunc: func(_ *User) error {
+					CreateUserFunc: func(_ *users.User) error {
 						return errTestError
 					},
 				},
 			},
-			input:   &User{},
+			input:   &users.User{},
 			wantErr: true,
 			want:    nil,
 		},
@@ -181,17 +182,17 @@ func TestService_Register(t *testing.T) {
 			name: "error failed to use reg code, user deleted",
 			params: params{
 				verifyRegCode: true,
-				repo: &userRepositoryMock{
-					GetUserByEmailFunc: func(_ string) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					FindUserByApartmentFunc: func(_ uint, _ uint) (*User, error) {
+					FindUserByApartmentFunc: func(_ uint, _ uint) (*users.User, error) {
 						return nil, nil
 					},
-					CreateUserFunc: func(*User) error {
+					CreateUserFunc: func(*users.User) error {
 						return nil
 					},
 					ValidateRegCodeFunc: func(_ string) error {
@@ -200,12 +201,12 @@ func TestService_Register(t *testing.T) {
 					UseRegCodeFunc: func(_ string) error {
 						return errTestError
 					},
-					DeleteUserFunc: func(_ *User) error {
+					DeleteUserFunc: func(_ *users.User) error {
 						return nil
 					},
 				},
 			},
-			input:   &User{},
+			input:   &users.User{},
 			wantErr: true,
 			want:    nil,
 		},
@@ -213,17 +214,17 @@ func TestService_Register(t *testing.T) {
 			name: "error failed to use reg code, user not deleted",
 			params: params{
 				verifyRegCode: true,
-				repo: &userRepositoryMock{
-					GetUserByEmailFunc: func(_ string) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					FindUserByApartmentFunc: func(_ uint, _ uint) (*User, error) {
+					FindUserByApartmentFunc: func(_ uint, _ uint) (*users.User, error) {
 						return nil, nil
 					},
-					CreateUserFunc: func(*User) error {
+					CreateUserFunc: func(*users.User) error {
 						return nil
 					},
 					ValidateRegCodeFunc: func(_ string) error {
@@ -232,108 +233,108 @@ func TestService_Register(t *testing.T) {
 					UseRegCodeFunc: func(_ string) error {
 						return errTestError
 					},
-					DeleteUserFunc: func(_ *User) error {
+					DeleteUserFunc: func(_ *users.User) error {
 						return errTestError
 					},
 				},
 			},
-			input:   &User{},
+			input:   &users.User{},
 			wantErr: true,
 			want:    nil,
 		},
 		{
 			name: "ok",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByEmailFunc: func(_ string) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					FindUserByApartmentFunc: func(_ uint, _ uint) (*User, error) {
+					FindUserByApartmentFunc: func(_ uint, _ uint) (*users.User, error) {
 						return nil, nil
 					},
-					CreateUserFunc: func(u *User) error {
+					CreateUserFunc: func(u *users.User) error {
 						u.ID = 1
 						return nil
 					},
 				},
 			},
-			input:   &User{Phone: "1", Password: "1"},
+			input:   &users.User{Phone: "1", Password: "1"},
 			wantErr: false,
-			want: &User{
+			want: &users.User{
 				ID:     1,
 				Phone:  "1",
-				Role:   defaultUserRole,
+				Role:   users.DefaultUserRole,
 				Active: true,
 			},
 		},
 		{
 			name: "error predefined user wrong code",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByEmailFunc: func(_ string) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					FindUserByApartmentFunc: func(_ uint, _ uint) (*User, error) {
-						return &User{Role: predefinedUserRole, RegCode: "abc"}, nil
+					FindUserByApartmentFunc: func(_ uint, _ uint) (*users.User, error) {
+						return &users.User{Role: users.PredefinedUserRole, RegCode: "abc"}, nil
 					},
 				},
 			},
-			input:   &User{Phone: "1", Password: "1", RegCode: "cba"},
+			input:   &users.User{Phone: "1", Password: "1", RegCode: "cba"},
 			wantErr: true,
 			want:    nil,
 		},
 		{
 			name: "error predefined user update error",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByEmailFunc: func(_ string) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					FindUserByApartmentFunc: func(_ uint, _ uint) (*User, error) {
-						return &User{Role: predefinedUserRole, RegCode: "abc"}, nil
+					FindUserByApartmentFunc: func(_ uint, _ uint) (*users.User, error) {
+						return &users.User{Role: users.PredefinedUserRole, RegCode: "abc"}, nil
 					},
-					UpdateUserFunc: func(_ *UserUpdate) error {
+					UpdateUserFunc: func(_ *users.UserUpdate) error {
 						return errTestError
 					},
 				},
 			},
-			input:   &User{Phone: "1", Password: "1", RegCode: "abc"},
+			input:   &users.User{Phone: "1", Password: "1", RegCode: "abc"},
 			wantErr: true,
 			want:    nil,
 		},
 		{
 			name: "ok predefined user",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByEmailFunc: func(_ string) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					FindUserByApartmentFunc: func(_ uint, _ uint) (*User, error) {
-						return &User{ID: 1, Role: predefinedUserRole, RegCode: "abc"}, nil
+					FindUserByApartmentFunc: func(_ uint, _ uint) (*users.User, error) {
+						return &users.User{ID: 1, Role: users.PredefinedUserRole, RegCode: "abc"}, nil
 					},
-					UpdateUserFunc: func(_ *UserUpdate) error {
+					UpdateUserFunc: func(_ *users.UserUpdate) error {
 						return nil
 					},
 				},
 			},
-			input:   &User{Phone: "1", Password: "1", RegCode: "abc"},
+			input:   &users.User{Phone: "1", Password: "1", RegCode: "abc"},
 			wantErr: false,
-			want: &User{
+			want: &users.User{
 				ID:     1,
 				Phone:  "1",
-				Role:   defaultUserRole,
+				Role:   users.DefaultUserRole,
 				Active: true,
 			},
 		},
@@ -341,7 +342,7 @@ func TestService_Register(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.params.repo, tt.params.verifyRegCode, tt.params.maxMembers, nil)
+			s := users.New(defaultLogger, tt.params.repo, tt.params.verifyRegCode, tt.params.maxMembers, nil)
 			got, err := s.Register(context.Background(), tt.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Register() error = %v, wantErr %v", err, tt.wantErr)
@@ -362,7 +363,7 @@ func TestService_UserByPhoneAndPassword(t *testing.T) {
 	type params struct {
 		verifyRegCode bool
 		maxMembers    int
-		repo          userRepository
+		repo          users.UserRepository
 	}
 
 	type input struct {
@@ -375,13 +376,13 @@ func TestService_UserByPhoneAndPassword(t *testing.T) {
 		params  params
 		input   input
 		wantErr bool
-		want    *User
+		want    *users.User
 	}{
 		{
 			name: "error no user",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
 						return nil, errTestError
 					},
 				},
@@ -396,10 +397,10 @@ func TestService_UserByPhoneAndPassword(t *testing.T) {
 		{
 			name: "error wrong password",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
-						p, _ := hashAndSalt("1")
-						return &User{Password: p}, nil
+				repo: &users.UserRepositoryMock{
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
+						p, _ := users.HashAndSalt("1")
+						return &users.User{Password: p}, nil
 					},
 				},
 			},
@@ -413,10 +414,10 @@ func TestService_UserByPhoneAndPassword(t *testing.T) {
 		{
 			name: "ok",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
-						p, _ := hashAndSalt("1")
-						return &User{ID: 1, FirstName: "a", LastName: "b", Role: 1, Password: p}, nil
+				repo: &users.UserRepositoryMock{
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
+						p, _ := users.HashAndSalt("1")
+						return &users.User{ID: 1, FirstName: "a", LastName: "b", Role: 1, Password: p}, nil
 					},
 				},
 			},
@@ -425,7 +426,7 @@ func TestService_UserByPhoneAndPassword(t *testing.T) {
 				password: "1",
 			},
 			wantErr: false,
-			want: &User{
+			want: &users.User{
 				ID:        1,
 				FirstName: "a",
 				LastName:  "b",
@@ -436,7 +437,7 @@ func TestService_UserByPhoneAndPassword(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.params.repo, tt.params.verifyRegCode, tt.params.maxMembers, nil)
+			s := users.New(defaultLogger, tt.params.repo, tt.params.verifyRegCode, tt.params.maxMembers, nil)
 			got, err := s.UserByPhoneAndPassword(context.Background(), tt.input.phone, tt.input.password)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UserByPhoneAndPassword() error = %v, wantErr %v", err, tt.wantErr)
@@ -457,7 +458,7 @@ func TestService_UserByID(t *testing.T) {
 	type params struct {
 		verifyRegCode bool
 		maxMembers    int
-		repo          userRepository
+		repo          users.UserRepository
 	}
 
 	tests := []struct {
@@ -465,13 +466,13 @@ func TestService_UserByID(t *testing.T) {
 		params  params
 		input   uint
 		wantErr bool
-		want    *User
+		want    *users.User
 	}{
 		{
 			name: "error no user",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByIDFunc: func(id uint) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByIDFunc: func(id uint) (*users.User, error) {
 						return nil, errTestError
 					},
 				},
@@ -483,16 +484,16 @@ func TestService_UserByID(t *testing.T) {
 		{
 			name: "ok",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByIDFunc: func(id uint) (*User, error) {
-						return &User{
+				repo: &users.UserRepositoryMock{
+					GetUserByIDFunc: func(id uint) (*users.User, error) {
+						return &users.User{
 							ID: 1,
-							Building: Building{
+							Building: users.Building{
 								ID:      1,
 								Name:    "a",
 								Address: "b",
 							},
-							Entry: Entry{
+							Entry: users.Entry{
 								ID:         1,
 								Name:       "1",
 								BuildingID: 1,
@@ -509,14 +510,14 @@ func TestService_UserByID(t *testing.T) {
 				},
 			},
 			wantErr: false,
-			want: &User{
+			want: &users.User{
 				ID: 1,
-				Building: Building{
+				Building: users.Building{
 					ID:      1,
 					Name:    "a",
 					Address: "b",
 				},
-				Entry: Entry{
+				Entry: users.Entry{
 					ID:         1,
 					Name:       "1",
 					BuildingID: 1,
@@ -534,7 +535,7 @@ func TestService_UserByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.params.repo, tt.params.verifyRegCode, tt.params.maxMembers, nil)
+			s := users.New(defaultLogger, tt.params.repo, tt.params.verifyRegCode, tt.params.maxMembers, nil)
 			got, err := s.UserByID(context.Background(), tt.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UserByID() error = %v, wantErr %v", err, tt.wantErr)
@@ -551,25 +552,25 @@ func Test_ServiceUpdate(t *testing.T) {
 	type params struct {
 		verifyRegCode bool
 		maxMembers    int
-		repo          userRepository
+		repo          users.UserRepository
 	}
 
 	tests := []struct {
 		name    string
 		params  params
-		input   *UserUpdate
+		input   *users.UserUpdate
 		wantErr bool
 	}{
 		{
 			name: "error finding user",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByIDFunc: func(_ uint) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
 						return nil, errTestError
 					},
 				},
 			},
-			input: &UserUpdate{
+			input: &users.UserUpdate{
 				ID: 1,
 			},
 			wantErr: true,
@@ -577,13 +578,13 @@ func Test_ServiceUpdate(t *testing.T) {
 		{
 			name: "error if empty password",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByIDFunc: func(_ uint) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
 						return nil, nil
 					},
 				},
 			},
-			input: &UserUpdate{
+			input: &users.UserUpdate{
 				ID:          1,
 				Password:    nil,
 				NewPassword: func(s string) *string { return &s }("2"),
@@ -593,15 +594,15 @@ func Test_ServiceUpdate(t *testing.T) {
 		{
 			name: "error old password mismatch",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByIDFunc: func(_ uint) (*User, error) {
-						return &User{
+				repo: &users.UserRepositoryMock{
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
+						return &users.User{
 							Password: "1",
 						}, nil
 					},
 				},
 			},
-			input: &UserUpdate{
+			input: &users.UserUpdate{
 				ID:          1,
 				Password:    func(s string) *string { return &s }("2"),
 				NewPassword: func(s string) *string { return &s }("2"),
@@ -611,13 +612,13 @@ func Test_ServiceUpdate(t *testing.T) {
 		{
 			name: "error if pwd not changed",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByIDFunc: func(_ uint) (*User, error) {
-						return &User{
+				repo: &users.UserRepositoryMock{
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
+						return &users.User{
 							Password: "1",
 						}, nil
 					},
-					UpdateUserFunc: func(u *UserUpdate) error {
+					UpdateUserFunc: func(u *users.UserUpdate) error {
 						if u.NewPassword != nil {
 							if u.Password == u.NewPassword {
 								return errTestError
@@ -632,7 +633,7 @@ func Test_ServiceUpdate(t *testing.T) {
 					},
 				},
 			},
-			input: &UserUpdate{
+			input: &users.UserUpdate{
 				ID:          1,
 				Password:    func(s string) *string { return &s }("1"),
 				NewPassword: func(s string) *string { return &s }("2"),
@@ -642,16 +643,16 @@ func Test_ServiceUpdate(t *testing.T) {
 		{
 			name: "ok w/o password change",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByIDFunc: func(_ uint) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
 						return nil, nil
 					},
-					UpdateUserFunc: func(u *UserUpdate) error {
+					UpdateUserFunc: func(u *users.UserUpdate) error {
 						return nil
 					},
 				},
 			},
-			input: &UserUpdate{
+			input: &users.UserUpdate{
 				ID: 1,
 			},
 			wantErr: false,
@@ -659,14 +660,14 @@ func Test_ServiceUpdate(t *testing.T) {
 		{
 			name: "ok w/ password change",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByIDFunc: func(_ uint) (*User, error) {
-						testPass, _ := hashAndSalt("1")
-						return &User{
+				repo: &users.UserRepositoryMock{
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
+						testPass, _ := users.HashAndSalt("1")
+						return &users.User{
 							Password: testPass,
 						}, nil
 					},
-					UpdateUserFunc: func(u *UserUpdate) error {
+					UpdateUserFunc: func(u *users.UserUpdate) error {
 						if u.NewPassword != nil {
 							if u.Password == u.NewPassword {
 								return errTestError
@@ -681,7 +682,7 @@ func Test_ServiceUpdate(t *testing.T) {
 					},
 				},
 			},
-			input: &UserUpdate{
+			input: &users.UserUpdate{
 				ID:          1,
 				Password:    func(s string) *string { return &s }("1"),
 				NewPassword: func(s string) *string { return &s }("3"),
@@ -691,7 +692,7 @@ func Test_ServiceUpdate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.params.repo, tt.params.verifyRegCode, tt.params.maxMembers, nil)
+			s := users.New(defaultLogger, tt.params.repo, tt.params.verifyRegCode, tt.params.maxMembers, nil)
 			err := s.Update(context.Background(), tt.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
@@ -705,26 +706,26 @@ func Test_ServiceRecovery(t *testing.T) {
 	type params struct {
 		verifyRegCode bool
 		maxMembers    int
-		repo          userRepository
-		email         mailSender
+		repo          users.UserRepository
+		email         users.MailSender
 	}
 
 	tests := []struct {
 		name    string
 		params  params
-		input   *User
+		input   *users.User
 		wantErr bool
 	}{
 		{
 			name: "error finding user",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
 						return nil, errTestError
 					},
 				},
 			},
-			input: &User{
+			input: &users.User{
 				Phone: "1",
 			},
 			wantErr: true,
@@ -732,13 +733,13 @@ func Test_ServiceRecovery(t *testing.T) {
 		{
 			name: "error empty user",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
 				},
 			},
-			input: &User{
+			input: &users.User{
 				Phone: "1",
 			},
 			wantErr: true,
@@ -746,16 +747,16 @@ func Test_ServiceRecovery(t *testing.T) {
 		{
 			name: "error getting count",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
-						return &User{ID: 1}, nil
+				repo: &users.UserRepositoryMock{
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
+						return &users.User{ID: 1}, nil
 					},
 					CountRecoveryCodesByUserIn24hFunc: func(_ uint) (int, error) {
 						return 0, errTestError
 					},
 				},
 			},
-			input: &User{
+			input: &users.User{
 				Phone: "1",
 			},
 			wantErr: true,
@@ -763,16 +764,16 @@ func Test_ServiceRecovery(t *testing.T) {
 		{
 			name: "error limit exceeded",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
-						return &User{ID: 1}, nil
+				repo: &users.UserRepositoryMock{
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
+						return &users.User{ID: 1}, nil
 					},
 					CountRecoveryCodesByUserIn24hFunc: func(_ uint) (int, error) {
 						return 4, nil
 					},
 				},
 			},
-			input: &User{
+			input: &users.User{
 				Phone: "1",
 			},
 			wantErr: true,
@@ -780,9 +781,9 @@ func Test_ServiceRecovery(t *testing.T) {
 		{
 			name: "error wrong email",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
-						return &User{
+				repo: &users.UserRepositoryMock{
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
+						return &users.User{
 							ID:    1,
 							Email: "a",
 						}, nil
@@ -792,7 +793,7 @@ func Test_ServiceRecovery(t *testing.T) {
 					},
 				},
 			},
-			input: &User{
+			input: &users.User{
 				Phone: "1",
 				Email: "b",
 			},
@@ -801,9 +802,9 @@ func Test_ServiceRecovery(t *testing.T) {
 		{
 			name: "error create code",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
-						return &User{
+				repo: &users.UserRepositoryMock{
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
+						return &users.User{
 							ID:    1,
 							Email: "a",
 						}, nil
@@ -811,12 +812,12 @@ func Test_ServiceRecovery(t *testing.T) {
 					CountRecoveryCodesByUserIn24hFunc: func(_ uint) (int, error) {
 						return 2, nil
 					},
-					CreateRecoverCodeFunc: func(_ *PasswordRecovery) error {
+					CreateRecoverCodeFunc: func(_ *users.PasswordRecovery) error {
 						return errTestError
 					},
 				},
 			},
-			input: &User{
+			input: &users.User{
 				Phone: "1",
 				Email: "a",
 			},
@@ -825,9 +826,9 @@ func Test_ServiceRecovery(t *testing.T) {
 		{
 			name: "error send email",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
-						return &User{
+				repo: &users.UserRepositoryMock{
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
+						return &users.User{
 							ID:    1,
 							Email: "a",
 						}, nil
@@ -835,17 +836,17 @@ func Test_ServiceRecovery(t *testing.T) {
 					CountRecoveryCodesByUserIn24hFunc: func(_ uint) (int, error) {
 						return 2, nil
 					},
-					CreateRecoverCodeFunc: func(_ *PasswordRecovery) error {
+					CreateRecoverCodeFunc: func(_ *users.PasswordRecovery) error {
 						return nil
 					},
 				},
-				email: &mailSenderMock{
+				email: &users.MailSenderMock{
 					SendRecoveryCodeEmailFunc: func(_, _, _ string) error {
 						return errTestError
 					},
 				},
 			},
-			input: &User{
+			input: &users.User{
 				Phone: "1",
 				Email: "a",
 			},
@@ -854,9 +855,9 @@ func Test_ServiceRecovery(t *testing.T) {
 		{
 			name: "ok",
 			params: params{
-				repo: &userRepositoryMock{
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
-						return &User{
+				repo: &users.UserRepositoryMock{
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
+						return &users.User{
 							ID:    1,
 							Email: "a",
 						}, nil
@@ -864,17 +865,17 @@ func Test_ServiceRecovery(t *testing.T) {
 					CountRecoveryCodesByUserIn24hFunc: func(_ uint) (int, error) {
 						return 2, nil
 					},
-					CreateRecoverCodeFunc: func(_ *PasswordRecovery) error {
+					CreateRecoverCodeFunc: func(_ *users.PasswordRecovery) error {
 						return nil
 					},
 				},
-				email: &mailSenderMock{
+				email: &users.MailSenderMock{
 					SendRecoveryCodeEmailFunc: func(_, _, _ string) error {
 						return nil
 					},
 				},
 			},
-			input: &User{
+			input: &users.User{
 				Phone: "1",
 				Email: "a",
 			},
@@ -883,7 +884,7 @@ func Test_ServiceRecovery(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.params.repo, tt.params.verifyRegCode, tt.params.maxMembers, tt.params.email)
+			s := users.New(defaultLogger, tt.params.repo, tt.params.verifyRegCode, tt.params.maxMembers, tt.params.email)
 			err := s.RecoveryCode(context.Background(), tt.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
@@ -897,12 +898,12 @@ func Test_ServiceResetPassword(t *testing.T) {
 	type params struct {
 		verifyRegCode bool
 		maxMembers    int
-		repo          userRepository
+		repo          users.UserRepository
 	}
 
 	type input struct {
 		code string
-		u    *UserUpdate
+		u    *users.UserUpdate
 	}
 	tests := []struct {
 		name    string
@@ -913,8 +914,8 @@ func Test_ServiceResetPassword(t *testing.T) {
 		{
 			name: "error finding code",
 			params: params{
-				repo: &userRepositoryMock{
-					GetRecoveryCodeFunc: func(_ *PasswordRecovery) (*PasswordRecovery, error) {
+				repo: &users.UserRepositoryMock{
+					GetRecoveryCodeFunc: func(_ *users.PasswordRecovery) (*users.PasswordRecovery, error) {
 						return nil, errTestError
 					},
 				},
@@ -927,9 +928,9 @@ func Test_ServiceResetPassword(t *testing.T) {
 		{
 			name: "error code outdated",
 			params: params{
-				repo: &userRepositoryMock{
-					GetRecoveryCodeFunc: func(_ *PasswordRecovery) (*PasswordRecovery, error) {
-						return &PasswordRecovery{
+				repo: &users.UserRepositoryMock{
+					GetRecoveryCodeFunc: func(_ *users.PasswordRecovery) (*users.PasswordRecovery, error) {
+						return &users.PasswordRecovery{
 							CreatedAt: func(t time.Time) *time.Time { return &t }(time.Now().Add(-5 * time.Hour)),
 						}, nil
 					},
@@ -943,45 +944,45 @@ func Test_ServiceResetPassword(t *testing.T) {
 		{
 			name: "error no user",
 			params: params{
-				repo: &userRepositoryMock{
-					GetRecoveryCodeFunc: func(_ *PasswordRecovery) (*PasswordRecovery, error) {
-						return &PasswordRecovery{
+				repo: &users.UserRepositoryMock{
+					GetRecoveryCodeFunc: func(_ *users.PasswordRecovery) (*users.PasswordRecovery, error) {
+						return &users.PasswordRecovery{
 							UserID:    1,
 							CreatedAt: func(t time.Time) *time.Time { return &t }(time.Now()),
 						}, nil
 					},
-					GetUserByIDFunc: func(_ uint) (*User, error) {
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
 						return nil, errTestError
 					},
 				},
 			},
 			input: input{
 				code: "1",
-				u:    &UserUpdate{},
+				u:    &users.UserUpdate{},
 			},
 			wantErr: true,
 		},
 		{
 			name: "error on reset password",
 			params: params{
-				repo: &userRepositoryMock{
-					GetRecoveryCodeFunc: func(_ *PasswordRecovery) (*PasswordRecovery, error) {
-						return &PasswordRecovery{
+				repo: &users.UserRepositoryMock{
+					GetRecoveryCodeFunc: func(_ *users.PasswordRecovery) (*users.PasswordRecovery, error) {
+						return &users.PasswordRecovery{
 							UserID:    1,
 							CreatedAt: func(t time.Time) *time.Time { return &t }(time.Now()),
 						}, nil
 					},
-					GetUserByIDFunc: func(_ uint) (*User, error) {
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
 						return nil, nil
 					},
-					ResetPasswordFunc: func(_ uint, _ *UserUpdate) error {
+					ResetPasswordFunc: func(_ uint, _ *users.UserUpdate) error {
 						return errTestError
 					},
 				},
 			},
 			input: input{
 				code: "1",
-				u: &UserUpdate{
+				u: &users.UserUpdate{
 					NewPassword: func(s string) *string { return &s }("1"),
 				},
 			},
@@ -990,24 +991,24 @@ func Test_ServiceResetPassword(t *testing.T) {
 		{
 			name: "ok",
 			params: params{
-				repo: &userRepositoryMock{
-					GetRecoveryCodeFunc: func(_ *PasswordRecovery) (*PasswordRecovery, error) {
-						return &PasswordRecovery{
+				repo: &users.UserRepositoryMock{
+					GetRecoveryCodeFunc: func(_ *users.PasswordRecovery) (*users.PasswordRecovery, error) {
+						return &users.PasswordRecovery{
 							UserID:    1,
 							CreatedAt: func(t time.Time) *time.Time { return &t }(time.Now()),
 						}, nil
 					},
-					GetUserByIDFunc: func(_ uint) (*User, error) {
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
 						return nil, nil
 					},
-					ResetPasswordFunc: func(_ uint, _ *UserUpdate) error {
+					ResetPasswordFunc: func(_ uint, _ *users.UserUpdate) error {
 						return nil
 					},
 				},
 			},
 			input: input{
 				code: "1",
-				u: &UserUpdate{
+				u: &users.UserUpdate{
 					NewPassword: func(s string) *string { return &s }("1"),
 				},
 			},
@@ -1016,7 +1017,7 @@ func Test_ServiceResetPassword(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.params.repo, tt.params.verifyRegCode, tt.params.maxMembers, nil)
+			s := users.New(defaultLogger, tt.params.repo, tt.params.verifyRegCode, tt.params.maxMembers, nil)
 			err := s.ResetPassword(context.Background(), tt.input.code, tt.input.u)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)

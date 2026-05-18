@@ -9,16 +9,16 @@ import (
 	"sync"
 )
 
-// Ensure, that userServiceMock does implement userService.
+// Ensure, that UserServiceMock does implement UserService.
 // If this is not the case, regenerate this file with moq.
-var _ userService = &userServiceMock{}
+var _ UserService = &UserServiceMock{}
 
-// userServiceMock is a mock implementation of userService.
+// UserServiceMock is a mock implementation of UserService.
 //
-//	func TestSomethingThatUsesuserService(t *testing.T) {
+//	func TestSomethingThatUsesUserService(t *testing.T) {
 //
-//		// make and configure a mocked userService
-//		mockeduserService := &userServiceMock{
+//		// make and configure a mocked UserService
+//		mockedUserService := &UserServiceMock{
 //			UserByIDFunc: func(ctx context.Context, id uint) (*users.UserByIDResponse, error) {
 //				panic("mock out the UserByID method")
 //			},
@@ -27,11 +27,11 @@ var _ userService = &userServiceMock{}
 //			},
 //		}
 //
-//		// use mockeduserService in code that requires userService
+//		// use mockedUserService in code that requires UserService
 //		// and then make assertions.
 //
 //	}
-type userServiceMock struct {
+type UserServiceMock struct {
 	// UserByIDFunc mocks the UserByID method.
 	UserByIDFunc func(ctx context.Context, id uint) (*users.UserByIDResponse, error)
 
@@ -62,9 +62,9 @@ type userServiceMock struct {
 }
 
 // UserByID calls UserByIDFunc.
-func (mock *userServiceMock) UserByID(ctx context.Context, id uint) (*users.UserByIDResponse, error) {
+func (mock *UserServiceMock) UserByID(ctx context.Context, id uint) (*users.UserByIDResponse, error) {
 	if mock.UserByIDFunc == nil {
-		panic("userServiceMock.UserByIDFunc: method is nil but userService.UserByID was just called")
+		panic("UserServiceMock.UserByIDFunc: method is nil but UserService.UserByID was just called")
 	}
 	callInfo := struct {
 		Ctx context.Context
@@ -82,8 +82,8 @@ func (mock *userServiceMock) UserByID(ctx context.Context, id uint) (*users.User
 // UserByIDCalls gets all the calls that were made to UserByID.
 // Check the length with:
 //
-//	len(mockeduserService.UserByIDCalls())
-func (mock *userServiceMock) UserByIDCalls() []struct {
+//	len(mockedUserService.UserByIDCalls())
+func (mock *UserServiceMock) UserByIDCalls() []struct {
 	Ctx context.Context
 	ID  uint
 } {
@@ -98,9 +98,9 @@ func (mock *userServiceMock) UserByIDCalls() []struct {
 }
 
 // UserByPhoneAndPassword calls UserByPhoneAndPasswordFunc.
-func (mock *userServiceMock) UserByPhoneAndPassword(ctx context.Context, phone string, password string) (*users.UserByIDResponse, error) {
+func (mock *UserServiceMock) UserByPhoneAndPassword(ctx context.Context, phone string, password string) (*users.UserByIDResponse, error) {
 	if mock.UserByPhoneAndPasswordFunc == nil {
-		panic("userServiceMock.UserByPhoneAndPasswordFunc: method is nil but userService.UserByPhoneAndPassword was just called")
+		panic("UserServiceMock.UserByPhoneAndPasswordFunc: method is nil but UserService.UserByPhoneAndPassword was just called")
 	}
 	callInfo := struct {
 		Ctx      context.Context
@@ -120,8 +120,8 @@ func (mock *userServiceMock) UserByPhoneAndPassword(ctx context.Context, phone s
 // UserByPhoneAndPasswordCalls gets all the calls that were made to UserByPhoneAndPassword.
 // Check the length with:
 //
-//	len(mockeduserService.UserByPhoneAndPasswordCalls())
-func (mock *userServiceMock) UserByPhoneAndPasswordCalls() []struct {
+//	len(mockedUserService.UserByPhoneAndPasswordCalls())
+func (mock *UserServiceMock) UserByPhoneAndPasswordCalls() []struct {
 	Ctx      context.Context
 	Phone    string
 	Password string
@@ -137,16 +137,16 @@ func (mock *userServiceMock) UserByPhoneAndPasswordCalls() []struct {
 	return calls
 }
 
-// Ensure, that authRepositoryMock does implement authRepository.
+// Ensure, that RepositoryMock does implement Repository.
 // If this is not the case, regenerate this file with moq.
-var _ authRepository = &authRepositoryMock{}
+var _ Repository = &RepositoryMock{}
 
-// authRepositoryMock is a mock implementation of authRepository.
+// RepositoryMock is a mock implementation of Repository.
 //
-//	func TestSomethingThatUsesauthRepository(t *testing.T) {
+//	func TestSomethingThatUsesRepository(t *testing.T) {
 //
-//		// make and configure a mocked authRepository
-//		mockedauthRepository := &authRepositoryMock{
+//		// make and configure a mocked Repository
+//		mockedRepository := &RepositoryMock{
 //			CreateSessionFunc: func(userID uint) (string, error) {
 //				panic("mock out the CreateSession method")
 //			},
@@ -164,11 +164,11 @@ var _ authRepository = &authRepositoryMock{}
 //			},
 //		}
 //
-//		// use mockedauthRepository in code that requires authRepository
+//		// use mockedRepository in code that requires Repository
 //		// and then make assertions.
 //
 //	}
-type authRepositoryMock struct {
+type RepositoryMock struct {
 	// CreateSessionFunc mocks the CreateSession method.
 	CreateSessionFunc func(userID uint) (string, error)
 
@@ -220,9 +220,9 @@ type authRepositoryMock struct {
 }
 
 // CreateSession calls CreateSessionFunc.
-func (mock *authRepositoryMock) CreateSession(userID uint) (string, error) {
+func (mock *RepositoryMock) CreateSession(userID uint) (string, error) {
 	if mock.CreateSessionFunc == nil {
-		panic("authRepositoryMock.CreateSessionFunc: method is nil but authRepository.CreateSession was just called")
+		panic("RepositoryMock.CreateSessionFunc: method is nil but Repository.CreateSession was just called")
 	}
 	callInfo := struct {
 		UserID uint
@@ -238,8 +238,8 @@ func (mock *authRepositoryMock) CreateSession(userID uint) (string, error) {
 // CreateSessionCalls gets all the calls that were made to CreateSession.
 // Check the length with:
 //
-//	len(mockedauthRepository.CreateSessionCalls())
-func (mock *authRepositoryMock) CreateSessionCalls() []struct {
+//	len(mockedRepository.CreateSessionCalls())
+func (mock *RepositoryMock) CreateSessionCalls() []struct {
 	UserID uint
 } {
 	var calls []struct {
@@ -252,9 +252,9 @@ func (mock *authRepositoryMock) CreateSessionCalls() []struct {
 }
 
 // DeleteSessionByID calls DeleteSessionByIDFunc.
-func (mock *authRepositoryMock) DeleteSessionByID(id string) error {
+func (mock *RepositoryMock) DeleteSessionByID(id string) error {
 	if mock.DeleteSessionByIDFunc == nil {
-		panic("authRepositoryMock.DeleteSessionByIDFunc: method is nil but authRepository.DeleteSessionByID was just called")
+		panic("RepositoryMock.DeleteSessionByIDFunc: method is nil but Repository.DeleteSessionByID was just called")
 	}
 	callInfo := struct {
 		ID string
@@ -270,8 +270,8 @@ func (mock *authRepositoryMock) DeleteSessionByID(id string) error {
 // DeleteSessionByIDCalls gets all the calls that were made to DeleteSessionByID.
 // Check the length with:
 //
-//	len(mockedauthRepository.DeleteSessionByIDCalls())
-func (mock *authRepositoryMock) DeleteSessionByIDCalls() []struct {
+//	len(mockedRepository.DeleteSessionByIDCalls())
+func (mock *RepositoryMock) DeleteSessionByIDCalls() []struct {
 	ID string
 } {
 	var calls []struct {
@@ -284,9 +284,9 @@ func (mock *authRepositoryMock) DeleteSessionByIDCalls() []struct {
 }
 
 // DeleteSessionByUserID calls DeleteSessionByUserIDFunc.
-func (mock *authRepositoryMock) DeleteSessionByUserID(id uint) error {
+func (mock *RepositoryMock) DeleteSessionByUserID(id uint) error {
 	if mock.DeleteSessionByUserIDFunc == nil {
-		panic("authRepositoryMock.DeleteSessionByUserIDFunc: method is nil but authRepository.DeleteSessionByUserID was just called")
+		panic("RepositoryMock.DeleteSessionByUserIDFunc: method is nil but Repository.DeleteSessionByUserID was just called")
 	}
 	callInfo := struct {
 		ID uint
@@ -302,8 +302,8 @@ func (mock *authRepositoryMock) DeleteSessionByUserID(id uint) error {
 // DeleteSessionByUserIDCalls gets all the calls that were made to DeleteSessionByUserID.
 // Check the length with:
 //
-//	len(mockedauthRepository.DeleteSessionByUserIDCalls())
-func (mock *authRepositoryMock) DeleteSessionByUserIDCalls() []struct {
+//	len(mockedRepository.DeleteSessionByUserIDCalls())
+func (mock *RepositoryMock) DeleteSessionByUserIDCalls() []struct {
 	ID uint
 } {
 	var calls []struct {
@@ -316,9 +316,9 @@ func (mock *authRepositoryMock) DeleteSessionByUserIDCalls() []struct {
 }
 
 // FindSessionByAccessToken calls FindSessionByAccessTokenFunc.
-func (mock *authRepositoryMock) FindSessionByAccessToken(token string) (*Session, error) {
+func (mock *RepositoryMock) FindSessionByAccessToken(token string) (*Session, error) {
 	if mock.FindSessionByAccessTokenFunc == nil {
-		panic("authRepositoryMock.FindSessionByAccessTokenFunc: method is nil but authRepository.FindSessionByAccessToken was just called")
+		panic("RepositoryMock.FindSessionByAccessTokenFunc: method is nil but Repository.FindSessionByAccessToken was just called")
 	}
 	callInfo := struct {
 		Token string
@@ -334,8 +334,8 @@ func (mock *authRepositoryMock) FindSessionByAccessToken(token string) (*Session
 // FindSessionByAccessTokenCalls gets all the calls that were made to FindSessionByAccessToken.
 // Check the length with:
 //
-//	len(mockedauthRepository.FindSessionByAccessTokenCalls())
-func (mock *authRepositoryMock) FindSessionByAccessTokenCalls() []struct {
+//	len(mockedRepository.FindSessionByAccessTokenCalls())
+func (mock *RepositoryMock) FindSessionByAccessTokenCalls() []struct {
 	Token string
 } {
 	var calls []struct {
@@ -348,9 +348,9 @@ func (mock *authRepositoryMock) FindSessionByAccessTokenCalls() []struct {
 }
 
 // FindSessionByUserID calls FindSessionByUserIDFunc.
-func (mock *authRepositoryMock) FindSessionByUserID(id uint) (*Session, error) {
+func (mock *RepositoryMock) FindSessionByUserID(id uint) (*Session, error) {
 	if mock.FindSessionByUserIDFunc == nil {
-		panic("authRepositoryMock.FindSessionByUserIDFunc: method is nil but authRepository.FindSessionByUserID was just called")
+		panic("RepositoryMock.FindSessionByUserIDFunc: method is nil but Repository.FindSessionByUserID was just called")
 	}
 	callInfo := struct {
 		ID uint
@@ -366,8 +366,8 @@ func (mock *authRepositoryMock) FindSessionByUserID(id uint) (*Session, error) {
 // FindSessionByUserIDCalls gets all the calls that were made to FindSessionByUserID.
 // Check the length with:
 //
-//	len(mockedauthRepository.FindSessionByUserIDCalls())
-func (mock *authRepositoryMock) FindSessionByUserIDCalls() []struct {
+//	len(mockedRepository.FindSessionByUserIDCalls())
+func (mock *RepositoryMock) FindSessionByUserIDCalls() []struct {
 	ID uint
 } {
 	var calls []struct {

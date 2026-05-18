@@ -14,7 +14,7 @@
 - Multi-language support (English, Russian, Ukrainian)
 
 **Technology Stack:**
-- **Go 1.22-1.23** with Chi router
+- **Go 1.26.3** with Chi router
 - **PostgreSQL** via GORM
 - **JWT** authentication
 - **S3/DigitalOcean Spaces** for image storage
@@ -97,7 +97,8 @@ func New(log logger.Logger, repo userRepository, mail mailSender) *Service {
 - **Error Handling**: Always return errors explicitly, never panic
 - **Context Propagation**: Pass context through call chain
 - **Pointer Receivers**: Use for mutating methods
-- **nolint Comments**: Used for complex but necessary functions (`nolint: gocyclo,funlen`)
+- **Linter Directives**: Use `nolint` for complex but necessary functions (`nolint: gocyclo,funlen`)
+- **Security Directives**: Use `#nosec` for gosec false positives with explanatory comments (`#nosec G120 -- explanation`)
 
 ---
 
@@ -230,6 +231,64 @@ Defined in `config/config.go`:
 5. **Role-based Access** - User roles control endpoint access
 6. **Session Management** - UUID-based refresh tokens with expiration
 7. **Password Recovery** - Time-limited codes (3 hours)
+8. **Bounded File Uploads** - MaxBytesReader + bounded ParseMultipartForm (10MB limit)
+9. **Path Traversal Protection** - Multi-layered validation for static asset serving
+
+### File Upload Security
+
+**Location**: `server/handlers/requests/transport/http.go`
+
+```go
+const maxUploadSize = 10 << 20 // 10 MB
+
+// Protect against unbounded uploads
+r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize+512)
+// #nosec G120 -- ParseMultipartForm is bounded by maxUploadSize
+if err := r.ParseMultipartForm(maxUploadSize); err != nil {
+    // handle error
+}
+```
+
+**Key Points:**
+- Always use `http.MaxBytesReader` before parsing multipart forms
+- Define upload size limits as constants
+- Validate file size after parsing: `header.Size > (5 << 20)`
+- Use `#nosec` directives with explanations for false positives
+
+### Path Traversal Protection
+
+**Location**: `server/handlers/ui/transport/http.go`
+
+Multi-layered defense for static asset serving:
+
+```go
+// 1. Clean the path
+cleanFilename := filepath.Clean(filename)
+
+// 2. Reject absolute paths and traversal sequences
+if filepath.IsAbs(cleanFilename) || strings.Contains(cleanFilename, "..") {
+    w.WriteHeader(http.StatusBadRequest)
+    return
+}
+
+// 3. Build safe path
+basePath := filepath.Join("..", "_ui", "guard")
+fullPath := filepath.Join(basePath, folder, cleanFilename)
+
+// 4. Verify resolved path is within base directory
+absBase, _ := filepath.Abs(basePath)
+absFullPath, _ := filepath.Abs(fullPath)
+if !strings.HasPrefix(absFullPath, absBase) {
+    w.WriteHeader(http.StatusBadRequest)
+    return
+}
+```
+
+**Defense Layers:**
+1. Path normalization with `filepath.Clean()`
+2. Explicit rejection of absolute paths
+3. Explicit rejection of paths containing ".."
+4. Absolute path verification using `strings.HasPrefix()`
 
 ### Security Patterns to Follow
 
@@ -239,6 +298,10 @@ Defined in `config/config.go`:
 - **Use prepared statements** (GORM handles this)
 - **Check authorization** before resource access
 - **Hash passwords** immediately on input
+- **Bound all file operations** with size limits
+- **Sanitize file paths** with multi-layered validation
+- **Use #nosec directives** with clear explanations when security tools produce false positives
+- **Always close file handles** with `defer fp.Close()`
 
 ---
 
@@ -340,6 +403,10 @@ When reviewing or writing code, ensure:
 - [ ] GORM used for all database operations
 - [ ] Context propagated through call chain
 - [ ] Code passes `make lint`
+- [ ] File uploads are bounded with MaxBytesReader
+- [ ] File paths are sanitized to prevent path traversal
+- [ ] File handles closed with defer
+- [ ] #nosec directives include explanatory comments
 
 ---
 
@@ -466,7 +533,23 @@ When working with this codebase:
 6. **Generate mocks** - After changing interfaces (`make gen`)
 7. **Update schema.sql** - When adding database tables/columns
 8. **Follow existing patterns** - Consistency is key in this codebase
-9. **Security first** - Validate input, sanitize output, hash passwords
+9. **Security first** - Validate input, sanitize output, hash passwords, bound file operations, sanitize paths
 10. **Document breaking changes** - API changes affect clients
+11. **File handling** - Always use MaxBytesReader, close file handles, validate paths
+12. **Gosec compliance** - Add #nosec directives with explanations for false positives
+
+### Security Checklist for New Code
+
+When adding file handling:
+- [ ] Use `http.MaxBytesReader` before parsing multipart forms
+- [ ] Define size limits as constants
+- [ ] Validate file size after parsing
+- [ ] Close file handles with `defer fp.Close()`
+
+When serving static files or handling user-provided paths:
+- [ ] Clean paths with `filepath.Clean()`
+- [ ] Reject absolute paths with `filepath.IsAbs()`
+- [ ] Reject paths containing `..`
+- [ ] Verify resolved path is within base directory
 
 When adding features, reference existing handlers (e.g., `users`, `requests`) as templates for structure and patterns.

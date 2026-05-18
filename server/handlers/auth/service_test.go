@@ -1,14 +1,15 @@
-package auth
+package auth_test
 
 import (
 	"context"
 	"errors"
-	"io/ioutil"
+	"io"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/ivch/dynasty/common/logger"
+	"github.com/ivch/dynasty/server/handlers/auth"
 	"github.com/ivch/dynasty/server/handlers/users/transport"
 )
 
@@ -18,22 +19,25 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	defaultLogger = logger.NewStdLog(logger.WithWriter(ioutil.Discard))
+	defaultLogger = logger.NewStdLog(logger.WithWriter(io.Discard))
 	os.Exit(m.Run())
 }
 
 func TestService_Gwfa(t *testing.T) {
 	var (
+		// #nosec G101 -- test data
 		invalidToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJRCI6MTksIk5hbWUiOiJhIGIiLCJSb2xlIjo0LCJhdWQiOiJkeW5hcHAiLCJleHAiOjE2MDU4MDYxNDcsImlhdCI6MTYwNTcxOTc0NywiaXNzIjoiYXV0aC5keW5hcHAifQ.5VFdapEz5DYdWJkBausjNL7vgVJXJ96KKHmlXsGgQy4`
-		validToken   = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJRCI6MTAsIk5hbWUiOiJKYW5lIERvZSIsIlJvbGUiOjEwLCJhdWQiOiJkeW5hcHAiLCJleHAiOjc4ODg0NTQ4MDgsImlhdCI6MTU4MTI1NDgwOCwiaXNzIjoiYXV0aC5keW5hcHAifQ.Wzh9zsGSFEBVOWPLHzwfRcKiFQ9GJDbcFs8lE4X-Ha4`
-		expired      = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJRCI6MTksIk5hbWUiOiJhIGIiLCJSb2xlIjo0LCJhdWQiOiJkeW5hcHAiLCJleHAiOjE2MDU2MzM1NjUsImlhdCI6MTYwNTcxOTk2NSwiaXNzIjoiYXV0aC5keW5hcHAifQ.x23MsR9bxzuxUcMUNajgX8MA085fO1yhcUKEUrYSr8Y`
+		// #nosec G101 -- test data
+		validToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJRCI6MTAsIk5hbWUiOiJKYW5lIERvZSIsIlJvbGUiOjEwLCJhdWQiOiJkeW5hcHAiLCJleHAiOjc4ODg0NTQ4MDgsImlhdCI6MTU4MTI1NDgwOCwiaXNzIjoiYXV0aC5keW5hcHAifQ.Wzh9zsGSFEBVOWPLHzwfRcKiFQ9GJDbcFs8lE4X-Ha4`
+		// #nosec G101 -- test data
+		expired = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJRCI6MTksIk5hbWUiOiJhIGIiLCJSb2xlIjo0LCJhdWQiOiJkeW5hcHAiLCJleHAiOjE2MDU2MzM1NjUsImlhdCI6MTYwNTcxOTk2NSwiaXNzIjoiYXV0aC5keW5hcHAifQ.x23MsR9bxzuxUcMUNajgX8MA085fO1yhcUKEUrYSr8Y`
 	)
 
 	tests := []struct {
 		name    string
 		secret  string
 		token   string
-		repo    authRepository
+		repo    auth.Repository
 		wantErr bool
 		want    uint
 	}{
@@ -60,8 +64,8 @@ func TestService_Gwfa(t *testing.T) {
 		{
 			name:  "error no session",
 			token: validToken,
-			repo: &authRepositoryMock{
-				FindSessionByUserIDFunc: func(_ uint) (*Session, error) {
+			repo: &auth.RepositoryMock{
+				FindSessionByUserIDFunc: func(_ uint) (*auth.Session, error) {
 					return nil, errTestError
 				},
 			},
@@ -72,9 +76,9 @@ func TestService_Gwfa(t *testing.T) {
 			name:   "ok",
 			token:  validToken,
 			secret: "covabunga",
-			repo: &authRepositoryMock{
-				FindSessionByUserIDFunc: func(_ uint) (*Session, error) {
-					return &Session{
+			repo: &auth.RepositoryMock{
+				FindSessionByUserIDFunc: func(_ uint) (*auth.Session, error) {
+					return &auth.Session{
 						UserID: 10,
 					}, nil
 				},
@@ -86,7 +90,7 @@ func TestService_Gwfa(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.repo, nil, tt.secret)
+			s := auth.New(defaultLogger, tt.repo, nil, tt.secret)
 			got, err := s.Gwfa(tt.token)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Gwfa() error = %v, wantErr %v", err, tt.wantErr)
@@ -101,8 +105,8 @@ func TestService_Gwfa(t *testing.T) {
 
 func TestService_Refresh(t *testing.T) {
 	type fields struct {
-		repo authRepository
-		usrv userService
+		repo auth.Repository
+		usrv auth.UserService
 		req  string
 	}
 
@@ -110,13 +114,13 @@ func TestService_Refresh(t *testing.T) {
 		name    string
 		fields  fields
 		wantErr bool
-		want    *Tokens
+		want    *auth.Tokens
 	}{
 		{
 			name: "error no session",
 			fields: fields{
-				repo: &authRepositoryMock{
-					FindSessionByAccessTokenFunc: func(t string) (*Session, error) {
+				repo: &auth.RepositoryMock{
+					FindSessionByAccessTokenFunc: func(t string) (*auth.Session, error) {
 						return nil, errTestError
 					},
 				},
@@ -127,9 +131,9 @@ func TestService_Refresh(t *testing.T) {
 		{
 			name: "error on session delete",
 			fields: fields{
-				repo: &authRepositoryMock{
-					FindSessionByAccessTokenFunc: func(t string) (*Session, error) {
-						return &Session{ID: "1"}, nil
+				repo: &auth.RepositoryMock{
+					FindSessionByAccessTokenFunc: func(t string) (*auth.Session, error) {
+						return &auth.Session{ID: "1"}, nil
 					},
 					DeleteSessionByIDFunc: func(_ string) error {
 						return errTestError
@@ -142,9 +146,9 @@ func TestService_Refresh(t *testing.T) {
 		{
 			name: "error expired token",
 			fields: fields{
-				repo: &authRepositoryMock{
-					FindSessionByAccessTokenFunc: func(t string) (*Session, error) {
-						return &Session{
+				repo: &auth.RepositoryMock{
+					FindSessionByAccessTokenFunc: func(t string) (*auth.Session, error) {
+						return &auth.Session{
 							ID:        "1",
 							ExpiresIn: time.Now().Add(-1 * time.Minute).Unix(),
 						}, nil
@@ -160,9 +164,9 @@ func TestService_Refresh(t *testing.T) {
 		{
 			name: "error finding user",
 			fields: fields{
-				repo: &authRepositoryMock{
-					FindSessionByAccessTokenFunc: func(t string) (*Session, error) {
-						return &Session{
+				repo: &auth.RepositoryMock{
+					FindSessionByAccessTokenFunc: func(t string) (*auth.Session, error) {
+						return &auth.Session{
 							ID:        "1",
 							ExpiresIn: time.Now().Add(10 * time.Minute).Unix(),
 						}, nil
@@ -171,7 +175,7 @@ func TestService_Refresh(t *testing.T) {
 						return nil
 					},
 				},
-				usrv: &userServiceMock{
+				usrv: &auth.UserServiceMock{
 					UserByIDFunc: func(_ context.Context, _ uint) (*transport.UserByIDResponse, error) {
 						return nil, errTestError
 					},
@@ -183,9 +187,9 @@ func TestService_Refresh(t *testing.T) {
 		{
 			name: "error creating session",
 			fields: fields{
-				repo: &authRepositoryMock{
-					FindSessionByAccessTokenFunc: func(t string) (*Session, error) {
-						return &Session{
+				repo: &auth.RepositoryMock{
+					FindSessionByAccessTokenFunc: func(t string) (*auth.Session, error) {
+						return &auth.Session{
 							ID:        "1",
 							ExpiresIn: time.Now().Add(10 * time.Minute).Unix(),
 							UserID:    1,
@@ -198,7 +202,7 @@ func TestService_Refresh(t *testing.T) {
 						return "", errTestError
 					},
 				},
-				usrv: &userServiceMock{
+				usrv: &auth.UserServiceMock{
 					UserByIDFunc: func(_ context.Context, _ uint) (*transport.UserByIDResponse, error) {
 						return nil, nil
 					},
@@ -210,9 +214,9 @@ func TestService_Refresh(t *testing.T) {
 		{
 			name: "ok",
 			fields: fields{
-				repo: &authRepositoryMock{
-					FindSessionByAccessTokenFunc: func(t string) (*Session, error) {
-						return &Session{
+				repo: &auth.RepositoryMock{
+					FindSessionByAccessTokenFunc: func(t string) (*auth.Session, error) {
+						return &auth.Session{
 							ID:        "1",
 							ExpiresIn: time.Now().Add(10 * time.Minute).Unix(),
 							UserID:    1,
@@ -225,7 +229,7 @@ func TestService_Refresh(t *testing.T) {
 						return "refresh_token", nil
 					},
 				},
-				usrv: &userServiceMock{
+				usrv: &auth.UserServiceMock{
 					UserByIDFunc: func(_ context.Context, _ uint) (*transport.UserByIDResponse, error) {
 						return &transport.UserByIDResponse{
 							ID:        1,
@@ -242,7 +246,7 @@ func TestService_Refresh(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.fields.repo, tt.fields.usrv, "secret")
+			s := auth.New(defaultLogger, tt.fields.repo, tt.fields.usrv, "secret")
 			got, err := s.Refresh(context.Background(), tt.fields.req)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Refresh() error = %v, wantErr %v", err, tt.wantErr)
@@ -257,8 +261,8 @@ func TestService_Refresh(t *testing.T) {
 
 func TestService_Login(t *testing.T) {
 	type fields struct {
-		usrv userService
-		repo authRepository
+		usrv auth.UserService
+		repo auth.Repository
 		req  [2]string
 	}
 
@@ -270,7 +274,7 @@ func TestService_Login(t *testing.T) {
 		{
 			name: "error no user",
 			fields: fields{
-				usrv: &userServiceMock{
+				usrv: &auth.UserServiceMock{
 					UserByPhoneAndPasswordFunc: func(_ context.Context, _ string, _ string) (*transport.UserByIDResponse, error) {
 						return nil, errTestError
 					},
@@ -282,12 +286,12 @@ func TestService_Login(t *testing.T) {
 		{
 			name: "error on inactive user",
 			fields: fields{
-				usrv: &userServiceMock{
+				usrv: &auth.UserServiceMock{
 					UserByPhoneAndPasswordFunc: func(_ context.Context, _ string, _ string) (*transport.UserByIDResponse, error) {
 						return &transport.UserByIDResponse{ID: 1, Active: false}, nil
 					},
 				},
-				repo: &authRepositoryMock{
+				repo: &auth.RepositoryMock{
 					CreateSessionFunc: func(_ uint) (string, error) {
 						return "", errTestError
 					},
@@ -299,12 +303,12 @@ func TestService_Login(t *testing.T) {
 		{
 			name: "error on create session",
 			fields: fields{
-				usrv: &userServiceMock{
+				usrv: &auth.UserServiceMock{
 					UserByPhoneAndPasswordFunc: func(_ context.Context, _ string, _ string) (*transport.UserByIDResponse, error) {
 						return &transport.UserByIDResponse{ID: 1, Active: true}, nil
 					},
 				},
-				repo: &authRepositoryMock{
+				repo: &auth.RepositoryMock{
 					CreateSessionFunc: func(_ uint) (string, error) {
 						return "", errTestError
 					},
@@ -316,12 +320,12 @@ func TestService_Login(t *testing.T) {
 		{
 			name: "ok",
 			fields: fields{
-				usrv: &userServiceMock{
+				usrv: &auth.UserServiceMock{
 					UserByPhoneAndPasswordFunc: func(_ context.Context, _ string, _ string) (*transport.UserByIDResponse, error) {
 						return &transport.UserByIDResponse{ID: 1, Role: 1, FirstName: "Jane", LastName: "Doe", Active: true}, nil
 					},
 				},
-				repo: &authRepositoryMock{
+				repo: &auth.RepositoryMock{
 					CreateSessionFunc: func(_ uint) (string, error) {
 						return "token", nil
 					},
@@ -333,7 +337,7 @@ func TestService_Login(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.fields.repo, tt.fields.usrv, "secret")
+			s := auth.New(defaultLogger, tt.fields.repo, tt.fields.usrv, "secret")
 			_, err := s.Login(context.Background(), tt.fields.req[0], tt.fields.req[1])
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Login() error = %v, wantErr %v", err, tt.wantErr)
@@ -345,8 +349,8 @@ func TestService_Login(t *testing.T) {
 
 func TestService_Logout(t *testing.T) {
 	type fields struct {
-		usrv userService
-		repo authRepository
+		usrv auth.UserService
+		repo auth.Repository
 	}
 
 	tests := []struct {
@@ -358,7 +362,7 @@ func TestService_Logout(t *testing.T) {
 		{
 			name: "error no user",
 			fields: fields{
-				usrv: &userServiceMock{
+				usrv: &auth.UserServiceMock{
 					UserByIDFunc: func(_ context.Context, _ uint) (*transport.UserByIDResponse, error) {
 						return nil, errTestError
 					},
@@ -370,12 +374,12 @@ func TestService_Logout(t *testing.T) {
 		{
 			name: "error delete session",
 			fields: fields{
-				usrv: &userServiceMock{
+				usrv: &auth.UserServiceMock{
 					UserByIDFunc: func(_ context.Context, _ uint) (*transport.UserByIDResponse, error) {
 						return nil, nil
 					},
 				},
-				repo: &authRepositoryMock{
+				repo: &auth.RepositoryMock{
 					DeleteSessionByUserIDFunc: func(_ uint) error {
 						return errTestError
 					},
@@ -387,12 +391,12 @@ func TestService_Logout(t *testing.T) {
 		{
 			name: "ok",
 			fields: fields{
-				usrv: &userServiceMock{
+				usrv: &auth.UserServiceMock{
 					UserByIDFunc: func(_ context.Context, _ uint) (*transport.UserByIDResponse, error) {
 						return nil, nil
 					},
 				},
-				repo: &authRepositoryMock{
+				repo: &auth.RepositoryMock{
 					DeleteSessionByUserIDFunc: func(_ uint) error {
 						return nil
 					},
@@ -404,7 +408,7 @@ func TestService_Logout(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.fields.repo, tt.fields.usrv, "secret")
+			s := auth.New(defaultLogger, tt.fields.repo, tt.fields.usrv, "secret")
 			err := s.Logout(context.Background(), tt.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Login() error = %v, wantErr %v", err, tt.wantErr)

@@ -1,4 +1,4 @@
-package middlewares
+package middlewares_test
 
 type loggerCallArgs struct {
 	f string

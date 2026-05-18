@@ -14,8 +14,8 @@ func (c contextKey) String() string {
 }
 
 const (
-	userIDHeader contextKey = "X-Auth-User"
-	userIDCtxKey contextKey = "userID"
+	UserIDHeader contextKey = "X-Auth-User"
+	UserIDCtxKey contextKey = "userID"
 )
 
 func NewIDCtx(log logger.Logger) *IDCtx { return &IDCtx{log: log} }
@@ -27,23 +27,23 @@ type IDCtx struct {
 func (m *IDCtx) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		if v := r.Header.Get(userIDHeader.String()); v != "" {
-			ctx = context.WithValue(r.Context(), userIDCtxKey, v)
+		if v := r.Header.Get(UserIDHeader.String()); v != "" {
+			ctx = context.WithValue(r.Context(), UserIDCtxKey, v)
 		}
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
 func UserIDToCTX(ctx context.Context, r *http.Request) context.Context {
-	if v := r.Header.Get(userIDHeader.String()); v != "" {
-		ctx = context.WithValue(ctx, userIDCtxKey, v)
+	if v := r.Header.Get(UserIDHeader.String()); v != "" {
+		ctx = context.WithValue(ctx, UserIDCtxKey, v)
 	}
 
 	return ctx
 }
 
 func UserIDFromContext(ctx context.Context) (string, bool) {
-	v := ctx.Value(userIDCtxKey)
+	v := ctx.Value(UserIDCtxKey)
 	if v == nil {
 		return "", false
 	}

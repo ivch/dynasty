@@ -1,9 +1,9 @@
-package transport
+package transport_test
 
 import (
 	"context"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -12,6 +12,7 @@ import (
 
 	"github.com/ivch/dynasty/common/logger"
 	"github.com/ivch/dynasty/server/handlers/auth"
+	"github.com/ivch/dynasty/server/handlers/auth/transport"
 	"github.com/ivch/dynasty/server/middlewares"
 )
 
@@ -21,7 +22,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	defaultLogger = logger.NewStdLog(logger.WithWriter(ioutil.Discard))
+	defaultLogger = logger.NewStdLog(logger.WithWriter(io.Discard))
 	os.Exit(m.Run())
 }
 
@@ -29,7 +30,7 @@ func TestHTTP_Login(t *testing.T) {
 	tests := []struct {
 		name     string
 		request  string
-		svc      AuthService
+		svc      transport.AuthService
 		wantErr  bool
 		wantCode int
 		want     string
@@ -61,7 +62,7 @@ func TestHTTP_Login(t *testing.T) {
 		{
 			name:    "error service error",
 			request: `{"password":"123456", "phone":"123123123123"}`,
-			svc: &AuthServiceMock{
+			svc: &transport.AuthServiceMock{
 				LoginFunc: func(_ context.Context, _, _ string) (*auth.Tokens, error) {
 					return nil, errTestError
 				},
@@ -72,7 +73,7 @@ func TestHTTP_Login(t *testing.T) {
 		{
 			name:    "ok",
 			request: `{"password":"123456", "phone":"123123123123"}`,
-			svc: &AuthServiceMock{
+			svc: &transport.AuthServiceMock{
 				LoginFunc: func(_ context.Context, _, _ string) (*auth.Tokens, error) {
 					return &auth.Tokens{
 						AccessToken:  "at",
@@ -89,9 +90,9 @@ func TestHTTP_Login(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := NewHTTPTransport(defaultLogger, svc, middlewares.NewIDCtx(defaultLogger).Middleware)
+			h := transport.NewHTTPTransport(defaultLogger, svc, middlewares.NewIDCtx(defaultLogger).Middleware)
 			rr := httptest.NewRecorder()
-			rq, _ := http.NewRequest("POST", "/v1/login", strings.NewReader(tt.request))
+			rq, _ := http.NewRequest(http.MethodPost, "/v1/login", strings.NewReader(tt.request))
 			h.ServeHTTP(rr, rq)
 			if (rr.Code != tt.wantCode) && tt.wantErr {
 				t.Errorf("Request error. status = %d, wantCode = %d, wantErr %v", rr.Code, tt.wantCode, tt.wantErr)
@@ -107,7 +108,7 @@ func TestHTTP_Refresh(t *testing.T) {
 	tests := []struct {
 		name     string
 		request  string
-		svc      AuthService
+		svc      transport.AuthService
 		wantErr  bool
 		wantCode int
 		want     string
@@ -133,7 +134,7 @@ func TestHTTP_Refresh(t *testing.T) {
 		{
 			name:    "error service error",
 			request: `{"token":"d3ffebcf-1cec-441b-93d6-a984b7647d48"}`,
-			svc: &AuthServiceMock{
+			svc: &transport.AuthServiceMock{
 				RefreshFunc: func(_ context.Context, _ string) (*auth.Tokens, error) {
 					return nil, errTestError
 				},
@@ -144,7 +145,7 @@ func TestHTTP_Refresh(t *testing.T) {
 		{
 			name:    "ok",
 			request: `{"token":"d3ffebcf-1cec-441b-93d6-a984b7647d48"}`,
-			svc: &AuthServiceMock{
+			svc: &transport.AuthServiceMock{
 				RefreshFunc: func(_ context.Context, _ string) (*auth.Tokens, error) {
 					return &auth.Tokens{
 						AccessToken:  "at",
@@ -161,9 +162,9 @@ func TestHTTP_Refresh(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := NewHTTPTransport(defaultLogger, svc, middlewares.NewIDCtx(defaultLogger).Middleware)
+			h := transport.NewHTTPTransport(defaultLogger, svc, middlewares.NewIDCtx(defaultLogger).Middleware)
 			rr := httptest.NewRecorder()
-			rq, _ := http.NewRequest("POST", "/v1/refresh", strings.NewReader(tt.request))
+			rq, _ := http.NewRequest(http.MethodPost, "/v1/refresh", strings.NewReader(tt.request))
 			h.ServeHTTP(rr, rq)
 			if (rr.Code != tt.wantCode) && tt.wantErr {
 				t.Errorf("Request error. status = %d, wantCode = %d, wantErr %v", rr.Code, tt.wantCode, tt.wantErr)
@@ -179,7 +180,7 @@ func TestHTTP_Gwfa(t *testing.T) {
 	tests := []struct {
 		name     string
 		header   string
-		svc      AuthService
+		svc      transport.AuthService
 		wantErr  bool
 		wantCode int
 		want     string
@@ -193,7 +194,7 @@ func TestHTTP_Gwfa(t *testing.T) {
 		{
 			name:   "error service error",
 			header: "Bearer token",
-			svc: &AuthServiceMock{
+			svc: &transport.AuthServiceMock{
 				GwfaFunc: func(string) (uint, error) {
 					return 0, errTestError
 				},
@@ -204,7 +205,7 @@ func TestHTTP_Gwfa(t *testing.T) {
 		{
 			name:   "ok",
 			header: "Bearer token",
-			svc: &AuthServiceMock{
+			svc: &transport.AuthServiceMock{
 				GwfaFunc: func(string) (uint, error) {
 					return 1, nil
 				},
@@ -218,9 +219,9 @@ func TestHTTP_Gwfa(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := NewHTTPTransport(defaultLogger, svc, middlewares.NewIDCtx(defaultLogger).Middleware)
+			h := transport.NewHTTPTransport(defaultLogger, svc, middlewares.NewIDCtx(defaultLogger).Middleware)
 			rr := httptest.NewRecorder()
-			rq, _ := http.NewRequest("GET", "/v1/gwfa", nil)
+			rq, _ := http.NewRequest(http.MethodGet, "/v1/gwfa", nil)
 			rq.Header.Add("Authorization", tt.header)
 			h.ServeHTTP(rr, rq)
 			if (rr.Code != tt.wantCode) && tt.wantErr {
@@ -240,7 +241,7 @@ func TestHTTP_Logout(t *testing.T) {
 	tests := []struct {
 		name     string
 		header   string
-		svc      AuthService
+		svc      transport.AuthService
 		wantErr  bool
 		wantCode int
 		want     string
@@ -265,7 +266,7 @@ func TestHTTP_Logout(t *testing.T) {
 		{
 			name:   "error service error",
 			header: "1",
-			svc: &AuthServiceMock{
+			svc: &transport.AuthServiceMock{
 				LogoutFunc: func(_ context.Context, _ uint) error {
 					return errTestError
 				},
@@ -276,7 +277,7 @@ func TestHTTP_Logout(t *testing.T) {
 		{
 			name:   "ok",
 			header: "1",
-			svc: &AuthServiceMock{
+			svc: &transport.AuthServiceMock{
 				LogoutFunc: func(_ context.Context, _ uint) error {
 					return nil
 				},
@@ -289,9 +290,9 @@ func TestHTTP_Logout(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := NewHTTPTransport(defaultLogger, svc, middlewares.NewIDCtx(defaultLogger).Middleware)
+			h := transport.NewHTTPTransport(defaultLogger, svc, middlewares.NewIDCtx(defaultLogger).Middleware)
 			rr := httptest.NewRecorder()
-			rq, _ := http.NewRequest("GET", "/v1/logout", nil)
+			rq, _ := http.NewRequest(http.MethodGet, "/v1/logout", nil)
 			rq.Header.Add("X-Auth-User", tt.header)
 			h.ServeHTTP(rr, rq)
 			if (rr.Code != tt.wantCode) && tt.wantErr {

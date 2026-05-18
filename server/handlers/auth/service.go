@@ -11,12 +11,12 @@ import (
 	users "github.com/ivch/dynasty/server/handlers/users/transport"
 )
 
-type userService interface {
+type UserService interface {
 	UserByPhoneAndPassword(ctx context.Context, phone, password string) (*users.UserByIDResponse, error)
 	UserByID(ctx context.Context, id uint) (*users.UserByIDResponse, error)
 }
 
-type authRepository interface {
+type Repository interface {
 	CreateSession(userID uint) (string, error)
 	FindSessionByAccessToken(token string) (*Session, error)
 	DeleteSessionByID(id string) error
@@ -26,12 +26,12 @@ type authRepository interface {
 
 type Service struct {
 	log       logger.Logger
-	uSrv      userService
-	repo      authRepository
+	uSrv      UserService
+	repo      Repository
 	jwtSecret string
 }
 
-func New(log logger.Logger, repo authRepository, uSrv userService, jwtSecret string) *Service {
+func New(log logger.Logger, repo Repository, uSrv UserService, jwtSecret string) *Service {
 	s := Service{
 		log:       log,
 		repo:      repo,
