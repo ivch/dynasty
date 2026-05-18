@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 
 	"github.com/ivch/dynasty/common/errs"
 	"github.com/ivch/dynasty/common/logger"
@@ -191,12 +191,12 @@ func (h *HTTPTransport) sendHTTPResponse(_ context.Context, w http.ResponseWrite
 	}
 }
 
-func (h *HTTPTransport) sendError(w http.ResponseWriter, httpCode int, error error) {
+func (h *HTTPTransport) sendError(w http.ResponseWriter, httpCode int, err error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(httpCode)
 
-	if error == nil {
-		error = errs.Generic
+	if err == nil {
+		err = errs.Generic
 	}
 
 	var (
@@ -204,13 +204,13 @@ func (h *HTTPTransport) sendError(w http.ResponseWriter, httpCode int, error err
 		ua string
 	)
 
-	if e, ok := error.(errs.SvcError); ok {
+	if e, ok := err.(errs.SvcError); ok {
 		ru, ua = e.Ru, e.Ua
 	}
 
 	res := errorResponse{
-		ErrorCode: errs.Code(error),
-		Error:     error.Error(),
+		ErrorCode: errs.Code(err),
+		Error:     err.Error(),
 		Ru:        ru,
 		Ua:        ua,
 	}

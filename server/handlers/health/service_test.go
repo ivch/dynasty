@@ -1,15 +1,17 @@
-package health
+package health_test
 
 import (
 	"context"
 	"errors"
 	"testing"
 	"time"
+
+	"github.com/ivch/dynasty/server/handlers/health"
 )
 
 func TestMultiChecker_Health(t *testing.T) {
 	type tcase struct {
-		checkers []Checker
+		checkers []health.Checker
 		want     error
 	}
 	tests := map[string]tcase{
@@ -18,14 +20,14 @@ func TestMultiChecker_Health(t *testing.T) {
 			want:     nil,
 		},
 		"Nil error": {
-			checkers: []Checker{
+			checkers: []health.Checker{
 				&testChecker{HealthFunc: func(ctx context.Context) error { return nil }},
 				&testChecker{HealthFunc: func(ctx context.Context) error { return nil }},
 			},
 			want: nil,
 		},
 		"Non nil error": {
-			checkers: []Checker{
+			checkers: []health.Checker{
 				&testChecker{HealthFunc: func(ctx context.Context) error { return errTest }},
 				&testChecker{HealthFunc: func(ctx context.Context) error { return nil }},
 			},
@@ -34,7 +36,7 @@ func TestMultiChecker_Health(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			c := NewMultiChecker(tc.checkers...)
+			c := health.NewMultiChecker(tc.checkers...)
 			if err := c.Health(context.Background()); err != tc.want {
 				t.Errorf("Health() error = %v, want %v", err, tc.want)
 			}
@@ -43,7 +45,7 @@ func TestMultiChecker_Health(t *testing.T) {
 }
 
 func TestMultiChecker_HealthDone(t *testing.T) {
-	c := NewMultiChecker(&testChecker{
+	c := health.NewMultiChecker(&testChecker{
 		HealthFunc: func(ctx context.Context) error { return nil }})
 	waitExit := make(chan struct{})
 	ctx, cancel := context.WithCancel(context.Background())

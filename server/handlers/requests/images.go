@@ -10,6 +10,7 @@ import (
 	"image/jpeg"
 	"net/http"
 	"path/filepath"
+	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -30,9 +31,9 @@ func (s *Service) UploadImage(_ context.Context, r *Image) (*Image, error) {
 	}
 
 	var (
-		filename     = fmt.Sprintf("%s:%s.jpg", base64.StdEncoding.EncodeToString([]byte(fmt.Sprint(r.UserID))), common.RandomString(25))
-		imgPath      = s.buildImagePath(imgPathPrefix, filename)
-		imgThumbPath = s.buildImagePath(thumbPathPrefix, filename)
+		filename     = fmt.Sprintf("%s:%s.jpg", base64.StdEncoding.EncodeToString([]byte(strconv.FormatUint(uint64(r.UserID), 10))), common.RandomString(25))
+		imgPath      = s.buildImagePath(ImgPathPrefix, filename)
+		imgThumbPath = s.buildImagePath(ThumbPathPrefix, filename)
 		fileType     = http.DetectContentType(r.File)
 	)
 
@@ -80,9 +81,9 @@ func (s *Service) UploadImage(_ context.Context, r *Image) (*Image, error) {
 		return nil, err
 	}
 
-	imgUrl := s.buildImageURL(filename)
-	r.URL = imgUrl["img"]
-	r.Thumb = imgUrl["thumb"]
+	imgURL := s.buildImageURL(filename)
+	r.URL = imgURL["img"]
+	r.Thumb = imgURL["thumb"]
 
 	return r, nil
 }
@@ -126,8 +127,8 @@ func (s *Service) createThumbnail(file []byte) ([]byte, error) {
 
 func (s *Service) buildImageURL(filename string) map[string]string {
 	return map[string]string{
-		"img":   fmt.Sprintf("%s/%s", s.cdnHost, s.buildImagePath(imgPathPrefix, filename)),
-		"thumb": fmt.Sprintf("%s/%s", s.cdnHost, s.buildImagePath(thumbPathPrefix, filename)),
+		"img":   fmt.Sprintf("%s/%s", s.cdnHost, s.buildImagePath(ImgPathPrefix, filename)),
+		"thumb": fmt.Sprintf("%s/%s", s.cdnHost, s.buildImagePath(ThumbPathPrefix, filename)),
 	}
 }
 
@@ -136,7 +137,7 @@ func (s *Service) buildImagePath(prefix, filename string) string {
 }
 
 func (s *Service) deleteImageFromS3(filename string) error {
-	img := s.buildImagePath(imgPathPrefix, filename)
+	img := s.buildImagePath(ImgPathPrefix, filename)
 	if _, err := s.s3Client.DeleteObject(&s3.DeleteObjectInput{
 		Bucket: aws.String(s.s3Space),
 		Key:    aws.String(img),
@@ -144,7 +145,7 @@ func (s *Service) deleteImageFromS3(filename string) error {
 		return fmt.Errorf("failed to delete image %s: %w", img, err)
 	}
 
-	thumb := s.buildImagePath(thumbPathPrefix, filename)
+	thumb := s.buildImagePath(ThumbPathPrefix, filename)
 	if _, err := s.s3Client.DeleteObject(&s3.DeleteObjectInput{
 		Bucket: aws.String(s.s3Space),
 		Key:    aws.String(thumb),

@@ -7,16 +7,16 @@ import (
 	"sync"
 )
 
-// Ensure, that dictRepositoryMock does implement dictRepository.
+// Ensure, that DictRepositoryMock does implement DictRepository.
 // If this is not the case, regenerate this file with moq.
-var _ dictRepository = &dictRepositoryMock{}
+var _ DictRepository = &DictRepositoryMock{}
 
-// dictRepositoryMock is a mock implementation of dictRepository.
+// DictRepositoryMock is a mock implementation of DictRepository.
 //
-//	func TestSomethingThatUsesdictRepository(t *testing.T) {
+//	func TestSomethingThatUsesDictRepository(t *testing.T) {
 //
-//		// make and configure a mocked dictRepository
-//		mockeddictRepository := &dictRepositoryMock{
+//		// make and configure a mocked DictRepository
+//		mockedDictRepository := &DictRepositoryMock{
 //			BuildingsListFunc: func() ([]*Building, error) {
 //				panic("mock out the BuildingsList method")
 //			},
@@ -25,11 +25,11 @@ var _ dictRepository = &dictRepositoryMock{}
 //			},
 //		}
 //
-//		// use mockeddictRepository in code that requires dictRepository
+//		// use mockedDictRepository in code that requires DictRepository
 //		// and then make assertions.
 //
 //	}
-type dictRepositoryMock struct {
+type DictRepositoryMock struct {
 	// BuildingsListFunc mocks the BuildingsList method.
 	BuildingsListFunc func() ([]*Building, error)
 
@@ -52,9 +52,9 @@ type dictRepositoryMock struct {
 }
 
 // BuildingsList calls BuildingsListFunc.
-func (mock *dictRepositoryMock) BuildingsList() ([]*Building, error) {
+func (mock *DictRepositoryMock) BuildingsList() ([]*Building, error) {
 	if mock.BuildingsListFunc == nil {
-		panic("dictRepositoryMock.BuildingsListFunc: method is nil but dictRepository.BuildingsList was just called")
+		panic("DictRepositoryMock.BuildingsListFunc: method is nil but DictRepository.BuildingsList was just called")
 	}
 	callInfo := struct {
 	}{}
@@ -67,8 +67,8 @@ func (mock *dictRepositoryMock) BuildingsList() ([]*Building, error) {
 // BuildingsListCalls gets all the calls that were made to BuildingsList.
 // Check the length with:
 //
-//	len(mockeddictRepository.BuildingsListCalls())
-func (mock *dictRepositoryMock) BuildingsListCalls() []struct {
+//	len(mockedDictRepository.BuildingsListCalls())
+func (mock *DictRepositoryMock) BuildingsListCalls() []struct {
 } {
 	var calls []struct {
 	}
@@ -79,9 +79,9 @@ func (mock *dictRepositoryMock) BuildingsListCalls() []struct {
 }
 
 // EntriesByBuilding calls EntriesByBuildingFunc.
-func (mock *dictRepositoryMock) EntriesByBuilding(id uint) ([]*Entry, error) {
+func (mock *DictRepositoryMock) EntriesByBuilding(id uint) ([]*Entry, error) {
 	if mock.EntriesByBuildingFunc == nil {
-		panic("dictRepositoryMock.EntriesByBuildingFunc: method is nil but dictRepository.EntriesByBuilding was just called")
+		panic("DictRepositoryMock.EntriesByBuildingFunc: method is nil but DictRepository.EntriesByBuilding was just called")
 	}
 	callInfo := struct {
 		ID uint
@@ -97,8 +97,8 @@ func (mock *dictRepositoryMock) EntriesByBuilding(id uint) ([]*Entry, error) {
 // EntriesByBuildingCalls gets all the calls that were made to EntriesByBuilding.
 // Check the length with:
 //
-//	len(mockeddictRepository.EntriesByBuildingCalls())
-func (mock *dictRepositoryMock) EntriesByBuildingCalls() []struct {
+//	len(mockedDictRepository.EntriesByBuildingCalls())
+func (mock *DictRepositoryMock) EntriesByBuildingCalls() []struct {
 	ID uint
 } {
 	var calls []struct {

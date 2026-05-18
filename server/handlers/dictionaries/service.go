@@ -6,17 +6,17 @@ import (
 	"github.com/ivch/dynasty/common/logger"
 )
 
-type dictRepository interface {
+type DictRepository interface {
 	BuildingsList() ([]*Building, error)
 	EntriesByBuilding(id uint) ([]*Entry, error)
 }
 
 type Service struct {
 	log  logger.Logger
-	repo dictRepository
+	repo DictRepository
 }
 
-func New(log logger.Logger, repo dictRepository) *Service {
+func New(log logger.Logger, repo DictRepository) *Service {
 	s := Service{
 		log:  log,
 		repo: repo,

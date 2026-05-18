@@ -1,4 +1,4 @@
-package logger
+package logger_test
 
 import (
 	"bytes"
@@ -6,19 +6,21 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/ivch/dynasty/common/logger"
 )
 
 func TestLevel_String(t *testing.T) {
 	type tcase struct {
-		l    Level
+		l    logger.Level
 		want string
 	}
 	tests := map[string]tcase{
-		"Disabled": {DSB, "Disabled"},
-		"Error":    {ERR, "Error"},
-		"Info":     {INF, "Info"},
-		"Warning":  {WRN, "Warning"},
-		"Debug":    {DBG, "Debug"},
+		"Disabled": {logger.DSB, "Disabled"},
+		"Error":    {logger.ERR, "Error"},
+		"Info":     {logger.INF, "Info"},
+		"Warning":  {logger.WRN, "Warning"},
+		"Debug":    {logger.DBG, "Debug"},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -31,15 +33,15 @@ func TestLevel_String(t *testing.T) {
 
 func TestNew(t *testing.T) {
 	t.Run("NewStdLog()", func(t *testing.T) {
-		got := NewStdLog()
-		if got.lvl != INF {
-			t.Errorf("default log lvl should be INF but got %s", got.lvl.String())
+		got := logger.NewStdLog()
+		if got.Lvl != logger.INF {
+			t.Errorf("default log lvl should be INF but got %s", got.Lvl.String())
 		}
-		if got.err.Writer() != os.Stderr || got.inf.Writer() != os.Stderr ||
-			got.wrn.Writer() != os.Stderr || got.dbg.Writer() != os.Stderr {
+		if got.Err.Writer() != os.Stderr || got.Inf.Writer() != os.Stderr ||
+			got.Wrn.Writer() != os.Stderr || got.Dbg.Writer() != os.Stderr {
 			t.Errorf("all default writers should be os.Stderr")
 		}
-		if !reflect.TypeOf(got).Implements(reflect.TypeOf((*Logger)(nil)).Elem()) {
+		if !reflect.TypeOf(got).Implements(reflect.TypeOf((*logger.Logger)(nil)).Elem()) {
 			t.Errorf("type does't implement logger.Logger interface")
 		}
 		if reflect.TypeOf(*got).Name() != "StdLog" {
@@ -55,18 +57,18 @@ func TestNew(t *testing.T) {
 	t.Run("NewStdLog(WithWriter)", func(t *testing.T) {
 		tb := &testWriter{byf: make([]byte, 0, 20)}
 		strToLog := "test string"
-		got := NewStdLog(WithWriter(tb))
+		got := logger.NewStdLog(logger.WithWriter(tb))
 		got.Info(strToLog)
 
 		if !strings.Contains(tb.String(), strToLog) {
 			t.Errorf("expected %s but got %s", strToLog, tb.String())
 		}
 
-		if got.lvl != INF {
-			t.Errorf("default log lvl should be INF but got %s", got.lvl.String())
+		if got.Lvl != logger.INF {
+			t.Errorf("default log lvl should be INF but got %s", got.Lvl.String())
 		}
-		if got.err.Writer() != tb || got.inf.Writer() != tb ||
-			got.wrn.Writer() != tb || got.dbg.Writer() != tb {
+		if got.Err.Writer() != tb || got.Inf.Writer() != tb ||
+			got.Wrn.Writer() != tb || got.Dbg.Writer() != tb {
 			t.Errorf("all default writers should be os.Stderr")
 		}
 	})
@@ -74,7 +76,7 @@ func TestNew(t *testing.T) {
 
 func TestStdLog_Print(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
-	log := NewStdLog(WithWriter(buf), WithLevel(DBG))
+	log := logger.NewStdLog(logger.WithWriter(buf), logger.WithLevel(logger.DBG))
 	log.Error("hello, %s", "error")
 	log.Warn("hello, %s", "warn")
 	log.Info("hello, %s", "info")
@@ -113,22 +115,22 @@ func (w *testWriter) Write(p []byte) (n int, err error) {
 
 func TestStdLog_Debug(t *testing.T) {
 	type fields struct {
-		lvl Level
+		lvl logger.Level
 		w   *bytes.Buffer
 	}
 	tests := []struct {
 		name   string
 		fields fields
-		exec   func(logger Logger)
+		exec   func(logger logger.Logger)
 		want   string
 	}{
 		{
 			name: "no error",
 			fields: fields{
-				lvl: DSB,
+				lvl: logger.DSB,
 				w:   bytes.NewBuffer(nil),
 			},
-			exec: func(logger Logger) {
+			exec: func(logger logger.Logger) {
 				logger.Error("errorLog")
 			},
 			want: "errorLog",
@@ -136,10 +138,10 @@ func TestStdLog_Debug(t *testing.T) {
 		{
 			name: "no warn",
 			fields: fields{
-				lvl: ERR,
+				lvl: logger.ERR,
 				w:   bytes.NewBuffer(nil),
 			},
-			exec: func(logger Logger) {
+			exec: func(logger logger.Logger) {
 				logger.Warn("warnLog")
 			},
 			want: "warnLog",
@@ -147,10 +149,10 @@ func TestStdLog_Debug(t *testing.T) {
 		{
 			name: "no info",
 			fields: fields{
-				lvl: WRN,
+				lvl: logger.WRN,
 				w:   bytes.NewBuffer(nil),
 			},
-			exec: func(logger Logger) {
+			exec: func(logger logger.Logger) {
 				logger.Info("infoLog")
 			},
 			want: "infoLog",
@@ -158,10 +160,10 @@ func TestStdLog_Debug(t *testing.T) {
 		{
 			name: "no debug",
 			fields: fields{
-				lvl: INF,
+				lvl: logger.INF,
 				w:   bytes.NewBuffer(nil),
 			},
-			exec: func(logger Logger) {
+			exec: func(logger logger.Logger) {
 				logger.Debug("debugLog")
 			},
 			want: "debugLog",
@@ -169,7 +171,7 @@ func TestStdLog_Debug(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := NewStdLog(WithWriter(tt.fields.w), WithLevel(tt.fields.lvl))
+			l := logger.NewStdLog(logger.WithWriter(tt.fields.w), logger.WithLevel(tt.fields.lvl))
 			tt.exec(l)
 			if strings.Contains(tt.fields.w.String(), tt.want) {
 				t.Error("out put contains unwanted message")
@@ -185,7 +187,7 @@ func TestParseLevel(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    Level
+		want    logger.Level
 		wantErr bool
 	}{
 		{
@@ -193,7 +195,7 @@ func TestParseLevel(t *testing.T) {
 			args: args{
 				level: "Disabled",
 			},
-			want:    DSB,
+			want:    logger.DSB,
 			wantErr: false,
 		},
 		{
@@ -201,7 +203,7 @@ func TestParseLevel(t *testing.T) {
 			args: args{
 				level: "Error",
 			},
-			want:    ERR,
+			want:    logger.ERR,
 			wantErr: false,
 		},
 		{
@@ -209,7 +211,7 @@ func TestParseLevel(t *testing.T) {
 			args: args{
 				level: "Warning",
 			},
-			want:    WRN,
+			want:    logger.WRN,
 			wantErr: false,
 		},
 		{
@@ -217,7 +219,7 @@ func TestParseLevel(t *testing.T) {
 			args: args{
 				level: "Info",
 			},
-			want:    INF,
+			want:    logger.INF,
 			wantErr: false,
 		},
 		{
@@ -225,7 +227,7 @@ func TestParseLevel(t *testing.T) {
 			args: args{
 				level: "Debug",
 			},
-			want:    DBG,
+			want:    logger.DBG,
 			wantErr: false,
 		},
 		{
@@ -233,13 +235,13 @@ func TestParseLevel(t *testing.T) {
 			args: args{
 				level: "unknown",
 			},
-			want:    INF,
+			want:    logger.INF,
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseLevel(tt.args.level)
+			got, err := logger.ParseLevel(tt.args.level)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseLevel() error = %v, wantErr %v", err, tt.wantErr)
 				return

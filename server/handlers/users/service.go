@@ -13,7 +13,7 @@ import (
 	"github.com/ivch/dynasty/common/logger"
 )
 
-type userRepository interface {
+type UserRepository interface {
 	GetUserByID(id uint) (*User, error)
 	GetUserByPhone(phone string) (*User, error)
 	GetUserByEmail(email string) (*User, error)
@@ -31,19 +31,19 @@ type userRepository interface {
 	ResetPassword(codeID uint, req *UserUpdate) error
 }
 
-type mailSender interface {
+type MailSender interface {
 	SendRecoveryCodeEmail(to, username, code string) error
 }
 
 type Service struct {
-	repo          userRepository
+	repo          UserRepository
 	membersLimit  int
 	verifyRegCode bool
-	email         mailSender
+	email         MailSender
 	log           logger.Logger
 }
 
-func New(log logger.Logger, repo userRepository, verifyRegCode bool, membersLimit int, email mailSender) *Service {
+func New(log logger.Logger, repo UserRepository, verifyRegCode bool, membersLimit int, email MailSender) *Service {
 	s := Service{
 		repo:          repo,
 		membersLimit:  membersLimit,
@@ -114,18 +114,18 @@ func (s *Service) Register(ctx context.Context, r *User) (*User, error) {
 		return nil, err
 	}
 
-	if m != nil && m.Role != predefinedUserRole {
+	if m != nil && m.Role != PredefinedUserRole {
 		return nil, errs.MasterAccountExists
 	}
 
-	if s.verifyRegCode && (m != nil && m.Role != predefinedUserRole) {
+	if s.verifyRegCode && (m != nil && m.Role != PredefinedUserRole) {
 		if err := s.repo.ValidateRegCode(r.RegCode); err != nil {
 			s.log.Debug("validated reg code: %w", err)
 			return nil, err
 		}
 	}
 
-	pwd, err := hashAndSalt(r.Password)
+	pwd, err := HashAndSalt(r.Password)
 	if err != nil {
 		s.log.Error("error hashing password: %w", err)
 		return nil, err
@@ -141,10 +141,10 @@ func (s *Service) Register(ctx context.Context, r *User) (*User, error) {
 		LastName:   r.LastName,
 		Active:     true,
 		Password:   pwd,
-		Role:       defaultUserRole,
+		Role:       DefaultUserRole,
 	}
 
-	if m != nil && m.Role == predefinedUserRole {
+	if m != nil && m.Role == PredefinedUserRole {
 		if m.RegCode != r.RegCode {
 			return nil, errs.RegCodeInvalid
 		}
@@ -208,7 +208,7 @@ func (s *Service) Update(ctx context.Context, r *UserUpdate) error {
 	}
 
 	// todo in case of password change delete current user session and invalidate refresh token
-	pwd, err := hashAndSalt(*r.NewPassword)
+	pwd, err := HashAndSalt(*r.NewPassword)
 	if err != nil {
 		s.log.Error("error hashing password: %w", err)
 		return err
@@ -281,7 +281,7 @@ func (s *Service) ResetPassword(ctx context.Context, code string, r *UserUpdate)
 	}
 
 	// todo in case of password change delete current user session and invalidate refresh token
-	pwd, err := hashAndSalt(*r.NewPassword)
+	pwd, err := HashAndSalt(*r.NewPassword)
 	if err != nil {
 		s.log.Error("error hashing password: %w", err)
 		return err
@@ -292,7 +292,7 @@ func (s *Service) ResetPassword(ctx context.Context, code string, r *UserUpdate)
 	return s.repo.ResetPassword(c.ID, r)
 }
 
-func hashAndSalt(pwd string) (string, error) {
+func HashAndSalt(pwd string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.MinCost)
 	if err != nil {
 		return "", err

@@ -1,4 +1,4 @@
-package transport
+package transport_test
 
 import (
 	"bytes"
@@ -21,6 +21,7 @@ import (
 
 	"github.com/ivch/dynasty/common/logger"
 	"github.com/ivch/dynasty/server/handlers/requests"
+	"github.com/ivch/dynasty/server/handlers/requests/transport"
 	"github.com/ivch/dynasty/server/handlers/users"
 	"github.com/ivch/dynasty/server/middlewares"
 )
@@ -39,7 +40,7 @@ func TestMain(m *testing.M) {
 func TestHTTP_Create(t *testing.T) {
 	tests := []struct {
 		name     string
-		svc      RequestsService
+		svc      transport.RequestsService
 		request  string
 		header   string
 		wantErr  bool
@@ -77,7 +78,7 @@ func TestHTTP_Create(t *testing.T) {
 			name:    "error service",
 			request: `{"type":"taxi","description":"abc","time":1}`,
 			header:  "1",
-			svc: &RequestsServiceMock{
+			svc: &transport.RequestsServiceMock{
 				CreateFunc: func(_ context.Context, _ *requests.Request) (*requests.Request, error) {
 					return nil, errTestError
 				},
@@ -89,7 +90,7 @@ func TestHTTP_Create(t *testing.T) {
 			name:    "ok",
 			request: `{"type":"taxi","description":"abc","time":1}`,
 			header:  "1",
-			svc: &RequestsServiceMock{
+			svc: &transport.RequestsServiceMock{
 				CreateFunc: func(_ context.Context, _ *requests.Request) (*requests.Request, error) {
 					return &requests.Request{ID: 1}, nil
 				},
@@ -103,9 +104,9 @@ func TestHTTP_Create(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := NewHTTPTransport(defaultLogger, svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
+			h := transport.NewHTTPTransport(defaultLogger, svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
 			rr := httptest.NewRecorder()
-			rq, _ := http.NewRequest("POST", "/v1/request", strings.NewReader(tt.request))
+			rq, _ := http.NewRequest(http.MethodPost, "/v1/request", strings.NewReader(tt.request))
 			rq.Header.Add("X-Auth-User", tt.header)
 			h.ServeHTTP(rr, rq)
 			if (rr.Code != tt.wantCode) && tt.wantErr {
@@ -122,7 +123,7 @@ func TestHTTP_Create(t *testing.T) {
 func TestHTTP_Update(t *testing.T) {
 	tests := []struct {
 		name     string
-		svc      RequestsService
+		svc      transport.RequestsService
 		id       string
 		request  string
 		header   string
@@ -166,7 +167,7 @@ func TestHTTP_Update(t *testing.T) {
 			request: `{"type":"1","description":"abc","time":1}`,
 			id:      "1",
 			header:  "1",
-			svc: &RequestsServiceMock{
+			svc: &transport.RequestsServiceMock{
 				UpdateFunc: func(_ context.Context, _ *requests.UpdateRequest) error {
 					return errTestError
 				},
@@ -179,7 +180,7 @@ func TestHTTP_Update(t *testing.T) {
 			request: `{"type":"1","description":"abc","time":1,"status":"new"}`,
 			id:      "1",
 			header:  "1",
-			svc: &RequestsServiceMock{
+			svc: &transport.RequestsServiceMock{
 				UpdateFunc: func(_ context.Context, r *requests.UpdateRequest) error {
 					expected := &requests.Request{
 						ID:          1,
@@ -204,9 +205,9 @@ func TestHTTP_Update(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := NewHTTPTransport(defaultLogger, svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
+			h := transport.NewHTTPTransport(defaultLogger, svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
 			rr := httptest.NewRecorder()
-			rq, _ := http.NewRequest("PUT", "/v1/request/"+tt.id, strings.NewReader(tt.request))
+			rq, _ := http.NewRequest(http.MethodPut, "/v1/request/"+tt.id, strings.NewReader(tt.request))
 			rq.Header.Add("X-Auth-User", tt.header)
 			h.ServeHTTP(rr, rq)
 			if (rr.Code != tt.wantCode) && tt.wantErr {
@@ -219,7 +220,7 @@ func TestHTTP_Update(t *testing.T) {
 func TestHTTP_My(t *testing.T) {
 	tests := []struct {
 		name     string
-		svc      RequestsService
+		svc      transport.RequestsService
 		query    string
 		header   string
 		wantErr  bool
@@ -284,7 +285,7 @@ func TestHTTP_My(t *testing.T) {
 			name:   "error service",
 			query:  "?offset=1&limit=1",
 			header: "1",
-			svc: &RequestsServiceMock{
+			svc: &transport.RequestsServiceMock{
 				MyFunc: func(_ context.Context, _ *requests.RequestListFilter) ([]*requests.Request, error) {
 					return nil, errTestError
 				},
@@ -296,7 +297,7 @@ func TestHTTP_My(t *testing.T) {
 			name:   "ok w/o images",
 			query:  `?offset=0&limit=1`,
 			header: "1",
-			svc: &RequestsServiceMock{
+			svc: &transport.RequestsServiceMock{
 				MyFunc: func(ctx context.Context, r *requests.RequestListFilter) (response []*requests.Request, err error) {
 					return []*requests.Request{
 						{
@@ -318,7 +319,7 @@ func TestHTTP_My(t *testing.T) {
 			name:   "ok w/ images",
 			query:  `?offset=0&limit=1`,
 			header: "1",
-			svc: &RequestsServiceMock{
+			svc: &transport.RequestsServiceMock{
 				MyFunc: func(ctx context.Context, r *requests.RequestListFilter) (response []*requests.Request, err error) {
 					return []*requests.Request{
 						{
@@ -351,9 +352,9 @@ func TestHTTP_My(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := NewHTTPTransport(defaultLogger, svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
+			h := transport.NewHTTPTransport(defaultLogger, svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
 			rr := httptest.NewRecorder()
-			rq, _ := http.NewRequest("GET", "/v1/my"+tt.query, nil)
+			rq, _ := http.NewRequest(http.MethodGet, "/v1/my"+tt.query, nil)
 			rq.Header.Add("X-Auth-User", tt.header)
 			h.ServeHTTP(rr, rq)
 			if (rr.Code != tt.wantCode) && tt.wantErr {
@@ -371,7 +372,7 @@ func TestHTTP_My(t *testing.T) {
 func TestHTTP_Delete(t *testing.T) {
 	tests := []struct {
 		name     string
-		svc      RequestsService
+		svc      transport.RequestsService
 		id       string
 		header   string
 		wantErr  bool
@@ -395,7 +396,7 @@ func TestHTTP_Delete(t *testing.T) {
 			name:   "error service",
 			id:     "1",
 			header: "1",
-			svc: &RequestsServiceMock{
+			svc: &transport.RequestsServiceMock{
 				DeleteFunc: func(_ context.Context, _ *requests.Request) error {
 					return errTestError
 				},
@@ -407,7 +408,7 @@ func TestHTTP_Delete(t *testing.T) {
 			name:   "ok",
 			id:     "1",
 			header: "1",
-			svc: &RequestsServiceMock{
+			svc: &transport.RequestsServiceMock{
 				DeleteFunc: func(_ context.Context, r *requests.Request) error {
 					if r.ID != 1 || r.UserID != 1 {
 						return errTestError
@@ -423,9 +424,9 @@ func TestHTTP_Delete(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := NewHTTPTransport(defaultLogger, svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
+			h := transport.NewHTTPTransport(defaultLogger, svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
 			rr := httptest.NewRecorder()
-			rq, _ := http.NewRequest("DELETE", "/v1/request/"+tt.id, nil)
+			rq, _ := http.NewRequest(http.MethodDelete, "/v1/request/"+tt.id, nil)
 			rq.Header.Add("X-Auth-User", tt.header)
 			h.ServeHTTP(rr, rq)
 			if (rr.Code != tt.wantCode) && tt.wantErr {
@@ -438,7 +439,7 @@ func TestHTTP_Delete(t *testing.T) {
 func TestHTTP_Get(t *testing.T) {
 	tests := []struct {
 		name     string
-		svc      RequestsService
+		svc      transport.RequestsService
 		id       string
 		header   string
 		wantErr  bool
@@ -470,7 +471,7 @@ func TestHTTP_Get(t *testing.T) {
 			name:   "error service",
 			id:     "1",
 			header: "1",
-			svc: &RequestsServiceMock{
+			svc: &transport.RequestsServiceMock{
 				GetFunc: func(_ context.Context, _ *requests.Request) (*requests.Request, error) {
 					return nil, errTestError
 				},
@@ -482,7 +483,7 @@ func TestHTTP_Get(t *testing.T) {
 			name:   "ok w/o images",
 			id:     "1",
 			header: "1",
-			svc: &RequestsServiceMock{
+			svc: &transport.RequestsServiceMock{
 				GetFunc: func(_ context.Context, r *requests.Request) (*requests.Request, error) {
 					if r.ID != 1 || r.UserID != 1 {
 						return nil, errTestError
@@ -506,7 +507,7 @@ func TestHTTP_Get(t *testing.T) {
 			name:   "ok w/ images",
 			id:     "1",
 			header: "1",
-			svc: &RequestsServiceMock{
+			svc: &transport.RequestsServiceMock{
 				GetFunc: func(_ context.Context, r *requests.Request) (*requests.Request, error) {
 					if r.ID != 1 || r.UserID != 1 {
 						return nil, errTestError
@@ -537,9 +538,9 @@ func TestHTTP_Get(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := NewHTTPTransport(defaultLogger, svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
+			h := transport.NewHTTPTransport(defaultLogger, svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
 			rr := httptest.NewRecorder()
-			rq, _ := http.NewRequest("GET", "/v1/request/"+tt.id, nil)
+			rq, _ := http.NewRequest(http.MethodGet, "/v1/request/"+tt.id, nil)
 			rq.Header.Add("X-Auth-User", tt.header)
 			h.ServeHTTP(rr, rq)
 			if (rr.Code != tt.wantCode) && tt.wantErr {
@@ -552,7 +553,7 @@ func TestHTTP_Get(t *testing.T) {
 func TestHTTP_GuardUpdate(t *testing.T) {
 	tests := []struct {
 		name     string
-		svc      RequestsService
+		svc      transport.RequestsService
 		id       string
 		request  string
 		wantErr  bool
@@ -590,7 +591,7 @@ func TestHTTP_GuardUpdate(t *testing.T) {
 			name:    "error service",
 			request: `{"status":"closed"}`,
 			id:      "1",
-			svc: &RequestsServiceMock{
+			svc: &transport.RequestsServiceMock{
 				GuardUpdateRequestFunc: func(_ context.Context, _ *requests.Request) error {
 					return errTestError
 				},
@@ -602,7 +603,7 @@ func TestHTTP_GuardUpdate(t *testing.T) {
 			name:    "ok",
 			request: `{"type":"1","description":"abc","time":1,"status":"new"}`,
 			id:      "1",
-			svc: &RequestsServiceMock{
+			svc: &transport.RequestsServiceMock{
 				GuardUpdateRequestFunc: func(_ context.Context, _ *requests.Request) error {
 					return nil
 				},
@@ -615,9 +616,9 @@ func TestHTTP_GuardUpdate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := NewHTTPTransport(defaultLogger, svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
+			h := transport.NewHTTPTransport(defaultLogger, svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
 			rr := httptest.NewRecorder()
-			rq, _ := http.NewRequest("PUT", "/v1/guard/request/"+tt.id, strings.NewReader(tt.request))
+			rq, _ := http.NewRequest(http.MethodPut, "/v1/guard/request/"+tt.id, strings.NewReader(tt.request))
 			h.ServeHTTP(rr, rq)
 			if (rr.Code != tt.wantCode) && tt.wantErr {
 				t.Errorf("Request error. status = %d, expected %v", rr.Code, tt.wantCode)
@@ -629,7 +630,7 @@ func TestHTTP_GuardUpdate(t *testing.T) {
 func TestHTTP_GuardList(t *testing.T) {
 	tests := []struct {
 		name     string
-		svc      RequestsService
+		svc      transport.RequestsService
 		query    string
 		wantErr  bool
 		wantCode int
@@ -698,7 +699,7 @@ func TestHTTP_GuardList(t *testing.T) {
 		{
 			name:  "error service",
 			query: "?offset=1&limit=1",
-			svc: &RequestsServiceMock{
+			svc: &transport.RequestsServiceMock{
 				GuardRequestListFunc: func(_ context.Context, _ *requests.RequestListFilter) ([]*requests.Request, int, error) {
 					return nil, 0, errTestError
 				},
@@ -709,7 +710,7 @@ func TestHTTP_GuardList(t *testing.T) {
 		{
 			name:  "ok w/o images",
 			query: `?offset=0&limit=1`,
-			svc: &RequestsServiceMock{
+			svc: &transport.RequestsServiceMock{
 				GuardRequestListFunc: func(_ context.Context, _ *requests.RequestListFilter) ([]*requests.Request, int, error) {
 					return []*requests.Request{
 						{
@@ -735,7 +736,7 @@ func TestHTTP_GuardList(t *testing.T) {
 		{
 			name:  "ok w images",
 			query: `?offset=0&limit=1`,
-			svc: &RequestsServiceMock{
+			svc: &transport.RequestsServiceMock{
 				GuardRequestListFunc: func(_ context.Context, _ *requests.RequestListFilter) ([]*requests.Request, int, error) {
 					return []*requests.Request{
 						{
@@ -768,9 +769,9 @@ func TestHTTP_GuardList(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := NewHTTPTransport(defaultLogger, svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
+			h := transport.NewHTTPTransport(defaultLogger, svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
 			rr := httptest.NewRecorder()
-			rq, _ := http.NewRequest("GET", "/v1/guard/list"+tt.query, nil)
+			rq, _ := http.NewRequest(http.MethodGet, "/v1/guard/list"+tt.query, nil)
 			h.ServeHTTP(rr, rq)
 			if (rr.Code != tt.wantCode) && tt.wantErr {
 				t.Errorf("Request error. status = %d, expected %v", rr.Code, tt.wantCode)
@@ -791,7 +792,7 @@ func TestHTTP_UploadImage(t *testing.T) {
 		header   string
 		req      string
 		filename string
-		svc      RequestsService
+		svc      transport.RequestsService
 		wantErr  bool
 		wantCode int
 	}{
@@ -837,7 +838,7 @@ func TestHTTP_UploadImage(t *testing.T) {
 			header:   "1",
 			wantErr:  true,
 			filename: "ok",
-			svc: &RequestsServiceMock{
+			svc: &transport.RequestsServiceMock{
 				UploadImageFunc: func(_ context.Context, _ *requests.Image) (*requests.Image, error) {
 					return nil, errTestError
 				},
@@ -850,7 +851,7 @@ func TestHTTP_UploadImage(t *testing.T) {
 			header:   "1",
 			wantErr:  false,
 			filename: "ok",
-			svc: &RequestsServiceMock{
+			svc: &transport.RequestsServiceMock{
 				UploadImageFunc: func(_ context.Context, _ *requests.Image) (*requests.Image, error) {
 					return &requests.Image{
 						URL:   "path",
@@ -866,7 +867,7 @@ func TestHTTP_UploadImage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := NewHTTPTransport(defaultLogger, svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
+			h := transport.NewHTTPTransport(defaultLogger, svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
 			rr := httptest.NewRecorder()
 
 			bb := &bytes.Buffer{}
@@ -896,7 +897,7 @@ func TestHTTP_UploadImage(t *testing.T) {
 				writer.Close()
 			}
 
-			rq, _ := http.NewRequest("POST", fmt.Sprintf("/v1/request/%s/file", tt.req), bb)
+			rq, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("/v1/request/%s/file", tt.req), bb)
 			rq.Header.Add("X-Auth-User", tt.header)
 			rq.Header.Add("Content-Type", contentHeader)
 			h.ServeHTTP(rr, rq)
@@ -914,7 +915,7 @@ func TestHTTP_UploadImage(t *testing.T) {
 func TestHTTP_DeleteImage(t *testing.T) {
 	tests := []struct {
 		name     string
-		svc      RequestsService
+		svc      transport.RequestsService
 		id       string
 		request  string
 		header   string
@@ -963,7 +964,7 @@ func TestHTTP_DeleteImage(t *testing.T) {
 			id:      "1",
 			header:  "1",
 			request: `{"filepath":"somepath"}`,
-			svc: &RequestsServiceMock{
+			svc: &transport.RequestsServiceMock{
 				DeleteImageFunc: func(ctx context.Context, _ *requests.Image) error {
 					return errTestError
 				},
@@ -976,7 +977,7 @@ func TestHTTP_DeleteImage(t *testing.T) {
 			id:      "1",
 			header:  "1",
 			request: `{"filepath":"somepath"}`,
-			svc: &RequestsServiceMock{
+			svc: &transport.RequestsServiceMock{
 				DeleteImageFunc: func(ctx context.Context, r *requests.Image) error {
 					return nil
 				},
@@ -989,9 +990,9 @@ func TestHTTP_DeleteImage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := NewHTTPTransport(defaultLogger, svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
+			h := transport.NewHTTPTransport(defaultLogger, svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
 			rr := httptest.NewRecorder()
-			rq, _ := http.NewRequest("DELETE", "/v1/request/"+tt.id+"/file", strings.NewReader(tt.request))
+			rq, _ := http.NewRequest(http.MethodDelete, "/v1/request/"+tt.id+"/file", strings.NewReader(tt.request))
 			rq.Header.Add("X-Auth-User", tt.header)
 			h.ServeHTTP(rr, rq)
 			if (rr.Code != tt.wantCode) && tt.wantErr {
@@ -1004,14 +1005,14 @@ func TestHTTP_DeleteImage(t *testing.T) {
 func TestHTTP_GuardStats24h(t *testing.T) {
 	tests := []struct {
 		name     string
-		svc      RequestsService
+		svc      transport.RequestsService
 		wantErr  bool
 		wantCode int
 		want     string
 	}{
 		{
 			name: "error service",
-			svc: &RequestsServiceMock{
+			svc: &transport.RequestsServiceMock{
 				GuardStats24hFunc: func(_ context.Context) (*requests.RequestStats, error) {
 					return nil, errTestError
 				},
@@ -1021,7 +1022,7 @@ func TestHTTP_GuardStats24h(t *testing.T) {
 		},
 		{
 			name: "ok with data",
-			svc: &RequestsServiceMock{
+			svc: &transport.RequestsServiceMock{
 				GuardStats24hFunc: func(_ context.Context) (*requests.RequestStats, error) {
 					return &requests.RequestStats{
 						Total:  10,
@@ -1036,7 +1037,7 @@ func TestHTTP_GuardStats24h(t *testing.T) {
 		},
 		{
 			name: "ok with zeros",
-			svc: &RequestsServiceMock{
+			svc: &transport.RequestsServiceMock{
 				GuardStats24hFunc: func(_ context.Context) (*requests.RequestStats, error) {
 					return &requests.RequestStats{
 						Total:  0,
@@ -1051,7 +1052,7 @@ func TestHTTP_GuardStats24h(t *testing.T) {
 		},
 		{
 			name: "ok with partial data",
-			svc: &RequestsServiceMock{
+			svc: &transport.RequestsServiceMock{
 				GuardStats24hFunc: func(_ context.Context) (*requests.RequestStats, error) {
 					return &requests.RequestStats{
 						Total:  2,
@@ -1069,9 +1070,9 @@ func TestHTTP_GuardStats24h(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := tt.svc
-			h := NewHTTPTransport(defaultLogger, svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
+			h := transport.NewHTTPTransport(defaultLogger, svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
 			rr := httptest.NewRecorder()
-			rq, _ := http.NewRequest("GET", "/v1/guard/stats24h", nil)
+			rq, _ := http.NewRequest(http.MethodGet, "/v1/guard/stats24h", nil)
 			h.ServeHTTP(rr, rq)
 			if (rr.Code != tt.wantCode) && tt.wantErr {
 				t.Errorf("Request error. status = %d, expected %v", rr.Code, tt.wantCode)

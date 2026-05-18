@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/microcosm-cc/bluemonday"
 
 	"github.com/ivch/dynasty/common/errs"
@@ -30,6 +30,10 @@ type RequestsService interface {
 	GuardUpdateRequest(ctx context.Context, r *requests.Request) error
 	GuardStats24h(ctx context.Context) (*requests.RequestStats, error)
 }
+
+const (
+	maxUploadSize = 10 << 20 // 10 MB
+)
 
 type HTTPTransport struct {
 	svc       RequestsService
@@ -279,11 +283,18 @@ func (h *HTTPTransport) UploadFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
+	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize+512)
+	// #nosec G120 -- ParseMultipartForm is bounded by maxUploadSize (10MB) and MaxBytesReader protects against unbounded requests
+	if err := r.ParseMultipartForm(maxUploadSize); err != nil {
 		h.log.Error("error parsing file: %w", err)
 		h.sendError(w, http.StatusBadRequest, errs.BadRequest)
 		return
 	}
+	defer func() {
+		if err := r.MultipartForm.RemoveAll(); err != nil { //
+			h.log.Error("failed to free multipart resources: %v", err)
+		}
+	}()
 
 	file, header, err := r.FormFile("photo")
 	if err != nil {
@@ -611,12 +622,12 @@ func (h *HTTPTransport) sendHTTPResponse(_ context.Context, w http.ResponseWrite
 	}
 }
 
-func (h *HTTPTransport) sendError(w http.ResponseWriter, httpCode int, error error) {
+func (h *HTTPTransport) sendError(w http.ResponseWriter, httpCode int, err error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(httpCode)
 
-	if error == nil {
-		error = errs.Generic
+	if err == nil {
+		err = errs.Generic
 	}
 
 	var (
@@ -624,13 +635,13 @@ func (h *HTTPTransport) sendError(w http.ResponseWriter, httpCode int, error err
 		ua string
 	)
 
-	if e, ok := error.(errs.SvcError); ok {
+	if e, ok := err.(errs.SvcError); ok {
 		ru, ua = e.Ru, e.Ua
 	}
 
 	res := errorResponse{
-		ErrorCode: errs.Code(error),
-		Error:     error.Error(),
+		ErrorCode: errs.Code(err),
+		Error:     err.Error(),
 		Ru:        ru,
 		Ua:        ua,
 	}

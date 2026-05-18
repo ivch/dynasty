@@ -1,15 +1,18 @@
-package middlewares
+package middlewares_test
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/ivch/dynasty/server/middlewares"
 )
 
 func TestNewResponseWrapper(t *testing.T) {
 	w := httptest.NewRecorder()
-	ww := NewResponseWrapper(w)
+	ww := middlewares.NewResponseWrapper(w)
 
-	ww.WriteHeader(100)
+	ww.WriteHeader(http.StatusContinue)
 	ww.Header().Set("hello", "world")
 	n, err := ww.Write([]byte("Garry Goodini"))
 	if err != nil {

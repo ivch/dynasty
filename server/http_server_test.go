@@ -1,4 +1,4 @@
-package server
+package server_test
 
 import (
 	"context"
@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/ivch/dynasty/server"
 )
 
 func TestNew(t *testing.T) {
@@ -15,16 +17,16 @@ func TestNew(t *testing.T) {
 	})
 	hh := map[string]http.Handler{"/health": health}
 	t.Run("tt.name", func(t *testing.T) {
-		got, err := New(":8080", log, hh)
+		got, err := server.New(":8080", log, hh)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if got.server.Addr != ":8080" {
-			t.Errorf("expected :8080 server addres, but got: %s", got.server.Addr)
+		if got.Server.Addr != ":8080" {
+			t.Errorf("expected :8080 server addres, but got: %s", got.Server.Addr)
 		}
-		if reflect.DeepEqual(got.router, http.NewServeMux()) {
-			t.Errorf("expected mux: %v, but got: %v", http.NewServeMux(), got.router)
+		if reflect.DeepEqual(got.Router, http.NewServeMux()) {
+			t.Errorf("expected mux: %v, but got: %v", http.NewServeMux(), got.Router)
 		}
 	})
 }
@@ -34,7 +36,7 @@ func TestServer_Serve(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 	hh := map[string]http.Handler{"/handle": handler}
-	srv, err := New(":3000", &testLogger{}, hh)
+	srv, err := server.New(":3000", &testLogger{}, hh)
 	if err != nil {
 		t.Fatal(err)
 	}

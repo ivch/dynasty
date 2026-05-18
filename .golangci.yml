@@ -1,209 +1,71 @@
-#run:
-#  # include test files or not, default is true
-#  tests: false
-#
-#linters:
-#  disable-all: true
-#  enable:
-#    - asciicheck # Simple linter to check that your code does not contain non-ASCII identifiers.
-#    - deadcode # Finds unused code.
-#    - errcheck # Errcheck is a program for checking for unchecked errors in go programs.
-#    - bodyclose # Checks whether HTTP response body is closed successfully.
-#    - misspell # Finds commonly misspelled English words in comments.
-#    - govet # Vet examines Go source code and reports suspicious constructs, such as Printf calls whose arguments do not align with the format string.
-#    - unconvert # Remove unnecessary type conversions.
-#    - unused # Checks Go code for unused constants, variables, functions and types.
-#    - unparam # Reports unused function parameters
-#    - varcheck # Finds unused global variables and constants.
-#    - typecheck # Like the front-end of a Go compiler, parses and type-checks Go code.
-#    - whitespace # Tool for detection of leading and trailing whitespace.
-#    - stylecheck # Stylecheck is a replacement for golint.
-#    - structcheck # Finds unused struct fields.
-#    - scopelint # Scopelint checks for unpinned variables in go programs.
-#    - gochecknoinits # Checks that no init functions are present in Go code.
-#    - goconst # Finds repeated strings that could be replaced by a constant.
-#    - gocritic # The most opinionated Go source code linter.
-#    - godot # Check if comments end in a period.
-#    - gofmt # Gofmt checks whether code was gofmt-ed.
-#    - goimports # Goimports does everything that gofmt does. Additionally it checks unused imports.
-#    - golint # Golint differs from gofmt. Gofmt reformats Go source code, whereas golint prints out style mistakes
-#    - gosec # Inspects source code for security problems.
-#    - gosimple # Linter for Go source code that specializes in simplifying a code.
-#    - ineffassign # Detects when assignments to existing variables are not used.
-#    - interfacer # Linter that suggests narrower interface types.
-#    - maligned # Tool to detect Go structs that would take less memory if their fields were sorted.
-#    - prealloc # Finds slice declarations that could potentially be preallocated.
-#    - staticcheck # Staticcheck is a go vet on steroids, applying a ton of static analysis checks.
-#    - depguard # Go linter that checks if package imports are in a list of acceptable packages.
-#    - dupl # Tool for code clone detection.
-#    - nakedret # Finds naked returns in functions greater than a specified function length.
-#    - gocognit # Computes and checks the cognitive complexity of functions.
-#    - gocyclo # Computes and checks the cyclomatic complexity of functions.
-#
-## all available settings of specific linters
-#linters-settings:
-#  dupl:
-#    # tokens count to trigger issue, 150 by default
-#    threshold: 220
-
+version: "2"
 run:
-  concurrency: 4
-  deadline: 1m
-  issues-exit-code: 1
-  tests: false
-#  modules-download-mode: vendor
-
+  build-tags:
+    - integration
+    - pg_integration
 output:
-  formats: colored-line-number
-  print-issued-lines: true
-  print-linter-name: true
-
+  sort-order:
+    - linter
+    - severity
+    - file
 linters:
-  disable:
-    - godox
-    - gochecknoglobals
-    - gochecknoinits
-    - lll
-    - misspell
-    - depguard
-    - stylecheck
-    - gofmt
   enable:
-    - govet
-    - goimports
-    - gocritic
-    - gosimple
-    - gocyclo
-    - goconst
-    - gosec
-    - errcheck
-    - staticcheck
-    - typecheck
-    - unused
-    - ineffassign
-    - unconvert
-    - funlen
+    - asasalint
+    - asciicheck
     - bodyclose
-    - whitespace
-    - prealloc
-    - nakedret
-    - dogsled
-    - unparam
-  fast: false
-
-linters-settings:
-  errcheck:
-    check-type-assertions: true
-    check-blank: true
-    # a path to a file containing a list of functions to be excluded.
-    exclude-functions: errcheck_excludes.txt
-
-  funlen:
-    lines: 75
-    statements: 40
-
-  govet:
-    check-shadowing: false
-    # enable or disable analyzers by name
-    enable:
-      - atomicalign
-    enable-all: false
-    disable:
-      - shadow
-    disable-all: false
-
-  goimports:
-    local-prefixes: stark,github.com/EdisonJunior
-
-  gocyclo:
-    min-complexity: 15
-
-  dupl:
-    # tokens count to trigger issue, 150 by default
-    threshold: 100
-
-  goconst:
-    # minimal length of string constant, 3 by default
-    min-len: 3
-    # minimal occurrences count to trigger, 3 by default
-    min-occurrences: 3
-
-  lll:
-    line-length: 200
-    tab-width: 1
-
-  unused:
-    check-exported: false
-
-  unparam:
-    # Inspect exported functions, default is false. Set to true if no external program/library imports your code.
-    # XXX: if you enable this setting, unparam will report a lot of false-positives in text editors:
-    # if it's called for subdir of a project it can't find external interfaces. All text editor integrations
-    # with golangci-lint call it on a directory with the changed file.
-    check-exported: false
-
-  nakedret:
-    # make an issue if func has more lines of code than this setting and it has naked returns; default is 30
-    max-func-lines: 30
-
-  prealloc:
-    # XXX: we don't recommend using this linter before doing performance profiling.
-    # For most programs usage of prealloc will be a premature optimization.
-
-    # Report preallocation suggestions only on simple loops that have no returns/breaks/continues/gotos in them.
-    # True by default.
-    simple: true
-    range-loops: true # Report preallocation suggestions on range loops, true by default
-    for-loops: false # Report preallocation suggestions on for loops, false by default
-
-  gocritic:
-    # Which checks should be enabled; can't be combined with 'disabled-checks';
-    # See https://go-critic.github.io/overview#checks-overview
-    # To check which checks are enabled run `GL_DEBUG=gocritic golangci-lint run`
-    # By default list of stable checks is used.
-    enabled-checks:
-
-    # Which checks should be disabled; can't be combined with 'enabled-checks'; default is empty
-    disabled-checks:
-      - regexpMust
-
-    settings: # settings passed to gocritic
-      captLocal: # must be valid enabled check name
-        paramsOnly: true
-
-  dogsled:
-    max-blank-identifiers: 2
-
-  whitespace:
-    multi-if: false
-
+    - copyloopvar
+    - exptostd
+    - gosec
+    - perfsprint
+    - predeclared
+    - revive
+    - rowserrcheck
+    - spancheck
+    - sqlclosecheck
+    - testifylint
+    - testpackage
+    - unconvert
+    - usestdlibvars
+    - usetesting
+  settings:
+    goconst:
+      ignore-string-values:
+        - "true"
+        - "false"
+    gosec:
+      excludes:
+        - G404
+    revive:
+      rules:
+        - name: var-naming
+          arguments:
+            - - ID
+            - - Id
+            - - upperCaseConst: true
+          severity: warning
+    staticcheck:
+      checks:
+        - all
+        - -SA1019
+        - -SA1029
+        - -ST1003
+        - -QF1001
+  exclusions:
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - .*_gen\.go$
+      - mock\_.*\.go$
+      - third_party$
+      - builtin$
+      - examples$
 issues:
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - gocyclo
-        - errcheck
-        - dupl
-        - gosec
-
-    - path: internal/hmac/
-      text: "weak cryptographic primitive"
-      linters:
-        - gosec
-
-    - linters:
-        - gosec
-      text: "G104:"
-
-    - linters:
-        - staticcheck
-      text: "SA9003:"
-
-    - linters:
-        - lll
-      source: "^//go:generate "
-
-  exclude-use-default: false
   max-issues-per-linter: 0
-  max-same-issues: 0
   new: false
+formatters:
+  enable:
+    - gofmt
+    - goimports

@@ -9,16 +9,16 @@ import (
 	"sync"
 )
 
-// Ensure, that userServiceMock does implement userService.
+// Ensure, that UserServiceMock does implement UserService.
 // If this is not the case, regenerate this file with moq.
-var _ userService = &userServiceMock{}
+var _ UserService = &UserServiceMock{}
 
-// userServiceMock is a mock implementation of userService.
+// UserServiceMock is a mock implementation of UserService.
 //
-//	func TestSomethingThatUsesuserService(t *testing.T) {
+//	func TestSomethingThatUsesUserService(t *testing.T) {
 //
-//		// make and configure a mocked userService
-//		mockeduserService := &userServiceMock{
+//		// make and configure a mocked UserService
+//		mockedUserService := &UserServiceMock{
 //			UserByIDFunc: func(ctx context.Context, id uint) (*users.User, error) {
 //				panic("mock out the UserByID method")
 //			},
@@ -27,11 +27,11 @@ var _ userService = &userServiceMock{}
 //			},
 //		}
 //
-//		// use mockeduserService in code that requires userService
+//		// use mockedUserService in code that requires UserService
 //		// and then make assertions.
 //
 //	}
-type userServiceMock struct {
+type UserServiceMock struct {
 	// UserByIDFunc mocks the UserByID method.
 	UserByIDFunc func(ctx context.Context, id uint) (*users.User, error)
 
@@ -62,9 +62,9 @@ type userServiceMock struct {
 }
 
 // UserByID calls UserByIDFunc.
-func (mock *userServiceMock) UserByID(ctx context.Context, id uint) (*users.User, error) {
+func (mock *UserServiceMock) UserByID(ctx context.Context, id uint) (*users.User, error) {
 	if mock.UserByIDFunc == nil {
-		panic("userServiceMock.UserByIDFunc: method is nil but userService.UserByID was just called")
+		panic("UserServiceMock.UserByIDFunc: method is nil but UserService.UserByID was just called")
 	}
 	callInfo := struct {
 		Ctx context.Context
@@ -82,8 +82,8 @@ func (mock *userServiceMock) UserByID(ctx context.Context, id uint) (*users.User
 // UserByIDCalls gets all the calls that were made to UserByID.
 // Check the length with:
 //
-//	len(mockeduserService.UserByIDCalls())
-func (mock *userServiceMock) UserByIDCalls() []struct {
+//	len(mockedUserService.UserByIDCalls())
+func (mock *UserServiceMock) UserByIDCalls() []struct {
 	Ctx context.Context
 	ID  uint
 } {
@@ -98,9 +98,9 @@ func (mock *userServiceMock) UserByIDCalls() []struct {
 }
 
 // UserByPhoneAndPassword calls UserByPhoneAndPasswordFunc.
-func (mock *userServiceMock) UserByPhoneAndPassword(ctx context.Context, phone string, password string) (*users.User, error) {
+func (mock *UserServiceMock) UserByPhoneAndPassword(ctx context.Context, phone string, password string) (*users.User, error) {
 	if mock.UserByPhoneAndPasswordFunc == nil {
-		panic("userServiceMock.UserByPhoneAndPasswordFunc: method is nil but userService.UserByPhoneAndPassword was just called")
+		panic("UserServiceMock.UserByPhoneAndPasswordFunc: method is nil but UserService.UserByPhoneAndPassword was just called")
 	}
 	callInfo := struct {
 		Ctx      context.Context
@@ -120,8 +120,8 @@ func (mock *userServiceMock) UserByPhoneAndPassword(ctx context.Context, phone s
 // UserByPhoneAndPasswordCalls gets all the calls that were made to UserByPhoneAndPassword.
 // Check the length with:
 //
-//	len(mockeduserService.UserByPhoneAndPasswordCalls())
-func (mock *userServiceMock) UserByPhoneAndPasswordCalls() []struct {
+//	len(mockedUserService.UserByPhoneAndPasswordCalls())
+func (mock *UserServiceMock) UserByPhoneAndPasswordCalls() []struct {
 	Ctx      context.Context
 	Phone    string
 	Password string

@@ -1,4 +1,4 @@
-package users
+package users_test
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"testing"
 
+	usersClient "github.com/ivch/dynasty/common/clients/users"
 	"github.com/ivch/dynasty/server/handlers/users"
 	"github.com/ivch/dynasty/server/handlers/users/transport"
 )
@@ -15,7 +16,7 @@ var errTestError = errors.New("some err")
 func TestClient_UserByID(t *testing.T) {
 	tests := []struct {
 		name    string
-		usrv    userService
+		usrv    usersClient.UserService
 		id      uint
 		wantErr bool
 		want    *transport.UserByIDResponse
@@ -28,7 +29,7 @@ func TestClient_UserByID(t *testing.T) {
 		{
 			name: "error from service",
 			id:   1,
-			usrv: &userServiceMock{
+			usrv: &usersClient.UserServiceMock{
 				UserByIDFunc: func(_ context.Context, _ uint) (*users.User, error) {
 					return nil, errTestError
 				},
@@ -38,7 +39,7 @@ func TestClient_UserByID(t *testing.T) {
 		{
 			name: "ok",
 			id:   1,
-			usrv: &userServiceMock{
+			usrv: &usersClient.UserServiceMock{
 				UserByIDFunc: func(_ context.Context, id uint) (*users.User, error) {
 					if id != 1 {
 						return nil, errTestError
@@ -67,7 +68,7 @@ func TestClient_UserByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(tt.usrv)
+			s := usersClient.New(tt.usrv)
 			got, err := s.UserByID(context.Background(), tt.id)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UserByID() error = %v, wantErr %v", err, tt.wantErr)
@@ -84,7 +85,7 @@ func TestClient_UserByID(t *testing.T) {
 func TestClient_UserByPhoneAndPassword(t *testing.T) {
 	tests := []struct {
 		name     string
-		usrv     userService
+		usrv     usersClient.UserService
 		phone    string
 		password string
 		wantErr  bool
@@ -98,7 +99,7 @@ func TestClient_UserByPhoneAndPassword(t *testing.T) {
 		{
 			name:  "error from service",
 			phone: "1",
-			usrv: &userServiceMock{
+			usrv: &usersClient.UserServiceMock{
 				UserByPhoneAndPasswordFunc: func(_ context.Context, _ string, _ string) (*users.User, error) {
 					return nil, errTestError
 				},
@@ -109,7 +110,7 @@ func TestClient_UserByPhoneAndPassword(t *testing.T) {
 			name:     "ok",
 			phone:    "1",
 			password: "1",
-			usrv: &userServiceMock{
+			usrv: &usersClient.UserServiceMock{
 				UserByPhoneAndPasswordFunc: func(_ context.Context, phone string, password string) (*users.User, error) {
 					if phone != "1" || password != "1" {
 						return nil, errTestError
@@ -136,7 +137,7 @@ func TestClient_UserByPhoneAndPassword(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(tt.usrv)
+			s := usersClient.New(tt.usrv)
 			got, err := s.UserByPhoneAndPassword(context.Background(), tt.phone, tt.password)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UserByPhoneAndPassword() error = %v, wantErr %v", err, tt.wantErr)

@@ -1,4 +1,4 @@
-package requests
+package requests_test
 
 import (
 	"context"
@@ -6,26 +6,27 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/ivch/dynasty/server/handlers/requests"
 	"github.com/ivch/dynasty/server/handlers/users"
 )
 
 func TestService_GuardRequestList(t *testing.T) {
 	tests := []struct {
 		name    string
-		repo    requestsRepository
-		req     *RequestListFilter
+		repo    requests.RequestsRepository
+		req     *requests.RequestListFilter
 		wantErr bool
-		want    []*Request
+		want    []*requests.Request
 		wantCnt int
 	}{
 		{
 			name: "error from db on search",
-			repo: &requestsRepositoryMock{
-				ListForGuardFunc: func(_ *RequestListFilter) ([]*Request, error) {
+			repo: &requests.RequestsRepositoryMock{
+				ListForGuardFunc: func(_ *requests.RequestListFilter) ([]*requests.Request, error) {
 					return nil, errTestError
 				},
 			},
-			req: &RequestListFilter{
+			req: &requests.RequestListFilter{
 				UserID: 1,
 				Offset: 0,
 				Limit:  1,
@@ -34,15 +35,15 @@ func TestService_GuardRequestList(t *testing.T) {
 		},
 		{
 			name: "error from db on count",
-			repo: &requestsRepositoryMock{
-				ListForGuardFunc: func(_ *RequestListFilter) ([]*Request, error) {
+			repo: &requests.RequestsRepositoryMock{
+				ListForGuardFunc: func(_ *requests.RequestListFilter) ([]*requests.Request, error) {
 					return nil, nil
 				},
-				CountForGuardFunc: func(_ *RequestListFilter) (int, error) {
+				CountForGuardFunc: func(_ *requests.RequestListFilter) (int, error) {
 					return 0, errTestError
 				},
 			},
-			req: &RequestListFilter{
+			req: &requests.RequestListFilter{
 				UserID: 1,
 				Offset: 0,
 				Limit:  1,
@@ -51,9 +52,9 @@ func TestService_GuardRequestList(t *testing.T) {
 		},
 		{
 			name: "ok",
-			repo: &requestsRepositoryMock{
-				ListForGuardFunc: func(_ *RequestListFilter) ([]*Request, error) {
-					return []*Request{
+			repo: &requests.RequestsRepositoryMock{
+				ListForGuardFunc: func(_ *requests.RequestListFilter) ([]*requests.Request, error) {
+					return []*requests.Request{
 						{
 							ID:          1,
 							Type:        "1",
@@ -73,17 +74,17 @@ func TestService_GuardRequestList(t *testing.T) {
 						},
 					}, nil
 				},
-				CountForGuardFunc: func(req *RequestListFilter) (int, error) {
+				CountForGuardFunc: func(req *requests.RequestListFilter) (int, error) {
 					return 1, nil
 				},
 			},
-			req: &RequestListFilter{
+			req: &requests.RequestListFilter{
 				UserID: 1,
 				Offset: 0,
 				Limit:  1,
 			},
 			wantErr: false,
-			want: []*Request{
+			want: []*requests.Request{
 				{
 					ID:          1,
 					UserID:      1,
@@ -102,8 +103,8 @@ func TestService_GuardRequestList(t *testing.T) {
 					Images: []string{"a"},
 					ImagesURL: []map[string]string{
 						{
-							"img":   fmt.Sprintf("cdnHost/%s%s", imgPathPrefix, "a"),
-							"thumb": fmt.Sprintf("cdnHost/%s%s", thumbPathPrefix, "a"),
+							"img":   fmt.Sprintf("cdnHost/%s%s", requests.ImgPathPrefix, "a"),
+							"thumb": fmt.Sprintf("cdnHost/%s%s", requests.ThumbPathPrefix, "a"),
 						},
 					},
 				},
@@ -114,7 +115,7 @@ func TestService_GuardRequestList(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.repo, nil, "", "cdnHost")
+			s := requests.New(defaultLogger, tt.repo, nil, "", "cdnHost")
 			got, cnt, err := s.GuardRequestList(context.Background(), tt.req)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GuardRequestList() error = %v, wantErr %v", err, tt.wantErr)
@@ -133,18 +134,18 @@ func TestService_GuardRequestList(t *testing.T) {
 func TestService_GuardUpdateRequest(t *testing.T) {
 	tests := []struct {
 		name    string
-		repo    requestsRepository
-		req     *Request
+		repo    requests.RequestsRepository
+		req     *requests.Request
 		wantErr bool
 	}{
 		{
 			name: "error from db",
-			repo: &requestsRepositoryMock{
+			repo: &requests.RequestsRepositoryMock{
 				UpdateForGuardFunc: func(_ uint, _ string) error {
 					return errTestError
 				},
 			},
-			req: &Request{
+			req: &requests.Request{
 				ID:     1,
 				Status: "1",
 			},
@@ -152,12 +153,12 @@ func TestService_GuardUpdateRequest(t *testing.T) {
 		},
 		{
 			name: "ok",
-			repo: &requestsRepositoryMock{
+			repo: &requests.RequestsRepositoryMock{
 				UpdateForGuardFunc: func(_ uint, _ string) error {
 					return nil
 				},
 			},
-			req: &Request{
+			req: &requests.Request{
 				ID:     1,
 				Status: "1",
 			},
@@ -167,7 +168,7 @@ func TestService_GuardUpdateRequest(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.repo, nil, "", "")
+			s := requests.New(defaultLogger, tt.repo, nil, "", "")
 			err := s.GuardUpdateRequest(context.Background(), tt.req)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GuardUpdateRequest() error = %v, wantErr %v", err, tt.wantErr)

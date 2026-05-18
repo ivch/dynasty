@@ -1,16 +1,18 @@
-package users
+package users_test
 
 import (
 	"context"
 	"reflect"
 	"testing"
+
+	"github.com/ivch/dynasty/server/handlers/users"
 )
 
 func TestService_DeleteFamilyMember(t *testing.T) {
 	type fields struct {
 		verifyRegCode bool
 		maxMembers    int
-		repo          userRepository
+		repo          users.UserRepository
 	}
 
 	type input struct {
@@ -29,8 +31,8 @@ func TestService_DeleteFamilyMember(t *testing.T) {
 			fields: fields{
 				verifyRegCode: false,
 				maxMembers:    0,
-				repo: &userRepositoryMock{
-					GetUserByIDFunc: func(_ uint) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
 						return nil, errTestError
 					},
 				},
@@ -43,10 +45,10 @@ func TestService_DeleteFamilyMember(t *testing.T) {
 			fields: fields{
 				verifyRegCode: false,
 				maxMembers:    0,
-				repo: &userRepositoryMock{
-					GetUserByIDFunc: func(_ uint) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
 						var id uint = 2
-						return &User{ParentID: &id}, nil
+						return &users.User{ParentID: &id}, nil
 					},
 				},
 			},
@@ -58,12 +60,12 @@ func TestService_DeleteFamilyMember(t *testing.T) {
 			fields: fields{
 				verifyRegCode: false,
 				maxMembers:    0,
-				repo: &userRepositoryMock{
-					GetUserByIDFunc: func(_ uint) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
 						var id uint = 2
-						return &User{ParentID: &id}, nil
+						return &users.User{ParentID: &id}, nil
 					},
-					DeleteUserFunc: func(_ *User) error {
+					DeleteUserFunc: func(_ *users.User) error {
 						return errTestError
 					},
 				},
@@ -76,12 +78,12 @@ func TestService_DeleteFamilyMember(t *testing.T) {
 			fields: fields{
 				verifyRegCode: false,
 				maxMembers:    0,
-				repo: &userRepositoryMock{
-					GetUserByIDFunc: func(_ uint) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
 						var id uint = 2
-						return &User{ParentID: &id}, nil
+						return &users.User{ParentID: &id}, nil
 					},
-					DeleteUserFunc: func(_ *User) error {
+					DeleteUserFunc: func(_ *users.User) error {
 						return nil
 					},
 				},
@@ -93,7 +95,7 @@ func TestService_DeleteFamilyMember(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.fields.repo, tt.fields.verifyRegCode, tt.fields.maxMembers, nil)
+			s := users.New(defaultLogger, tt.fields.repo, tt.fields.verifyRegCode, tt.fields.maxMembers, nil)
 			err := s.DeleteFamilyMember(context.Background(), tt.input.ownerID, tt.input.memberID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DeleteFamilyMember() error = %v, wantErr %v", err, tt.wantErr)
@@ -107,7 +109,7 @@ func TestService_ListFamilyMembers(t *testing.T) {
 	type fields struct {
 		verifyRegCode bool
 		maxMembers    int
-		repo          userRepository
+		repo          users.UserRepository
 	}
 
 	tests := []struct {
@@ -115,15 +117,15 @@ func TestService_ListFamilyMembers(t *testing.T) {
 		fields  fields
 		input   uint
 		wantErr bool
-		want    []*User
+		want    []*users.User
 	}{
 		{
 			name: "error getting family members",
 			fields: fields{
 				verifyRegCode: false,
 				maxMembers:    0,
-				repo: &userRepositoryMock{
-					GetFamilyMembersFunc: func(_ uint) ([]*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetFamilyMembersFunc: func(_ uint) ([]*users.User, error) {
 						return nil, errTestError
 					},
 				},
@@ -136,8 +138,8 @@ func TestService_ListFamilyMembers(t *testing.T) {
 			fields: fields{
 				verifyRegCode: false,
 				maxMembers:    0,
-				repo: &userRepositoryMock{
-					GetFamilyMembersFunc: func(_ uint) ([]*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetFamilyMembersFunc: func(_ uint) ([]*users.User, error) {
 						return nil, nil
 					},
 				},
@@ -151,9 +153,9 @@ func TestService_ListFamilyMembers(t *testing.T) {
 			fields: fields{
 				verifyRegCode: false,
 				maxMembers:    0,
-				repo: &userRepositoryMock{
-					GetFamilyMembersFunc: func(_ uint) ([]*User, error) {
-						return []*User{
+				repo: &users.UserRepositoryMock{
+					GetFamilyMembersFunc: func(_ uint) ([]*users.User, error) {
+						return []*users.User{
 							{
 								ID:        1,
 								Phone:     "1",
@@ -168,7 +170,7 @@ func TestService_ListFamilyMembers(t *testing.T) {
 			},
 			input:   0,
 			wantErr: false,
-			want: []*User{
+			want: []*users.User{
 				{
 					ID:        1,
 					FirstName: "1",
@@ -183,7 +185,7 @@ func TestService_ListFamilyMembers(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.fields.repo, tt.fields.verifyRegCode, tt.fields.maxMembers, nil)
+			s := users.New(defaultLogger, tt.fields.repo, tt.fields.verifyRegCode, tt.fields.maxMembers, nil)
 			got, err := s.ListFamilyMembers(context.Background(), tt.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ListFamilyMembers() error = %v, wantErr %v", err, tt.wantErr)
@@ -200,11 +202,11 @@ func TestService_AddFamilyMember(t *testing.T) {
 	type fields struct {
 		verifyRegCode bool
 		maxMembers    int
-		repo          userRepository
+		repo          users.UserRepository
 	}
 
 	pid := uint(1)
-	testRequest := &User{
+	testRequest := &users.User{
 		ParentID: &pid,
 		Phone:    "1",
 	}
@@ -212,17 +214,17 @@ func TestService_AddFamilyMember(t *testing.T) {
 	tests := []struct {
 		name    string
 		fields  fields
-		input   *User
+		input   *users.User
 		wantErr bool
-		want    *User
+		want    *users.User
 	}{
 		{
 			name: "error wrong owner",
 			fields: fields{
 				verifyRegCode: false,
 				maxMembers:    0,
-				repo: &userRepositoryMock{
-					GetUserByIDFunc: func(_ uint) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
 						return nil, errTestError
 					},
 				},
@@ -235,11 +237,11 @@ func TestService_AddFamilyMember(t *testing.T) {
 			fields: fields{
 				verifyRegCode: false,
 				maxMembers:    1,
-				repo: &userRepositoryMock{
-					GetUserByIDFunc: func(_ uint) (*User, error) {
-						return &User{ID: 1}, nil
+				repo: &users.UserRepositoryMock{
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
+						return &users.User{ID: 1}, nil
 					},
-					GetFamilyMembersFunc: func(_ uint) ([]*User, error) {
+					GetFamilyMembersFunc: func(_ uint) ([]*users.User, error) {
 						return nil, errTestError
 					},
 				},
@@ -252,12 +254,12 @@ func TestService_AddFamilyMember(t *testing.T) {
 			fields: fields{
 				verifyRegCode: false,
 				maxMembers:    1,
-				repo: &userRepositoryMock{
-					GetUserByIDFunc: func(_ uint) (*User, error) {
-						return &User{ID: 1}, nil
+				repo: &users.UserRepositoryMock{
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
+						return &users.User{ID: 1}, nil
 					},
-					GetFamilyMembersFunc: func(_ uint) ([]*User, error) {
-						return []*User{
+					GetFamilyMembersFunc: func(_ uint) ([]*users.User, error) {
+						return []*users.User{
 							{},
 							{},
 						}, nil
@@ -272,14 +274,14 @@ func TestService_AddFamilyMember(t *testing.T) {
 			fields: fields{
 				verifyRegCode: false,
 				maxMembers:    1,
-				repo: &userRepositoryMock{
-					GetUserByIDFunc: func(_ uint) (*User, error) {
-						return &User{ID: 1}, nil
+				repo: &users.UserRepositoryMock{
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
+						return &users.User{ID: 1}, nil
 					},
-					GetFamilyMembersFunc: func(_ uint) ([]*User, error) {
+					GetFamilyMembersFunc: func(_ uint) ([]*users.User, error) {
 						return nil, nil
 					},
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
 						return nil, errTestError
 					},
 				},
@@ -292,15 +294,15 @@ func TestService_AddFamilyMember(t *testing.T) {
 			fields: fields{
 				verifyRegCode: false,
 				maxMembers:    1,
-				repo: &userRepositoryMock{
-					GetUserByIDFunc: func(_ uint) (*User, error) {
-						return &User{ID: 1}, nil
+				repo: &users.UserRepositoryMock{
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
+						return &users.User{ID: 1}, nil
 					},
-					GetFamilyMembersFunc: func(_ uint) ([]*User, error) {
+					GetFamilyMembersFunc: func(_ uint) ([]*users.User, error) {
 						return nil, nil
 					},
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
-						return &User{}, nil
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
+						return &users.User{}, nil
 					},
 				},
 			},
@@ -312,14 +314,14 @@ func TestService_AddFamilyMember(t *testing.T) {
 			fields: fields{
 				verifyRegCode: false,
 				maxMembers:    1,
-				repo: &userRepositoryMock{
-					GetUserByIDFunc: func(_ uint) (*User, error) {
-						return &User{ID: 1}, nil
+				repo: &users.UserRepositoryMock{
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
+						return &users.User{ID: 1}, nil
 					},
-					GetFamilyMembersFunc: func(_ uint) ([]*User, error) {
+					GetFamilyMembersFunc: func(_ uint) ([]*users.User, error) {
 						return nil, nil
 					},
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
 					GetRegCodeFunc: func() (string, error) {
@@ -335,20 +337,20 @@ func TestService_AddFamilyMember(t *testing.T) {
 			fields: fields{
 				verifyRegCode: false,
 				maxMembers:    1,
-				repo: &userRepositoryMock{
-					GetUserByIDFunc: func(_ uint) (*User, error) {
-						return &User{ID: 1}, nil
+				repo: &users.UserRepositoryMock{
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
+						return &users.User{ID: 1}, nil
 					},
-					GetFamilyMembersFunc: func(_ uint) ([]*User, error) {
+					GetFamilyMembersFunc: func(_ uint) ([]*users.User, error) {
 						return nil, nil
 					},
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
 					GetRegCodeFunc: func() (string, error) {
 						return "123", nil
 					},
-					CreateUserFunc: func(_ *User) error {
+					CreateUserFunc: func(_ *users.User) error {
 						return errTestError
 					},
 				},
@@ -361,20 +363,20 @@ func TestService_AddFamilyMember(t *testing.T) {
 			fields: fields{
 				verifyRegCode: false,
 				maxMembers:    1,
-				repo: &userRepositoryMock{
-					GetUserByIDFunc: func(_ uint) (*User, error) {
-						return &User{ID: 1}, nil
+				repo: &users.UserRepositoryMock{
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
+						return &users.User{ID: 1}, nil
 					},
-					GetFamilyMembersFunc: func(_ uint) ([]*User, error) {
+					GetFamilyMembersFunc: func(_ uint) ([]*users.User, error) {
 						return nil, nil
 					},
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
 					GetRegCodeFunc: func() (string, error) {
 						return "123", nil
 					},
-					CreateUserFunc: func(_ *User) error {
+					CreateUserFunc: func(_ *users.User) error {
 						return nil
 					},
 					UseRegCodeFunc: func(_ string) error {
@@ -390,20 +392,20 @@ func TestService_AddFamilyMember(t *testing.T) {
 			fields: fields{
 				verifyRegCode: false,
 				maxMembers:    1,
-				repo: &userRepositoryMock{
-					GetUserByIDFunc: func(_ uint) (*User, error) {
-						return &User{ID: 1}, nil
+				repo: &users.UserRepositoryMock{
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
+						return &users.User{ID: 1}, nil
 					},
-					GetFamilyMembersFunc: func(_ uint) ([]*User, error) {
+					GetFamilyMembersFunc: func(_ uint) ([]*users.User, error) {
 						return nil, nil
 					},
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
 					GetRegCodeFunc: func() (string, error) {
 						return "123", nil
 					},
-					CreateUserFunc: func(_ *User) error {
+					CreateUserFunc: func(_ *users.User) error {
 						return nil
 					},
 					UseRegCodeFunc: func(_ string) error {
@@ -413,12 +415,12 @@ func TestService_AddFamilyMember(t *testing.T) {
 			},
 			input:   testRequest,
 			wantErr: false,
-			want:    &User{RegCode: "123", Phone: "1", Role: defaultUserRole, ParentID: &pid},
+			want:    &users.User{RegCode: "123", Phone: "1", Role: users.DefaultUserRole, ParentID: &pid},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.fields.repo, tt.fields.verifyRegCode, tt.fields.maxMembers, nil)
+			s := users.New(defaultLogger, tt.fields.repo, tt.fields.verifyRegCode, tt.fields.maxMembers, nil)
 			got, err := s.AddFamilyMember(context.Background(), tt.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AddFamilyMember() error = %v, wantErr %v", err, tt.wantErr)
@@ -438,7 +440,7 @@ func TestService_familyMemberRegister(t *testing.T) {
 	type fields struct {
 		verifyRegCode bool
 		maxMembers    int
-		repo          userRepository
+		repo          users.UserRepository
 	}
 
 	var pid uint = 2
@@ -446,25 +448,25 @@ func TestService_familyMemberRegister(t *testing.T) {
 	tests := []struct {
 		name    string
 		fields  fields
-		input   *User
+		input   *users.User
 		wantErr bool
-		want    *User
+		want    *users.User
 	}{
 		{
 			name: "error wrong reg codes",
 			fields: fields{
 				verifyRegCode: false,
 				maxMembers:    0,
-				repo: &userRepositoryMock{
-					GetUserByEmailFunc: func(_ string) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
-						return &User{ParentID: &pid, RegCode: "111"}, nil
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
+						return &users.User{ParentID: &pid, RegCode: "111"}, nil
 					},
 				},
 			},
-			input: &User{
+			input: &users.User{
 				RegCode:  "123",
 				Phone:    "123",
 				ParentID: &pid,
@@ -476,16 +478,16 @@ func TestService_familyMemberRegister(t *testing.T) {
 			fields: fields{
 				verifyRegCode: false,
 				maxMembers:    0,
-				repo: &userRepositoryMock{
-					GetUserByEmailFunc: func(_ string) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
-						return &User{ParentID: &pid, Active: true, RegCode: "123"}, nil
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
+						return &users.User{ParentID: &pid, Active: true, RegCode: "123"}, nil
 					},
 				},
 			},
-			input: &User{
+			input: &users.User{
 				RegCode:  "123",
 				Phone:    "123",
 				ParentID: &pid,
@@ -497,19 +499,19 @@ func TestService_familyMemberRegister(t *testing.T) {
 			fields: fields{
 				verifyRegCode: false,
 				maxMembers:    0,
-				repo: &userRepositoryMock{
-					GetUserByEmailFunc: func(_ string) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
-						return &User{ParentID: &pid, Active: false, RegCode: "123"}, nil
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
+						return &users.User{ParentID: &pid, Active: false, RegCode: "123"}, nil
 					},
-					GetUserByIDFunc: func(_ uint) (*User, error) {
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
 						return nil, errTestError
 					},
 				},
 			},
-			input: &User{
+			input: &users.User{
 				RegCode:  "123",
 				Phone:    "123",
 				ParentID: &pid,
@@ -521,19 +523,19 @@ func TestService_familyMemberRegister(t *testing.T) {
 			fields: fields{
 				verifyRegCode: false,
 				maxMembers:    0,
-				repo: &userRepositoryMock{
-					GetUserByEmailFunc: func(_ string) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
-						return &User{ParentID: &pid, Active: false, RegCode: "123"}, nil
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
+						return &users.User{ParentID: &pid, Active: false, RegCode: "123"}, nil
 					},
-					GetUserByIDFunc: func(_ uint) (*User, error) {
-						return &User{Apartment: 5}, nil
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
+						return &users.User{Apartment: 5}, nil
 					},
 				},
 			},
-			input: &User{
+			input: &users.User{
 				RegCode:   "123",
 				Phone:     "123",
 				ParentID:  &pid,
@@ -546,22 +548,22 @@ func TestService_familyMemberRegister(t *testing.T) {
 			fields: fields{
 				verifyRegCode: false,
 				maxMembers:    0,
-				repo: &userRepositoryMock{
-					GetUserByEmailFunc: func(_ string) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
-						return &User{ParentID: &pid, Active: false, RegCode: "123"}, nil
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
+						return &users.User{ParentID: &pid, Active: false, RegCode: "123"}, nil
 					},
-					GetUserByIDFunc: func(_ uint) (*User, error) {
-						return &User{}, nil
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
+						return &users.User{}, nil
 					},
-					UpdateUserFunc: func(_ *UserUpdate) error {
+					UpdateUserFunc: func(_ *users.UserUpdate) error {
 						return errTestError
 					},
 				},
 			},
-			input: &User{
+			input: &users.User{
 				RegCode:  "123",
 				Phone:    "123",
 				ParentID: &pid,
@@ -573,28 +575,28 @@ func TestService_familyMemberRegister(t *testing.T) {
 			fields: fields{
 				verifyRegCode: false,
 				maxMembers:    0,
-				repo: &userRepositoryMock{
-					GetUserByEmailFunc: func(_ string) (*User, error) {
+				repo: &users.UserRepositoryMock{
+					GetUserByEmailFunc: func(_ string) (*users.User, error) {
 						return nil, nil
 					},
-					GetUserByPhoneFunc: func(_ string) (*User, error) {
-						return &User{ID: 5, ParentID: &pid, Active: false, Phone: "123", RegCode: "123"}, nil
+					GetUserByPhoneFunc: func(_ string) (*users.User, error) {
+						return &users.User{ID: 5, ParentID: &pid, Active: false, Phone: "123", RegCode: "123"}, nil
 					},
-					GetUserByIDFunc: func(_ uint) (*User, error) {
-						return &User{}, nil
+					GetUserByIDFunc: func(_ uint) (*users.User, error) {
+						return &users.User{}, nil
 					},
-					UpdateUserFunc: func(u *UserUpdate) error {
+					UpdateUserFunc: func(u *users.UserUpdate) error {
 						return nil
 					},
 				},
 			},
-			input: &User{
+			input: &users.User{
 				RegCode:  "123",
 				Phone:    "123",
 				ParentID: &pid,
 			},
 			wantErr: false,
-			want: &User{
+			want: &users.User{
 				ID:       5,
 				Phone:    "123",
 				RegCode:  "123",
@@ -606,7 +608,7 @@ func TestService_familyMemberRegister(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := New(defaultLogger, tt.fields.repo, tt.fields.verifyRegCode, tt.fields.maxMembers, nil)
+			s := users.New(defaultLogger, tt.fields.repo, tt.fields.verifyRegCode, tt.fields.maxMembers, nil)
 			got, err := s.Register(context.Background(), tt.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RegisterFamilyMember() error = %v, wantErr %v", err, tt.wantErr)

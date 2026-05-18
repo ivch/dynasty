@@ -1,4 +1,4 @@
-package health
+package health_test
 
 import (
 	"context"
@@ -7,17 +7,19 @@ import (
 	"net/http/httptest"
 	"reflect"
 	"testing"
+
+	"github.com/ivch/dynasty/server/handlers/health"
 )
 
 func TestNewHTTPTransport(t *testing.T) {
 	t.Run("New", func(t *testing.T) {
 		checker := testChecker{}
 
-		want := &HTTPTransport{
-			checker: &checker,
+		want := &health.HTTPTransport{
+			Checker: &checker,
 		}
 
-		if got := NewHTTPTransport(&checker); !reflect.DeepEqual(got, want) {
+		if got := health.NewHTTPTransport(&checker); !reflect.DeepEqual(got, want) {
 			t.Errorf("NewHTTPTransport() = %v, want %v", got, want)
 		}
 	})
@@ -25,7 +27,7 @@ func TestNewHTTPTransport(t *testing.T) {
 
 func TestHTTPTransport_ServeHTTP(t *testing.T) {
 	type tcase struct {
-		checker        Checker
+		checker        health.Checker
 		wantStatusCode int
 	}
 	tests := map[string]tcase{
@@ -45,8 +47,8 @@ func TestHTTPTransport_ServeHTTP(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			transport := &HTTPTransport{
-				checker: tc.checker,
+			transport := &health.HTTPTransport{
+				Checker: tc.checker,
 			}
 			srv := httptest.NewServer(transport)
 			defer srv.Close()

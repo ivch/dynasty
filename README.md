@@ -19,15 +19,16 @@ Read more about the architectural approach and motivations in [INFO.md](https://
 - **User Management** - Registration, authentication, family member support
 - **JWT Authentication** - Token-based auth with refresh mechanism
 - **Request System** - Guest access, taxi, delivery, and cargo requests
-- **Image Handling** - Upload and CDN integration via S3-compatible storage
+- **Image Handling** - Upload and CDN integration via S3-compatible storage with size limits
 - **Password Recovery** - Secure password reset with email verification
 - **Role-Based Access** - Admin, service, guard, and neighbor roles
 - **Multi-Language Support** - English, Russian, and Ukrainian error messages
 - **Health Checks** - Monitoring endpoints for service health
+- **Security Hardening** - Path traversal protection, bounded file uploads, input validation
 
 ## Tech Stack
 
-- **Go 1.22-1.23** - Primary language
+- **Go 1.26.3** - Primary language
 - **Chi Router** - Lightweight HTTP router
 - **GORM** - ORM for PostgreSQL
 - **JWT** - Token-based authentication
@@ -58,7 +59,7 @@ server/handlers/{feature}/
 
 ## Prerequisites
 
-- **Go 1.22+**
+- **Go 1.26.3+**
 - **Docker & Docker Compose**
 - **PostgreSQL** (via Docker or local)
 - **Make** (for build automation)
@@ -337,6 +338,8 @@ This is primarily a personal project, but suggestions and improvements are welco
 - Write tests with mocks
 - Add multilingual error messages (EN/RU/UA)
 - Keep functions focused and testable
+- Implement security best practices (input validation, path sanitization, size limits)
+- Use `#nosec` directives with clear explanations when gosec warnings are false positives
 
 See `CLAUDE.md` for detailed coding guidelines.
 
