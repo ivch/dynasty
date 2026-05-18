@@ -24,7 +24,7 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.62.2
+          version: v2.12.2
 
       - name: Test and Build image
         run: CODECOV_TOKEN=${{secrets.DYN_CODECOV_TOKEN}} make build
