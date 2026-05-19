@@ -12,6 +12,7 @@ import (
 
 	"github.com/microcosm-cc/bluemonday"
 
+	"github.com/ivch/dynasty/common/errs"
 	"github.com/ivch/dynasty/common/logger"
 	"github.com/ivch/dynasty/server/handlers/users"
 	"github.com/ivch/dynasty/server/handlers/users/transport"
@@ -831,6 +832,93 @@ func TestHTTPTransport_PasswordResetRequest(t *testing.T) {
 			h.ServeHTTP(rr, rq)
 			if (rr.Code != http.StatusOK) != tt.wantErr {
 				t.Errorf("Request error. status = %d, wantErr %v", rr.Code, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestHTTP_AdminResetApartment(t *testing.T) {
+	tests := []struct {
+		name     string
+		svc      transport.UsersService
+		header   string
+		request  string
+		wantCode int
+	}{
+		{
+			name:     "missing admin header",
+			svc:      nil,
+			header:   "",
+			request:  `{"building_id":1,"apartment_number":123}`,
+			wantCode: http.StatusUnauthorized,
+		},
+		{
+			name:     "bad admin id in header",
+			svc:      nil,
+			header:   "0",
+			request:  `{"building_id":1,"apartment_number":123}`,
+			wantCode: http.StatusUnauthorized,
+		},
+		{
+			name:     "missing building_id",
+			svc:      nil,
+			header:   "1",
+			request:  `{"apartment_number":123}`,
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:     "missing apartment_number",
+			svc:      nil,
+			header:   "1",
+			request:  `{"building_id":1}`,
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:    "non-admin forbidden",
+			header:  "1",
+			request: `{"building_id":1,"apartment":123}`,
+			svc: &transport.UsersServiceMock{
+				AdminResetApartmentFunc: func(_ context.Context, _, _, _ uint) error {
+					return errs.InsufficientPermissions
+				},
+			},
+			wantCode: http.StatusForbidden,
+		},
+		{
+			name:    "service error",
+			header:  "1",
+			request: `{"building_id":1,"apartment":123}`,
+			svc: &transport.UsersServiceMock{
+				AdminResetApartmentFunc: func(_ context.Context, _, _, _ uint) error {
+					return errTestError
+				},
+			},
+			wantCode: http.StatusInternalServerError,
+		},
+		{
+			name:    "ok",
+			header:  "1",
+			request: `{"building_id":1,"apartment":123}`,
+			svc: &transport.UsersServiceMock{
+				AdminResetApartmentFunc: func(_ context.Context, _, _, _ uint) error {
+					return nil
+				},
+			},
+			wantCode: http.StatusOK,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := transport.NewHTTPTransport(defaultLogger, tt.svc, defaultPolicy, middlewares.NewIDCtx(defaultLogger).Middleware)
+			rr := httptest.NewRecorder()
+			rq, _ := http.NewRequest(http.MethodPost, "/v1/admin/apartment/reset", strings.NewReader(tt.request))
+			if tt.header != "" {
+				rq.Header.Set("X-Auth-User", tt.header)
+			}
+			h.ServeHTTP(rr, rq)
+			if rr.Code != tt.wantCode {
+				t.Errorf("AdminResetApartment() status = %d, want %d", rr.Code, tt.wantCode)
 			}
 		})
 	}

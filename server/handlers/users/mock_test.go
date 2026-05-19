@@ -17,6 +17,9 @@ var _ UserRepository = &UserRepositoryMock{}
 //
 //		// make and configure a mocked UserRepository
 //		mockedUserRepository := &UserRepositoryMock{
+//			AdminResetApartmentFunc: func(targetID uint, placeholder *User) error {
+//				panic("mock out the AdminResetApartment method")
+//			},
 //			CountRecoveryCodesByUserIn24hFunc: func(userID uint) (int, error) {
 //				panic("mock out the CountRecoveryCodesByUserIn24h method")
 //			},
@@ -69,6 +72,9 @@ var _ UserRepository = &UserRepositoryMock{}
 //
 //	}
 type UserRepositoryMock struct {
+	// AdminResetApartmentFunc mocks the AdminResetApartment method.
+	AdminResetApartmentFunc func(targetID uint, placeholder *User) error
+
 	// CountRecoveryCodesByUserIn24hFunc mocks the CountRecoveryCodesByUserIn24h method.
 	CountRecoveryCodesByUserIn24hFunc func(userID uint) (int, error)
 
@@ -116,6 +122,13 @@ type UserRepositoryMock struct {
 
 	// calls tracks calls to the methods.
 	calls struct {
+		// AdminResetApartment holds details about calls to the AdminResetApartment method.
+		AdminResetApartment []struct {
+			// TargetID is the targetID argument value.
+			TargetID uint
+			// Placeholder is the placeholder argument value.
+			Placeholder *User
+		}
 		// CountRecoveryCodesByUserIn24h holds details about calls to the CountRecoveryCodesByUserIn24h method.
 		CountRecoveryCodesByUserIn24h []struct {
 			// UserID is the userID argument value.
@@ -194,6 +207,7 @@ type UserRepositoryMock struct {
 			Code string
 		}
 	}
+	lockAdminResetApartment           sync.RWMutex
 	lockCountRecoveryCodesByUserIn24h sync.RWMutex
 	lockCreateRecoverCode             sync.RWMutex
 	lockCreateUser                    sync.RWMutex
@@ -209,6 +223,42 @@ type UserRepositoryMock struct {
 	lockUpdateUser                    sync.RWMutex
 	lockUseRegCode                    sync.RWMutex
 	lockValidateRegCode               sync.RWMutex
+}
+
+// AdminResetApartment calls AdminResetApartmentFunc.
+func (mock *UserRepositoryMock) AdminResetApartment(targetID uint, placeholder *User) error {
+	if mock.AdminResetApartmentFunc == nil {
+		panic("UserRepositoryMock.AdminResetApartmentFunc: method is nil but UserRepository.AdminResetApartment was just called")
+	}
+	callInfo := struct {
+		TargetID    uint
+		Placeholder *User
+	}{
+		TargetID:    targetID,
+		Placeholder: placeholder,
+	}
+	mock.lockAdminResetApartment.Lock()
+	mock.calls.AdminResetApartment = append(mock.calls.AdminResetApartment, callInfo)
+	mock.lockAdminResetApartment.Unlock()
+	return mock.AdminResetApartmentFunc(targetID, placeholder)
+}
+
+// AdminResetApartmentCalls gets all the calls that were made to AdminResetApartment.
+// Check the length with:
+//
+//	len(mockedUserRepository.AdminResetApartmentCalls())
+func (mock *UserRepositoryMock) AdminResetApartmentCalls() []struct {
+	TargetID    uint
+	Placeholder *User
+} {
+	var calls []struct {
+		TargetID    uint
+		Placeholder *User
+	}
+	mock.lockAdminResetApartment.RLock()
+	calls = mock.calls.AdminResetApartment
+	mock.lockAdminResetApartment.RUnlock()
+	return calls
 }
 
 // CountRecoveryCodesByUserIn24h calls CountRecoveryCodesByUserIn24hFunc.
