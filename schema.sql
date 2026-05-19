@@ -11,7 +11,8 @@ insert into user_roles (id, name, parent)
 values (1, 'admin', 0),
        (2, 'service', 1),
        (3, 'guard', 2),
-       (4, 'neighbor', 1);
+       (4, 'neighbor', 1),
+       (5, 'predefined', 4);
 
 create table if not exists buildings
 (

@@ -29,6 +29,7 @@ type UserRepository interface {
 	CountRecoveryCodesByUserIn24h(userID uint) (int, error)
 	GetRecoveryCode(c *PasswordRecovery) (*PasswordRecovery, error)
 	ResetPassword(codeID uint, req *UserUpdate) error
+	AdminResetApartment(targetID uint, placeholder *User) error
 }
 
 type MailSender interface {
@@ -289,6 +290,39 @@ func (s *Service) ResetPassword(ctx context.Context, code string, r *UserUpdate)
 	r.Password = &pwd
 
 	return s.repo.ResetPassword(c.ID, r)
+}
+
+func (s *Service) AdminResetApartment(_ context.Context, adminID, buildingID, apartmentNumber uint) error {
+	admin, err := s.repo.GetUserByID(adminID)
+	if err != nil {
+		s.log.Error("error getting admin user: %w", err)
+		return errs.UserNotFound
+	}
+
+	if admin.Role != 1 {
+		return errs.InsufficientPermissions
+	}
+
+	target, err := s.repo.FindUserByApartment(buildingID, apartmentNumber)
+	if err != nil {
+		s.log.Error("error finding user by apartment: %w", err)
+		return err
+	}
+
+	if target == nil {
+		return errs.UserNotFound
+	}
+
+	placeholder := User{
+		BuildingID: target.BuildingID,
+		EntryID:    target.EntryID,
+		Apartment:  target.Apartment,
+		Phone:      fmt.Sprintf("%d%d%d", target.BuildingID, target.EntryID, target.Apartment),
+		Role:       PredefinedUserRole,
+		Active:     false,
+	}
+
+	return s.repo.AdminResetApartment(target.ID, &placeholder)
 }
 
 func HashAndSalt(pwd string) (string, error) {

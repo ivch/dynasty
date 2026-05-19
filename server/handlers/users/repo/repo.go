@@ -148,6 +148,30 @@ func (r *Repo) ResetPassword(codeID uint, req *users.UserUpdate) error {
 	})
 }
 
+func (r *Repo) AdminResetApartment(targetID uint, placeholder *users.User) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		var codes []string
+		if err := tx.Table("reg_codes").Where("used = ?", false).Pluck("code", &codes).Error; err != nil {
+			return err
+		}
+		if len(codes) == 0 {
+			return errs.NoRegCodesAvailable
+		}
+		code := codes[0]
+
+		if err := tx.Where("id = ?", targetID).Delete(users.User{}).Error; err != nil {
+			return err
+		}
+
+		placeholder.RegCode = code
+		if err := tx.Create(placeholder).Error; err != nil {
+			return err
+		}
+
+		return tx.Exec("update reg_codes set used = true where code = ?", code).Error
+	})
+}
+
 func prepareUpdateQuery(req *users.UserUpdate) map[string]interface{} {
 	update := make(map[string]interface{})
 	if req.Email != nil {

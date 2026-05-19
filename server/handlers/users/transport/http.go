@@ -29,6 +29,7 @@ type UsersService interface {
 	DeleteFamilyMember(ctx context.Context, ownerID, memberID uint) error
 	RecoveryCode(ctx context.Context, r *users.User) error
 	ResetPassword(ctx context.Context, code string, r *users.UserUpdate) error
+	AdminResetApartment(ctx context.Context, adminID, buildingID, apartmentNumber uint) error
 }
 
 type HTTPTransport struct {
@@ -58,6 +59,7 @@ func (h *HTTPTransport) attachRoutes() {
 	h.router.Delete("/v1/member/{id}", h.DeleteFamilyMember)
 	h.router.Post("/v1/password-recovery", h.PasswordRecovery)
 	h.router.Post("/v1/password-reset", h.PasswordReset)
+	h.router.Post("/v1/admin/apartment/reset", h.AdminResetApartment)
 }
 
 func (h *HTTPTransport) Register(w http.ResponseWriter, r *http.Request) {
@@ -374,6 +376,36 @@ func (h *HTTPTransport) PasswordReset(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.sendHTTPResponse(r.Context(), w, nil)
+}
+
+func (h *HTTPTransport) AdminResetApartment(w http.ResponseWriter, r *http.Request) {
+	adminID, err := getUserID(r.Context())
+	if err != nil {
+		h.sendError(w, http.StatusUnauthorized, errs.Unauthorized)
+		return
+	}
+
+	var req adminResetApartmentRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.sendError(w, http.StatusBadRequest, errs.BadRequest)
+		return
+	}
+
+	if req.BuildingID == 0 || req.Apartment == 0 {
+		h.sendError(w, http.StatusBadRequest, errs.BadRequest)
+		return
+	}
+
+	if err := h.svc.AdminResetApartment(r.Context(), adminID, req.BuildingID, req.Apartment); err != nil {
+		if err == errs.InsufficientPermissions {
+			h.sendError(w, http.StatusForbidden, err)
+			return
+		}
+		h.sendError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	h.sendHTTPResponse(r.Context(), w, struct{}{})
 }
 
 func getUserID(ctx context.Context) (uint, error) {

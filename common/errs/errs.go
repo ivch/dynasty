@@ -63,6 +63,8 @@ const (
 	recoveryCodeOutdatedCode
 	aptNumberIsTooBigCode
 	emailAlreadyExistsCode
+	insufficientPermissionsCode
+	noRegCodesAvailableCode
 )
 
 type SvcError struct {
@@ -144,6 +146,8 @@ var (
 	EmptyPassword                 = New(emptyPasswordCode, "empty password", "пустой пароль", "пустий пароль")
 	AptNumberIsTooBig             = New(aptNumberIsTooBigCode, "apartment number is too big", "слишком большой номер квартиры", "завеликий номер помешкання")
 	EmailAlreadyExists            = New(emailAlreadyExistsCode, "provided email already in use", "указанный email уже используется", "вказаний email вже викорістовується")
+	InsufficientPermissions       = New(insufficientPermissionsCode, "insufficient permissions", "недостаточно прав", "недостатньо прав")
+	NoRegCodesAvailable           = New(noRegCodesAvailableCode, "no registration codes available", "нет доступных кодов регистрации", "немає доступних кодів реєстрації")
 
 	codes = map[error]uint{
 		Generic:                       genericCode,
@@ -204,6 +208,8 @@ var (
 		RecoveryCodeOutdated:          recoveryCodeOutdatedCode,
 		AptNumberIsTooBig:             aptNumberIsTooBigCode,
 		EmailAlreadyExists:            emailAlreadyExistsCode,
+		InsufficientPermissions:       insufficientPermissionsCode,
+		NoRegCodesAvailable:           noRegCodesAvailableCode,
 	}
 )
 

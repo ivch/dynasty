@@ -108,3 +108,8 @@ type passwordResetRequest struct {
 	NewPassword        string `json:"new_password,omitempty"`
 	NewPasswordConfirm string `json:"new_password_confirm,omitempty"`
 }
+
+type adminResetApartmentRequest struct {
+	BuildingID uint `json:"building_id"`
+	Apartment  uint `json:"apartment"`
+}

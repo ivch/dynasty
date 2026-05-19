@@ -22,6 +22,9 @@ var _ UsersService = &UsersServiceMock{}
 //			AddFamilyMemberFunc: func(ctx context.Context, r *users.User) (*users.User, error) {
 //				panic("mock out the AddFamilyMember method")
 //			},
+//			AdminResetApartmentFunc: func(ctx context.Context, adminID uint, buildingID uint, apartmentNumber uint) error {
+//				panic("mock out the AdminResetApartment method")
+//			},
 //			DeleteFamilyMemberFunc: func(ctx context.Context, ownerID uint, memberID uint) error {
 //				panic("mock out the DeleteFamilyMember method")
 //			},
@@ -53,6 +56,9 @@ type UsersServiceMock struct {
 	// AddFamilyMemberFunc mocks the AddFamilyMember method.
 	AddFamilyMemberFunc func(ctx context.Context, r *users.User) (*users.User, error)
 
+	// AdminResetApartmentFunc mocks the AdminResetApartment method.
+	AdminResetApartmentFunc func(ctx context.Context, adminID uint, buildingID uint, apartmentNumber uint) error
+
 	// DeleteFamilyMemberFunc mocks the DeleteFamilyMember method.
 	DeleteFamilyMemberFunc func(ctx context.Context, ownerID uint, memberID uint) error
 
@@ -82,6 +88,17 @@ type UsersServiceMock struct {
 			Ctx context.Context
 			// R is the r argument value.
 			R *users.User
+		}
+		// AdminResetApartment holds details about calls to the AdminResetApartment method.
+		AdminResetApartment []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// AdminID is the adminID argument value.
+			AdminID uint
+			// BuildingID is the buildingID argument value.
+			BuildingID uint
+			// ApartmentNumber is the apartmentNumber argument value.
+			ApartmentNumber uint
 		}
 		// DeleteFamilyMember holds details about calls to the DeleteFamilyMember method.
 		DeleteFamilyMember []struct {
@@ -137,14 +154,15 @@ type UsersServiceMock struct {
 			ID uint
 		}
 	}
-	lockAddFamilyMember    sync.RWMutex
-	lockDeleteFamilyMember sync.RWMutex
-	lockListFamilyMembers  sync.RWMutex
-	lockRecoveryCode       sync.RWMutex
-	lockRegister           sync.RWMutex
-	lockResetPassword      sync.RWMutex
-	lockUpdate             sync.RWMutex
-	lockUserByID           sync.RWMutex
+	lockAddFamilyMember     sync.RWMutex
+	lockAdminResetApartment sync.RWMutex
+	lockDeleteFamilyMember  sync.RWMutex
+	lockListFamilyMembers   sync.RWMutex
+	lockRecoveryCode        sync.RWMutex
+	lockRegister            sync.RWMutex
+	lockResetPassword       sync.RWMutex
+	lockUpdate              sync.RWMutex
+	lockUserByID            sync.RWMutex
 }
 
 // AddFamilyMember calls AddFamilyMemberFunc.
@@ -180,6 +198,50 @@ func (mock *UsersServiceMock) AddFamilyMemberCalls() []struct {
 	mock.lockAddFamilyMember.RLock()
 	calls = mock.calls.AddFamilyMember
 	mock.lockAddFamilyMember.RUnlock()
+	return calls
+}
+
+// AdminResetApartment calls AdminResetApartmentFunc.
+func (mock *UsersServiceMock) AdminResetApartment(ctx context.Context, adminID uint, buildingID uint, apartmentNumber uint) error {
+	if mock.AdminResetApartmentFunc == nil {
+		panic("UsersServiceMock.AdminResetApartmentFunc: method is nil but UsersService.AdminResetApartment was just called")
+	}
+	callInfo := struct {
+		Ctx             context.Context
+		AdminID         uint
+		BuildingID      uint
+		ApartmentNumber uint
+	}{
+		Ctx:             ctx,
+		AdminID:         adminID,
+		BuildingID:      buildingID,
+		ApartmentNumber: apartmentNumber,
+	}
+	mock.lockAdminResetApartment.Lock()
+	mock.calls.AdminResetApartment = append(mock.calls.AdminResetApartment, callInfo)
+	mock.lockAdminResetApartment.Unlock()
+	return mock.AdminResetApartmentFunc(ctx, adminID, buildingID, apartmentNumber)
+}
+
+// AdminResetApartmentCalls gets all the calls that were made to AdminResetApartment.
+// Check the length with:
+//
+//	len(mockedUsersService.AdminResetApartmentCalls())
+func (mock *UsersServiceMock) AdminResetApartmentCalls() []struct {
+	Ctx             context.Context
+	AdminID         uint
+	BuildingID      uint
+	ApartmentNumber uint
+} {
+	var calls []struct {
+		Ctx             context.Context
+		AdminID         uint
+		BuildingID      uint
+		ApartmentNumber uint
+	}
+	mock.lockAdminResetApartment.RLock()
+	calls = mock.calls.AdminResetApartment
+	mock.lockAdminResetApartment.RUnlock()
 	return calls
 }
 
