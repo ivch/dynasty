@@ -878,8 +878,8 @@ func TestHTTP_AdminResetApartment(t *testing.T) {
 			header:  "1",
 			request: `{"building_id":1,"apartment":123}`,
 			svc: &transport.UsersServiceMock{
-				AdminResetApartmentFunc: func(_ context.Context, _, _, _ uint) error {
-					return errs.InsufficientPermissions
+				AdminResetApartmentFunc: func(_ context.Context, _, _, _ uint) (string, error) {
+					return "", errs.InsufficientPermissions
 				},
 			},
 			wantCode: http.StatusForbidden,
@@ -889,8 +889,8 @@ func TestHTTP_AdminResetApartment(t *testing.T) {
 			header:  "1",
 			request: `{"building_id":1,"apartment":123}`,
 			svc: &transport.UsersServiceMock{
-				AdminResetApartmentFunc: func(_ context.Context, _, _, _ uint) error {
-					return errTestError
+				AdminResetApartmentFunc: func(_ context.Context, _, _, _ uint) (string, error) {
+					return "", errTestError
 				},
 			},
 			wantCode: http.StatusInternalServerError,
@@ -900,8 +900,8 @@ func TestHTTP_AdminResetApartment(t *testing.T) {
 			header:  "1",
 			request: `{"building_id":1,"apartment":123}`,
 			svc: &transport.UsersServiceMock{
-				AdminResetApartmentFunc: func(_ context.Context, _, _, _ uint) error {
-					return nil
+				AdminResetApartmentFunc: func(_ context.Context, _, _, _ uint) (string, error) {
+					return "abc123", nil
 				},
 			},
 			wantCode: http.StatusOK,
@@ -919,6 +919,9 @@ func TestHTTP_AdminResetApartment(t *testing.T) {
 			h.ServeHTTP(rr, rq)
 			if rr.Code != tt.wantCode {
 				t.Errorf("AdminResetApartment() status = %d, want %d", rr.Code, tt.wantCode)
+			}
+			if tt.name == "ok" && !strings.Contains(rr.Body.String(), `"reg_code":"abc123"`) {
+				t.Errorf("AdminResetApartment() body = %s, want reg_code in response", rr.Body.String())
 			}
 		})
 	}

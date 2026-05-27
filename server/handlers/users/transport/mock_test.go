@@ -22,7 +22,7 @@ var _ UsersService = &UsersServiceMock{}
 //			AddFamilyMemberFunc: func(ctx context.Context, r *users.User) (*users.User, error) {
 //				panic("mock out the AddFamilyMember method")
 //			},
-//			AdminResetApartmentFunc: func(ctx context.Context, adminID uint, buildingID uint, apartmentNumber uint) error {
+//			AdminResetApartmentFunc: func(ctx context.Context, adminID uint, buildingID uint, apartmentNumber uint) (string, error) {
 //				panic("mock out the AdminResetApartment method")
 //			},
 //			DeleteFamilyMemberFunc: func(ctx context.Context, ownerID uint, memberID uint) error {
@@ -57,7 +57,7 @@ type UsersServiceMock struct {
 	AddFamilyMemberFunc func(ctx context.Context, r *users.User) (*users.User, error)
 
 	// AdminResetApartmentFunc mocks the AdminResetApartment method.
-	AdminResetApartmentFunc func(ctx context.Context, adminID uint, buildingID uint, apartmentNumber uint) error
+	AdminResetApartmentFunc func(ctx context.Context, adminID uint, buildingID uint, apartmentNumber uint) (string, error)
 
 	// DeleteFamilyMemberFunc mocks the DeleteFamilyMember method.
 	DeleteFamilyMemberFunc func(ctx context.Context, ownerID uint, memberID uint) error
@@ -202,7 +202,7 @@ func (mock *UsersServiceMock) AddFamilyMemberCalls() []struct {
 }
 
 // AdminResetApartment calls AdminResetApartmentFunc.
-func (mock *UsersServiceMock) AdminResetApartment(ctx context.Context, adminID uint, buildingID uint, apartmentNumber uint) error {
+func (mock *UsersServiceMock) AdminResetApartment(ctx context.Context, adminID uint, buildingID uint, apartmentNumber uint) (string, error) {
 	if mock.AdminResetApartmentFunc == nil {
 		panic("UsersServiceMock.AdminResetApartmentFunc: method is nil but UsersService.AdminResetApartment was just called")
 	}

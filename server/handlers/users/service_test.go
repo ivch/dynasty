@@ -1096,8 +1096,8 @@ func TestService_AdminResetApartment(t *testing.T) {
 					FindUserByApartmentFunc: func(_, _ uint) (*users.User, error) {
 						return &users.User{ID: 10, BuildingID: 1, EntryID: 1, Apartment: 123}, nil
 					},
-					AdminResetApartmentFunc: func(_ uint, _ *users.User) error {
-						return nil
+					AdminResetApartmentFunc: func(_ uint, _ *users.User) (string, error) {
+						return "test-code", nil
 					},
 				},
 			},
@@ -1111,7 +1111,7 @@ func TestService_AdminResetApartment(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := users.New(defaultLogger, tt.params.repo, false, 0, nil)
-			err := s.AdminResetApartment(context.Background(), tt.adminID, tt.buildingID, tt.apartmentNumber)
+			_, err := s.AdminResetApartment(context.Background(), tt.adminID, tt.buildingID, tt.apartmentNumber)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AdminResetApartment() error = %v, wantErr %v", err, tt.wantErr)
 			}
