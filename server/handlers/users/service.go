@@ -29,7 +29,7 @@ type UserRepository interface {
 	CountRecoveryCodesByUserIn24h(userID uint) (int, error)
 	GetRecoveryCode(c *PasswordRecovery) (*PasswordRecovery, error)
 	ResetPassword(codeID uint, req *UserUpdate) error
-	AdminResetApartment(targetID uint, placeholder *User) error
+	AdminResetApartment(targetID uint, placeholder *User) (string, error)
 }
 
 type MailSender interface {
@@ -292,25 +292,25 @@ func (s *Service) ResetPassword(ctx context.Context, code string, r *UserUpdate)
 	return s.repo.ResetPassword(c.ID, r)
 }
 
-func (s *Service) AdminResetApartment(_ context.Context, adminID, buildingID, apartmentNumber uint) error {
+func (s *Service) AdminResetApartment(_ context.Context, adminID, buildingID, apartmentNumber uint) (string, error) {
 	admin, err := s.repo.GetUserByID(adminID)
 	if err != nil {
 		s.log.Error("error getting admin user: %w", err)
-		return errs.UserNotFound
+		return "", errs.UserNotFound
 	}
 
 	if admin.Role != 1 {
-		return errs.InsufficientPermissions
+		return "", errs.InsufficientPermissions
 	}
 
 	target, err := s.repo.FindUserByApartment(buildingID, apartmentNumber)
 	if err != nil {
 		s.log.Error("error finding user by apartment: %w", err)
-		return err
+		return "", err
 	}
 
 	if target == nil {
-		return errs.UserNotFound
+		return "", errs.UserNotFound
 	}
 
 	placeholder := User{

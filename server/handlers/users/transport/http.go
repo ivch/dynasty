@@ -29,7 +29,7 @@ type UsersService interface {
 	DeleteFamilyMember(ctx context.Context, ownerID, memberID uint) error
 	RecoveryCode(ctx context.Context, r *users.User) error
 	ResetPassword(ctx context.Context, code string, r *users.UserUpdate) error
-	AdminResetApartment(ctx context.Context, adminID, buildingID, apartmentNumber uint) error
+	AdminResetApartment(ctx context.Context, adminID, buildingID, apartmentNumber uint) (string, error)
 }
 
 type HTTPTransport struct {
@@ -396,7 +396,8 @@ func (h *HTTPTransport) AdminResetApartment(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if err := h.svc.AdminResetApartment(r.Context(), adminID, req.BuildingID, req.Apartment); err != nil {
+	regCode, err := h.svc.AdminResetApartment(r.Context(), adminID, req.BuildingID, req.Apartment)
+	if err != nil {
 		if err == errs.InsufficientPermissions {
 			h.sendError(w, http.StatusForbidden, err)
 			return
@@ -405,7 +406,7 @@ func (h *HTTPTransport) AdminResetApartment(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	h.sendHTTPResponse(r.Context(), w, struct{}{})
+	h.sendHTTPResponse(r.Context(), w, adminResetApartmentResponse{RegCode: regCode})
 }
 
 func getUserID(ctx context.Context) (uint, error) {

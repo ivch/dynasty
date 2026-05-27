@@ -17,7 +17,7 @@ var _ UserRepository = &UserRepositoryMock{}
 //
 //		// make and configure a mocked UserRepository
 //		mockedUserRepository := &UserRepositoryMock{
-//			AdminResetApartmentFunc: func(targetID uint, placeholder *User) error {
+//			AdminResetApartmentFunc: func(targetID uint, placeholder *User) (string, error) {
 //				panic("mock out the AdminResetApartment method")
 //			},
 //			CountRecoveryCodesByUserIn24hFunc: func(userID uint) (int, error) {
@@ -73,7 +73,7 @@ var _ UserRepository = &UserRepositoryMock{}
 //	}
 type UserRepositoryMock struct {
 	// AdminResetApartmentFunc mocks the AdminResetApartment method.
-	AdminResetApartmentFunc func(targetID uint, placeholder *User) error
+	AdminResetApartmentFunc func(targetID uint, placeholder *User) (string, error)
 
 	// CountRecoveryCodesByUserIn24hFunc mocks the CountRecoveryCodesByUserIn24h method.
 	CountRecoveryCodesByUserIn24hFunc func(userID uint) (int, error)
@@ -226,7 +226,7 @@ type UserRepositoryMock struct {
 }
 
 // AdminResetApartment calls AdminResetApartmentFunc.
-func (mock *UserRepositoryMock) AdminResetApartment(targetID uint, placeholder *User) error {
+func (mock *UserRepositoryMock) AdminResetApartment(targetID uint, placeholder *User) (string, error) {
 	if mock.AdminResetApartmentFunc == nil {
 		panic("UserRepositoryMock.AdminResetApartmentFunc: method is nil but UserRepository.AdminResetApartment was just called")
 	}

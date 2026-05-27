@@ -113,3 +113,7 @@ type adminResetApartmentRequest struct {
 	BuildingID uint `json:"building_id"`
 	Apartment  uint `json:"apartment"`
 }
+
+type adminResetApartmentResponse struct {
+	RegCode string `json:"reg_code"`
+}

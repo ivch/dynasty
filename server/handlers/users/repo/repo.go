@@ -148,8 +148,10 @@ func (r *Repo) ResetPassword(codeID uint, req *users.UserUpdate) error {
 	})
 }
 
-func (r *Repo) AdminResetApartment(targetID uint, placeholder *users.User) error {
-	return r.db.Transaction(func(tx *gorm.DB) error {
+func (r *Repo) AdminResetApartment(targetID uint, placeholder *users.User) (string, error) {
+	var selected string
+
+	err := r.db.Transaction(func(tx *gorm.DB) error {
 		var codes []string
 		if err := tx.Table("reg_codes").Where("used = ?", false).Pluck("code", &codes).Error; err != nil {
 			return err
@@ -157,19 +159,21 @@ func (r *Repo) AdminResetApartment(targetID uint, placeholder *users.User) error
 		if len(codes) == 0 {
 			return errs.NoRegCodesAvailable
 		}
-		code := codes[0]
+		selected = codes[0]
 
 		if err := tx.Where("id = ?", targetID).Delete(users.User{}).Error; err != nil {
 			return err
 		}
 
-		placeholder.RegCode = code
+		placeholder.RegCode = selected
 		if err := tx.Create(placeholder).Error; err != nil {
 			return err
 		}
 
-		return tx.Exec("update reg_codes set used = true where code = ?", code).Error
+		return tx.Exec("update reg_codes set used = true where code = ?", selected).Error
 	})
+
+	return selected, err
 }
 
 func prepareUpdateQuery(req *users.UserUpdate) map[string]interface{} {
